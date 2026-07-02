@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { ClipboardCheck, GitMerge, ShieldCheck, Trophy, XCircle } from "lucide-react";
 
+import { HackathonJsonImporter } from "@/components/admin/hackathon-json-importer";
 import { SubmissionReviewCard } from "@/components/admin/submission-review-card";
 import { requireAdminUser } from "@/lib/auth";
 import { listHackathonSubmissions } from "@/lib/hackathons/review-service";
@@ -50,6 +51,10 @@ export default async function AdminPage() {
               <p className="mt-1 text-3xl font-semibold text-black">{value}</p>
             </div>
           ))}
+        </section>
+
+        <section className="rounded-lg border border-black/10 bg-white p-6">
+          <HackathonJsonImporter />
         </section>
 
         <section className="space-y-4">

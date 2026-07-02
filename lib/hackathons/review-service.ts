@@ -21,9 +21,19 @@ import {
   slugify,
 } from "@/lib/hackathons/utils";
 import type { HackathonSubmissionInput, NormalizedHackathonPayload } from "@/lib/hackathons/utils";
-import { reviewActionSchema } from "@/lib/validations/hackathon";
+import { adminHackathonImportPayloadSchema, reviewActionSchema } from "@/lib/validations/hackathon";
 
 export type ReviewAction = z.infer<typeof reviewActionSchema>;
+export type AdminHackathonImportPayload = z.infer<typeof adminHackathonImportPayloadSchema>;
+
+const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function payloadWithValidOrganizationId(payload: AdminHackathonImportPayload): NormalizedHackathonPayload {
+  return {
+    ...payload,
+    organizationId: payload.organizationId && uuidPattern.test(payload.organizationId) ? payload.organizationId : undefined,
+  };
+}
 
 async function findOrganizationByName(name: string | undefined) {
   if (!name) {
@@ -342,6 +352,90 @@ export async function createHackathonSubmission(input: HackathonSubmissionInput,
     .returning();
 
   return { submission, publishedHackathonId: null, publishedDirectly: false };
+}
+
+export async function importAdminHackathons(input: { payloads: AdminHackathonImportPayload[]; reviewerUserId: string }) {
+  const results: Array<{
+    duplicateScore: number;
+    externalId?: string;
+    hackathonId?: string;
+    index: number;
+    matchedHackathonId?: string;
+    name: string;
+    status: "imported" | "duplicate_queued";
+    submissionId: string;
+  }> = [];
+
+  for (const [index, rawPayload] of input.payloads.entries()) {
+    const payload = payloadWithValidOrganizationId(rawPayload);
+    const duplicate = await findBestDuplicate(payload);
+    const duplicateScore = Number((duplicate?.score ?? 0).toFixed(2));
+
+    if (duplicate) {
+      const [submission] = await db
+        .insert(hackathonSubmissions)
+        .values({
+          submittedByUserId: input.reviewerUserId,
+          submitterType: "community",
+          organizationId: payload.organizationId ?? null,
+          matchedHackathonId: duplicate.id,
+          status: "pending",
+          payload: payloadForJson({ ...payload, submitterType: "community" }),
+          normalizedName: payload.name,
+          websiteUrl: payload.websiteUrl,
+          sourceUrl: payload.sourceUrl ?? payload.websiteUrl,
+          duplicateScore: duplicateScore.toFixed(2),
+        })
+        .returning({ id: hackathonSubmissions.id });
+
+      results.push({
+        duplicateScore,
+        externalId: rawPayload.externalId,
+        index,
+        matchedHackathonId: duplicate.id,
+        name: payload.name,
+        status: "duplicate_queued",
+        submissionId: submission.id,
+      });
+      continue;
+    }
+
+    const hackathonId = await createPublishedHackathon(payload);
+    const [submission] = await db
+      .insert(hackathonSubmissions)
+      .values({
+        submittedByUserId: input.reviewerUserId,
+        submitterType: "community",
+        organizationId: payload.organizationId ?? null,
+        approvedHackathonId: hackathonId,
+        status: "approved",
+        payload: payloadForJson({ ...payload, submitterType: "community" }),
+        normalizedName: payload.name,
+        websiteUrl: payload.websiteUrl,
+        sourceUrl: payload.sourceUrl ?? payload.websiteUrl,
+        duplicateScore: "0.00",
+        reviewedByUserId: input.reviewerUserId,
+        reviewedAt: new Date(),
+      })
+      .returning({ id: hackathonSubmissions.id });
+
+    results.push({
+      duplicateScore,
+      externalId: rawPayload.externalId,
+      hackathonId,
+      index,
+      name: payload.name,
+      status: "imported",
+      submissionId: submission.id,
+    });
+  }
+
+  return {
+    duplicateCount: results.filter((result) => result.status === "duplicate_queued").length,
+    importedCount: results.filter((result) => result.status === "imported").length,
+    results,
+    total: results.length,
+  };
 }
 
 export async function reviewHackathonSubmission(input: {

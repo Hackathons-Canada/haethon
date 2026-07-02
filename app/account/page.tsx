@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { and, desc, eq, isNotNull, or } from "drizzle-orm";
-import { Activity, Bookmark, CheckCircle2, Settings, Trophy, UserRound } from "lucide-react";
 
 import { AccountProfileForm } from "@/components/forms/account-profile-form";
 import { getCurrentUserContext } from "@/lib/auth";
@@ -17,14 +16,6 @@ import {
   userProfiles,
 } from "@/lib/db/schema";
 import { dateToInputValue } from "@/lib/hackathons/utils";
-
-const sidebarItems = [
-  { label: "Profile", href: "#profile", icon: UserRound },
-  { label: "Saved", href: "#saved", icon: Bookmark },
-  { label: "Submissions", href: "#submissions", icon: CheckCircle2 },
-  { label: "Activity", href: "#activity", icon: Activity },
-  { label: "Settings", href: "/account/settings", icon: Settings },
-];
 
 function activityCells(attendance: { attendedOn: Date }[]) {
   const today = new Date();
@@ -46,6 +37,8 @@ function activityCells(attendance: { attendedOn: Date }[]) {
 
   return cells;
 }
+
+const sectionHeadingClassName = "text-sm font-semibold uppercase tracking-[0.2em] text-[#660000]";
 
 export default async function AccountPage() {
   const context = await getCurrentUserContext();
@@ -107,26 +100,11 @@ export default async function AccountPage() {
   const cells = activityCells(attendance);
 
   return (
-    <main className="min-h-[calc(100vh-80px)] bg-[#EFEDEA] px-5 py-8 text-black sm:px-8 lg:px-12">
-      <div className="mx-auto grid w-full max-w-7xl gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
-        <aside className="rounded-lg border border-black/10 bg-white p-3 lg:sticky lg:top-28 lg:h-fit">
-          <nav aria-label="Account navigation" className="space-y-1">
-            {sidebarItems.map(({ label, href, icon: Icon }) => (
-              <Link
-                className="flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-black transition hover:bg-[#F7F7F4]"
-                href={href}
-                key={label}
-              >
-                <Icon aria-hidden="true" className="size-4 text-[#660000]" />
-                {label}
-              </Link>
-            ))}
-          </nav>
-        </aside>
-
+    <main className="min-h-[calc(100vh-80px)] bg-white px-5 py-8 text-black sm:px-8 lg:px-12">
+      <div className="mx-auto w-full max-w-[1120px]">
         <div className="space-y-6">
-          <section className="rounded-lg border border-black/10 bg-white p-6">
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#660000]">My account</p>
+          <section className="rounded-lg border border-black/10 bg-[#F7F7F4] p-6">
+            <p className={sectionHeadingClassName}>My account</p>
             <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
               <div>
                 <h1 className="text-3xl font-semibold text-black">
@@ -134,22 +112,26 @@ export default async function AccountPage() {
                 </h1>
                 <p className="mt-1 text-sm text-[#706F6B]">{context.user.email}</p>
               </div>
-              <div className="rounded-lg border border-black/10 bg-[#F7F7F4] px-4 py-3 text-sm font-semibold text-black">
-                {attendance.length} attended days
+              <div className="flex flex-wrap items-center gap-3">
+                <Link
+                  className="inline-flex min-h-10 items-center justify-center rounded-lg border border-[#660000] bg-white px-4 text-sm font-semibold text-[#660000] transition hover:bg-[#660000] hover:text-white focus-visible:bg-[#660000] focus-visible:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#660000]"
+                  href="/account/settings"
+                >
+                  Account Settings
+                </Link>
+                <div className="rounded-lg border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-black">
+                  {attendance.length} attended days
+                </div>
               </div>
             </div>
           </section>
 
-          <section id="profile" className="space-y-3">
-            <h2 className="text-2xl font-semibold text-black">Profile</h2>
+          <section id="profile">
             <AccountProfileForm profile={profile ?? null} />
           </section>
 
-          <section id="activity" className="rounded-lg border border-black/10 bg-white p-5">
-            <div className="flex items-center gap-2">
-              <Activity aria-hidden="true" className="size-5 text-[#660000]" />
-              <h2 className="text-xl font-semibold text-black">Activity</h2>
-            </div>
+          <section id="activity" className="rounded-lg border border-black/10 bg-[#F7F7F4] p-5">
+            <h2 className={sectionHeadingClassName}>Activity</h2>
             <div className="mt-4 grid grid-flow-col grid-rows-7 gap-1 overflow-x-auto pb-1">
               {cells.map((cell) => (
                 <div
@@ -164,15 +146,12 @@ export default async function AccountPage() {
           </section>
 
           <div className="grid gap-6 xl:grid-cols-2">
-            <section id="saved" className="rounded-lg border border-black/10 bg-white p-5">
-              <div className="flex items-center gap-2">
-                <Bookmark aria-hidden="true" className="size-5 text-[#660000]" />
-                <h2 className="text-xl font-semibold text-black">Saved hackathons</h2>
-              </div>
+            <section id="saved" className="rounded-lg border border-black/10 bg-[#F7F7F4] p-5">
+              <h2 className={sectionHeadingClassName}>Saved hackathons</h2>
               <div className="mt-4 space-y-3">
                 {savedHackathons.length ? (
                   savedHackathons.map((hackathon) => (
-                    <div className="rounded-lg border border-black/10 bg-[#F7F7F4] p-4" key={hackathon.id}>
+                    <div className="rounded-lg border border-black/10 bg-white p-4" key={hackathon.id}>
                       <p className="font-semibold text-black">{hackathon.hackathonName}</p>
                       <p className="mt-1 text-sm text-[#706F6B]">
                         {[hackathon.city, hackathon.region, hackathon.country].filter(Boolean).join(", ")} ·{" "}
@@ -189,15 +168,12 @@ export default async function AccountPage() {
               </div>
             </section>
 
-            <section className="rounded-lg border border-black/10 bg-white p-5">
-              <div className="flex items-center gap-2">
-                <Trophy aria-hidden="true" className="size-5 text-[#660000]" />
-                <h2 className="text-xl font-semibold text-black">Verified wins</h2>
-              </div>
+            <section className="rounded-lg border border-black/10 bg-[#F7F7F4] p-5">
+              <h2 className={sectionHeadingClassName}>Verified wins</h2>
               <div className="mt-4 space-y-3">
                 {wins.length ? (
                   wins.map((win) => (
-                    <div className="rounded-lg border border-black/10 bg-[#F7F7F4] p-4" key={win.id}>
+                    <div className="rounded-lg border border-black/10 bg-white p-4" key={win.id}>
                       <p className="font-semibold text-black">{win.hackathonName}</p>
                       <p className="mt-1 text-sm text-[#706F6B]">{win.awardName ?? win.placement}</p>
                     </div>
@@ -209,11 +185,8 @@ export default async function AccountPage() {
             </section>
           </div>
 
-          <section id="submissions" className="rounded-lg border border-black/10 bg-white p-5">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 aria-hidden="true" className="size-5 text-[#660000]" />
-              <h2 className="text-xl font-semibold text-black">Submissions</h2>
-            </div>
+          <section id="submissions" className="rounded-lg border border-black/10 bg-[#F7F7F4] p-5">
+            <h2 className={sectionHeadingClassName}>Submissions</h2>
             <div className="mt-4 overflow-x-auto">
               <table className="w-full min-w-[640px] text-left text-sm">
                 <thead className="border-b border-black/10 text-xs uppercase tracking-[0.16em] text-[#706F6B]">

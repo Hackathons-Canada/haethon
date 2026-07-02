@@ -58,6 +58,19 @@ const normalizedHackathonPayloadBaseSchema = z.object({
 
 export const normalizedHackathonPayloadSchema = normalizedHackathonPayloadBaseSchema.superRefine(dateRangeRefinement);
 
+export const adminHackathonImportPayloadSchema = normalizedHackathonPayloadBaseSchema
+  .extend({
+    externalId: optionalString(200),
+  })
+  .superRefine(dateRangeRefinement);
+
+export const adminHackathonImportSchema = z.preprocess(
+  (value) => (Array.isArray(value) ? { hackathons: value } : value),
+  z.object({
+    hackathons: z.array(adminHackathonImportPayloadSchema).min(1).max(100),
+  })
+);
+
 export const organizerSubmissionSchema = normalizedHackathonPayloadBaseSchema
   .extend({
     submitterType: z.literal("organizer"),

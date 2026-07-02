@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  adminHackathonImportSchema,
   communitySubmissionSchema,
   hackathonSearchSchema,
   organizerSubmissionSchema,
@@ -70,6 +71,30 @@ describe("hackathon submission schemas", () => {
     });
 
     expect(result.success).toBe(false);
+  });
+});
+
+describe("adminHackathonImportSchema", () => {
+  const payload = {
+    name: "Waterloo Build Weekend",
+    organizationName: "Waterloo Builders",
+    websiteUrl: "https://example.com",
+    country: "Canada",
+    startDate: "2026-09-12",
+    endDate: "2026-09-14",
+    format: "in_person",
+  };
+
+  it("accepts a pasted array of hackathons", () => {
+    const result = adminHackathonImportSchema.safeParse([payload]);
+
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts a wrapped hackathons array", () => {
+    const result = adminHackathonImportSchema.safeParse({ hackathons: [payload] });
+
+    expect(result.success).toBe(true);
   });
 });
 

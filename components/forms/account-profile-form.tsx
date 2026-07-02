@@ -18,8 +18,9 @@ type ProfileValues = {
 };
 
 const inputClassName =
-  "w-full rounded-lg border border-black/15 bg-white px-3 py-2.5 text-sm text-black outline-none transition focus:border-[#660000] focus:ring-2 focus:ring-[#660000]/15";
+  "w-full rounded-lg border border-black/15 bg-white px-3 py-2.5 text-sm text-black outline-none transition placeholder:text-[#706F6B] focus:border-[#660000] focus:bg-white focus:ring-2 focus:ring-[#660000]/15";
 const labelClassName = "mb-1.5 block text-sm font-semibold text-black";
+const headingClassName = "text-sm font-semibold uppercase tracking-[0.2em] text-[#660000]";
 
 function formValue(formData: FormData, name: keyof ProfileValues) {
   return formData.get(name)?.toString() ?? "";
@@ -57,8 +58,10 @@ export function AccountProfileForm({ profile }: { profile: ProfileValues | null 
   }
 
   return (
-    <form onSubmit={onSubmit} className="rounded-lg border border-black/10 bg-white p-5">
-      <div className="grid gap-4 md:grid-cols-2">
+    <form onSubmit={onSubmit} className="rounded-lg border border-black/10 bg-[#F7F7F4] p-5">
+      <h2 className={headingClassName}>Profile</h2>
+
+      <div className="mt-4 grid gap-4 md:grid-cols-2">
         <div>
           <label className={labelClassName} htmlFor="headline">
             Headline
@@ -120,7 +123,7 @@ export function AccountProfileForm({ profile }: { profile: ProfileValues | null 
         <button
           disabled={status === "saving"}
           type="submit"
-          className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-[#660000] px-4 text-sm font-semibold text-white transition hover:bg-[#4d0000] disabled:opacity-60"
+          className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-[#660000] px-4 text-sm font-semibold text-[#EFEDEA] transition hover:bg-[#4d0000] disabled:opacity-60"
         >
           <Save aria-hidden="true" className="size-4" />
           {status === "saving" ? "Saving" : "Save profile"}
