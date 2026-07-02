@@ -1,0 +1,11 @@
+allowBuilds:
+  '@clerk/shared': true
+  '@sentry/cli': true
+  core-js: true
+  esbuild: true
+  msgpackr-extract: true
+  sharp: true
+  unrs-resolver: true
+ignoredBuiltDependencies:
+  - sharp
+  - unrs-resolver

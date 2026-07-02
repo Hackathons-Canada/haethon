@@ -1,0 +1,56 @@
+import { config } from "dotenv";
+import { defineConfig } from "drizzle-kit";
+import { z } from "zod";
+
+config({ path: ".env.local" });
+config();
+
+const env = z.object({
+  DATABASE_URL: z.string().url(),
+});
+
+const parsed = env.safeParse(process.env);
+
+if (!parsed.success) {
+  console.error("Missing DATABASE_URL for Drizzle.");
+  process.exit(1);
+}
+
+const appTables = [
+  "achievements",
+  "discord_channels",
+  "discord_guilds",
+  "hackathon_dates",
+  "hackathon_locations",
+  "hackathon_results",
+  "hackathon_tags",
+  "hackathons",
+  "import_batches",
+  "import_items",
+  "notifications",
+  "organizations",
+  "organizer_claims",
+  "organizer_leads",
+  "projects",
+  "reminders",
+  "sources",
+  "sponsor_leads",
+  "tags",
+  "user_hackathons",
+  "user_profiles",
+  "users",
+];
+
+export default defineConfig({
+  dialect: "postgresql",
+  schema: "./lib/db/schema.ts",
+  out: "./drizzle",
+  dbCredentials: {
+    url: parsed.data.DATABASE_URL,
+  },
+  schemaFilter: ["public"],
+  tablesFilter: appTables,
+  extensionsFilters: ["postgis"],
+  verbose: true,
+  strict: true,
+});
