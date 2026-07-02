@@ -1,16 +1,30 @@
 import Link from "next/link";
+import type { LucideIcon } from "lucide-react";
 import {
   ArrowRight,
+  Bell,
   Building2,
+  CalendarDays,
+  ClipboardCheck,
   ClipboardList,
+  Code2,
+  MapPin,
   Maximize2,
+  Megaphone,
+  Rocket,
   Search,
+  Sparkles,
+  Target,
+  Trophy,
+  UsersRound,
 } from "lucide-react";
+
+import { NavAuthLink } from "@/components/nav-auth-link";
 
 const navItems = [
   { label: "About", href: "#about" },
   { label: "FQA", href: "#fqa" },
-  { label: "New entry", href: "/submit" },
+  { label: "Submit", href: "/submit" },
   { label: "Hackathons", href: "/hackathons" },
 ];
 
@@ -45,6 +59,241 @@ const audienceCards = [
     icon: Building2,
   },
 ];
+
+type HeroDecoration = {
+  name: string;
+  Icon: LucideIcon;
+  className: string;
+  badgeClassName: string;
+  sizeClassName?: string;
+  iconClassName?: string;
+  notification?: string;
+  marks?: "arc" | "bits" | "spark" | "zigzag";
+};
+
+const heroDecorations: HeroDecoration[] = [
+  {
+    name: "deadline calendar",
+    Icon: CalendarDays,
+    className: "-left-3 -top-10 rotate-[-12deg] xl:-left-[4.75rem]",
+    badgeClassName: "bg-[#FFD166]",
+    sizeClassName: "size-16",
+    notification: "3",
+    marks: "arc",
+  },
+  {
+    name: "team match",
+    Icon: UsersRound,
+    className: "left-[15%] -top-8 rotate-[7deg]",
+    badgeClassName: "bg-[#F4F1EA]",
+    sizeClassName: "size-11",
+    iconClassName: "text-[#3F3E3B]",
+    marks: "spark",
+  },
+  {
+    name: "location",
+    Icon: MapPin,
+    className: "-left-14 top-[23%] rotate-[10deg] xl:-left-[5.75rem]",
+    badgeClassName: "bg-[#9EDCF3]",
+    sizeClassName: "size-14",
+  },
+  {
+    name: "project code",
+    Icon: Code2,
+    className: "-left-8 top-[47%] rotate-[-7deg] xl:-left-[4.5rem]",
+    badgeClassName: "bg-[#FF7B67]",
+    sizeClassName: "size-12",
+    notification: "8",
+    marks: "bits",
+  },
+  {
+    name: "winner",
+    Icon: Trophy,
+    className: "-left-2 bottom-[1%] rotate-[8deg] xl:-left-[5rem]",
+    badgeClassName: "bg-[#FFB64D]",
+    sizeClassName: "size-16",
+  },
+  {
+    name: "reminder",
+    Icon: Bell,
+    className: "bottom-[-7%] left-[20%] rotate-[-10deg]",
+    badgeClassName: "bg-[#E8E3DA]",
+    sizeClassName: "size-11",
+    iconClassName: "text-[#3F3E3B]",
+    notification: "1",
+  },
+  {
+    name: "launch",
+    Icon: Rocket,
+    className: "right-[14%] -top-12 rotate-[13deg]",
+    badgeClassName: "bg-[#B78CFF]",
+    sizeClassName: "size-14",
+    marks: "spark",
+  },
+  {
+    name: "submission checklist",
+    Icon: ClipboardCheck,
+    className: "-right-4 -top-6 rotate-[3deg] xl:-right-[5rem]",
+    badgeClassName: "bg-[#C99BFF]",
+    sizeClassName: "size-16",
+    notification: "2",
+  },
+  {
+    name: "event search",
+    Icon: Search,
+    className: "-right-14 top-[24%] rotate-[-11deg] xl:-right-[5.75rem]",
+    badgeClassName: "bg-[#F4F1EA]",
+    sizeClassName: "size-12",
+    iconClassName: "text-[#3F3E3B]",
+  },
+  {
+    name: "goal",
+    Icon: Target,
+    className: "-right-6 top-[51%] rotate-[9deg] xl:-right-[4.75rem]",
+    badgeClassName: "bg-[#FF9F43]",
+    sizeClassName: "size-16",
+    notification: "5",
+    marks: "zigzag",
+  },
+  {
+    name: "sponsor call",
+    Icon: Megaphone,
+    className: "right-[3%] bottom-[6%] rotate-[-8deg] xl:-right-[4.25rem]",
+    badgeClassName: "bg-[#F178CE]",
+    sizeClassName: "size-14",
+  },
+  {
+    name: "featured",
+    Icon: Sparkles,
+    className: "bottom-[-8%] right-[24%] rotate-[8deg]",
+    badgeClassName: "bg-[#86D9A4]",
+    sizeClassName: "size-10",
+  },
+];
+
+function HeroMotionMarks({ type }: { type: NonNullable<HeroDecoration["marks"]> }) {
+  if (type === "arc") {
+    return (
+      <svg
+        aria-hidden="true"
+        className="absolute -left-14 -top-8 h-12 w-24 -rotate-6 text-[#3F3E3B]"
+        fill="none"
+        viewBox="0 0 96 48"
+      >
+        <path
+          d="M6 33C25 10 55 6 86 23"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeWidth="2.4"
+        />
+        <path
+          d="M16 38C34 22 58 19 80 31"
+          opacity="0.38"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeWidth="2"
+        />
+      </svg>
+    );
+  }
+
+  if (type === "bits") {
+    return (
+      <svg
+        aria-hidden="true"
+        className="absolute -right-9 -top-3 h-11 w-11 rotate-12"
+        fill="none"
+        viewBox="0 0 44 44"
+      >
+        <rect fill="#2F80ED" height="8" rx="2" width="8" x="6" y="19" />
+        <rect fill="#34A853" height="8" rx="2" width="8" x="18" y="26" />
+        <rect fill="#FFCC4D" height="8" rx="2" width="8" x="19" y="10" />
+        <rect fill="#FF3B30" height="8" rx="2" width="8" x="30" y="18" />
+      </svg>
+    );
+  }
+
+  if (type === "spark") {
+    return (
+      <svg
+        aria-hidden="true"
+        className="absolute -right-7 -top-8 h-8 w-8 text-[#3F3E3B]"
+        fill="currentColor"
+        viewBox="0 0 32 32"
+      >
+        <path d="M12 3l2.1 6.2L20 12l-5.9 2.8L12 21l-2.1-6.2L4 12l5.9-2.8L12 3Z" />
+        <path d="M24 15l1.2 3.4L29 20l-3.8 1.6L24 25l-1.2-3.4L19 20l3.8-1.6L24 15Z" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg
+      aria-hidden="true"
+      className="absolute -right-12 -top-7 h-14 w-16 text-[#3F3E3B]"
+      fill="none"
+      viewBox="0 0 64 56"
+    >
+      <path
+        d="M9 38c12-4 7-20 23-22"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="2.4"
+      />
+      <path
+        d="M38 9c-5 8-3 15 9 20"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="2.4"
+      />
+    </svg>
+  );
+}
+
+function HeroIconSticker({ decoration }: { decoration: HeroDecoration }) {
+  const {
+    Icon,
+    badgeClassName,
+    className,
+    iconClassName = "text-black",
+    marks,
+    notification,
+    sizeClassName = "size-14",
+  } = decoration;
+
+  return (
+    <div className={`absolute ${className}`}>
+      {marks ? <HeroMotionMarks type={marks} /> : null}
+      <div
+        className={`relative grid place-items-center rounded-full border-2 border-white shadow-[0_12px_32px_rgba(0,0,0,0.16)] ${sizeClassName} ${badgeClassName}`}
+      >
+        <Icon
+          aria-hidden="true"
+          className={`size-[46%] ${iconClassName}`}
+          strokeWidth={2.35}
+        />
+        {notification ? (
+          <span className="absolute -right-1 -top-1 grid size-5 place-items-center rounded-full bg-[#FF3B30] text-[10px] font-semibold leading-none text-white shadow-[0_2px_8px_rgba(255,59,48,0.32)]">
+            {notification}
+          </span>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function HeroIconCloud() {
+  return (
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-y-0 left-0 right-0 z-0 hidden lg:block"
+    >
+      {heroDecorations.map((decoration) => (
+        <HeroIconSticker decoration={decoration} key={decoration.name} />
+      ))}
+    </div>
+  );
+}
 
 function CompanyLogoStrip({ hidden = false }: { hidden?: boolean }) {
   return (
@@ -127,9 +376,9 @@ export default function Home() {
     <main className="min-h-screen overflow-hidden bg-white text-black">
       <nav
         aria-label="Primary navigation"
-        className="border-b border-black/10 bg-white px-5 font-mono text-xs font-medium uppercase tracking-[0.14em] text-[#706F6B] sm:px-8 lg:px-12"
+        className="border-b border-black/10 bg-white px-8 font-mono text-xs font-medium uppercase tracking-[0.14em] text-[#706F6B] sm:px-14 lg:px-20"
       >
-        <div className="mx-auto flex min-h-20 max-w-[1280px] flex-col items-start justify-center gap-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:py-0">
+        <div className="mx-auto flex min-h-20 max-w-[1120px] flex-col items-start justify-center gap-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:py-0">
           <Link
             href="/"
             className={`${navLinkClassName} font-serif text-xl font-semibold normal-case leading-none tracking-normal text-black sm:text-2xl`}
@@ -147,17 +396,13 @@ export default function Home() {
                 {item.label}
               </Link>
             ))}
-            <Link href="/sign-in" className={loginLinkClassName}>
-              Login
-            </Link>
+            <NavAuthLink className={loginLinkClassName} />
           </div>
         </div>
       </nav>
 
-      <section className="relative isolate min-h-[calc(100vh-68px)] overflow-hidden bg-white px-5 pb-36 pt-24 sm:px-8 sm:pb-44 sm:pt-32 md:pb-56 md:pt-44 lg:px-12">
-        <div aria-hidden="true" className="hero-aurora" />
-
-        <div className="relative z-10 mx-auto max-w-[1280px]">
+      <section className="relative isolate min-h-[calc(100vh-68px)] overflow-hidden bg-white px-8 pb-[4.5rem] pt-24 sm:px-14 sm:pb-[5.5rem] sm:pt-32 md:pb-28 md:pt-44 lg:px-20">
+        <div className="relative z-10 mx-auto max-w-[1120px]">
           <div className="grid items-end gap-8 md:grid-cols-[minmax(0,1fr)_auto]">
             <div>
               <h1 className="max-w-[1120px] text-[2.55rem] font-semibold leading-[1.02] tracking-normal text-black sm:text-[3rem] lg:text-[3.2rem]">
@@ -175,7 +420,6 @@ export default function Home() {
               href="/hackathons"
               className="inline-flex w-fit items-center gap-3 justify-self-start text-sm font-medium text-[#706F6B] hover:text-[#660000] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#660000]/35 md:mb-1 md:justify-self-end"
             >
-              <span className="font-semibold text-[#660000]">New</span>
               <span>Browse events</span>
               <ArrowRight
                 aria-hidden="true"
@@ -185,8 +429,9 @@ export default function Home() {
             </Link>
           </div>
 
-          <div className="relative mt-20 sm:mt-24">
-            <div className="relative mx-auto h-[74vh] max-h-[760px] min-h-[520px] w-full overflow-hidden rounded-xl border border-black/15 bg-white shadow-[0_34px_110px_rgba(0,0,0,0.14)] sm:min-h-[600px] lg:min-h-[650px]">
+          <div className="relative mt-16 sm:mt-20">
+            <HeroIconCloud />
+            <div className="relative z-10 mx-auto h-[74vh] max-h-[760px] min-h-[520px] w-full overflow-hidden rounded-xl border border-black/15 bg-white shadow-[0_34px_110px_rgba(0,0,0,0.14)] sm:min-h-[600px] lg:min-h-[650px]">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_35%_10%,_rgba(102,0,0,0.05),_rgba(255,255,255,0)_34%)]" />
               <div className="relative grid h-full grid-cols-[18%_1fr_25%] text-[12px] text-[#706F6B]">
                 <aside className="border-r border-black/10 bg-[#F8F8F4]/95">
@@ -264,17 +509,15 @@ export default function Home() {
                 </div>
               </div>
             </div>
-
-            <div className="mx-auto mt-4 h-1 w-10 rounded-full border border-black/35 bg-white" />
           </div>
         </div>
       </section>
 
       <section
         aria-labelledby="company-network-heading"
-        className="bg-white px-5 pb-16 pt-20 text-left sm:px-8 sm:pb-20 sm:pt-24 lg:px-12"
+        className="bg-white px-8 pb-16 pt-20 text-left sm:px-14 sm:pb-20 sm:pt-24 lg:px-20"
       >
-        <div className="mx-auto max-w-[1160px]">
+        <div className="mx-auto max-w-[1120px]">
           <h2
             id="company-network-heading"
             className="text-sm font-medium tracking-normal text-[#706F6B]"
@@ -302,16 +545,14 @@ export default function Home() {
           </div>
 
           <div className="mt-24 text-left">
-            <div className="mx-auto max-w-[1060px]">
-              <h2 className="max-w-[760px] text-[0.9375rem] font-semibold leading-[1.25] tracking-normal text-black sm:text-lg lg:text-[1.325rem]">
-                Built for hackers, organizers, and sponsors alike. Discover
-                hackathons, grow your hacker profile, organize better events
-                with proven resources, and connect companies with the next
-                generation of builders—all from a single platform.
-              </h2>
-            </div>
+            <h2 className="max-w-[760px] text-[0.9375rem] font-semibold leading-[1.25] tracking-normal text-black sm:text-lg lg:text-[1.325rem]">
+              Built for hackers, organizers, and sponsors alike. Discover
+              hackathons, grow your hacker profile, organize better events with
+              proven resources, and connect companies with the next generation
+              of builders—all from a single platform.
+            </h2>
 
-            <div className="mx-auto mt-10 grid max-w-[1060px] gap-4 md:grid-cols-[1.95fr_1fr]">
+            <div className="mt-10 grid gap-4 md:grid-cols-[1.95fr_1fr]">
               <article className="relative min-h-[460px] overflow-hidden rounded border border-black/10 bg-white p-5 text-left shadow-[0_18px_54px_rgba(0,0,0,0.06)] sm:p-7">
                 <div className="relative z-10 flex items-start justify-between gap-4">
                   <h3 className="max-w-[420px] text-2xl font-semibold leading-tight text-black sm:text-[1.7rem]">

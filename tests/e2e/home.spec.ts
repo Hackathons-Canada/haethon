@@ -7,7 +7,7 @@ test("loads the home page shell", async ({ page }) => {
   await expect(page.getByRole("navigation", { name: "Primary navigation" })).toBeVisible();
   await expect(page.getByRole("link", { name: "About", exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "FQA", exact: true })).toBeVisible();
-  await expect(page.getByRole("link", { name: "New entry", exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Submit", exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "Hackathons", exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "Login", exact: true })).toHaveAttribute("href", "/sign-in");
   await expect(

@@ -2,7 +2,7 @@ import { HackathonSubmissionForm } from "@/components/forms/hackathon-submission
 
 export default function SubmitPage() {
   return (
-    <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-8 px-6 py-14 md:px-10">
+    <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-8 px-10 py-14 md:px-16">
       <div className="space-y-3">
         <p className="text-sm uppercase tracking-[0.25em] text-amber-300">Organizer workflow</p>
         <h1 className="text-4xl font-semibold text-white">Submit a hackathon</h1>

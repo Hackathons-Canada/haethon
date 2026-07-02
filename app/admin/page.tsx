@@ -16,7 +16,7 @@ export default async function AdminPage() {
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-6 py-14 md:px-10">
+    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-10 py-14 md:px-16">
       <div className="space-y-3">
         <p className="text-sm uppercase tracking-[0.25em] text-amber-300">Admin console</p>
         <h1 className="text-4xl font-semibold text-white">Import review and operations surface</h1>
