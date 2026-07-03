@@ -26,6 +26,7 @@ export async function GET(request: Request) {
       name: hackathons.name,
       slug: hackathons.slug,
       shortDescription: hackathons.shortDescription,
+      imageUrl: hackathons.imageUrl,
       format: hackathons.format,
       status: hackathons.status,
       voteScore: hackathons.voteScore,

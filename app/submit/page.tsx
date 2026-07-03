@@ -18,10 +18,10 @@ const loginLinkClassName =
 
 export default function SubmitPage() {
   return (
-    <div className="min-h-screen bg-[#E6E6E6] text-[#181818]">
+    <div className="min-h-screen bg-white text-[#181818]">
       <nav
         aria-label="Primary navigation"
-        className="border-b border-black/10 bg-[#E6E6E6] px-8 font-mono text-xs font-medium uppercase tracking-[0.14em] text-[#666666] sm:px-14 lg:px-20"
+        className="border-b border-black/10 bg-white px-8 font-mono text-xs font-medium uppercase tracking-[0.14em] text-[#666666] sm:px-14 lg:px-20"
       >
         <div className="mx-auto flex min-h-20 max-w-[1120px] flex-col items-start justify-center gap-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:py-0">
           <Link

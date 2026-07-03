@@ -133,6 +133,7 @@ export const hackathons = pgTable(
     slug: varchar("slug", { length: 200 }).notNull().unique(),
     shortDescription: text("short_description"),
     websiteUrl: text("website_url"),
+    imageUrl: text("image_url"),
     applicationUrl: text("application_url"),
     devpostUrl: text("devpost_url"),
     discordUrl: text("discord_url"),

@@ -30,6 +30,7 @@ const sampleJson = `[
     "name": "Waterloo Build Weekend",
     "organizationName": "Waterloo Builders",
     "websiteUrl": "https://example.com",
+    "imageUrl": "https://images.unsplash.com/photo-1517048676732-d65bc937f952",
     "sourceUrl": "https://example.com/event",
     "country": "Canada",
     "startDate": "2026-09-12",

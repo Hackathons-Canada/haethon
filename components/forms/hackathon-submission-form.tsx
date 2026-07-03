@@ -39,6 +39,7 @@ export function HackathonSubmissionForm() {
       country: fieldValue(formData, "country"),
       city: fieldValue(formData, "city"),
       region: fieldValue(formData, "region"),
+      imageUrl: fieldValue(formData, "imageUrl"),
       applicationUrl: fieldValue(formData, "applicationUrl"),
       shortDescription: fieldValue(formData, "shortDescription"),
     };
@@ -166,6 +167,12 @@ export function HackathonSubmissionForm() {
               Application URL
             </label>
             <input id="applicationUrl" name="applicationUrl" type="url" className={inputClassName} />
+          </div>
+          <div>
+            <label className={labelClassName} htmlFor="imageUrl">
+              Image URL
+            </label>
+            <input id="imageUrl" name="imageUrl" type="url" className={inputClassName} />
           </div>
         </div>
 

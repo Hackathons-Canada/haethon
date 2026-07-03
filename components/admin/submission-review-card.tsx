@@ -57,6 +57,7 @@ export function SubmissionReviewCard({ endpointBase, submission }: { endpointBas
       name: formData.get("name")?.toString() ?? submission.normalizedName,
       organizationName: formData.get("organizationName")?.toString() ?? "",
       websiteUrl: formData.get("websiteUrl")?.toString() ?? submission.websiteUrl,
+      imageUrl: formData.get("imageUrl")?.toString() ?? "",
       sourceUrl: formData.get("sourceUrl")?.toString() ?? submission.sourceUrl,
       applicationUrl: formData.get("applicationUrl")?.toString() ?? "",
       city: formData.get("city")?.toString() ?? "",
@@ -169,6 +170,18 @@ export function SubmissionReviewCard({ endpointBase, submission }: { endpointBas
               Source
             </label>
             <input id={`${submission.id}-sourceUrl`} name="sourceUrl" defaultValue={submission.sourceUrl} className={inputClassName} />
+          </div>
+          <div>
+            <label className={labelClassName} htmlFor={`${submission.id}-imageUrl`}>
+              Image URL
+            </label>
+            <input
+              id={`${submission.id}-imageUrl`}
+              name="imageUrl"
+              type="url"
+              defaultValue={value(submission.payload, "imageUrl")}
+              className={inputClassName}
+            />
           </div>
           <div>
             <label className={labelClassName} htmlFor={`${submission.id}-applicationUrl`}>

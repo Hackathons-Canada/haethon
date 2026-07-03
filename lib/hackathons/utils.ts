@@ -82,6 +82,7 @@ export function normalizeSubmissionPayload(input: HackathonSubmissionInput): Nor
   return {
     name: input.name,
     websiteUrl: input.websiteUrl ?? input.sourceUrl,
+    imageUrl: input.imageUrl,
     sourceUrl: input.sourceUrl,
     applicationUrl: input.applicationUrl,
     city: input.city,

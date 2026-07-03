@@ -174,6 +174,7 @@ export async function createPublishedHackathon(payload: NormalizedHackathonPaylo
       slug,
       shortDescription: payload.shortDescription,
       websiteUrl: payload.websiteUrl,
+      imageUrl: payload.imageUrl,
       applicationUrl: payload.applicationUrl,
       devpostUrl: payload.devpostUrl,
       discordUrl: payload.discordUrl,
@@ -229,6 +230,7 @@ export async function mergeIntoHackathon(targetHackathonId: string, payload: Nor
     .set({
       shortDescription: existing.shortDescription ?? payload.shortDescription,
       websiteUrl: existing.websiteUrl ?? payload.websiteUrl,
+      imageUrl: existing.imageUrl ?? payload.imageUrl,
       applicationUrl: existing.applicationUrl ?? payload.applicationUrl,
       devpostUrl: existing.devpostUrl ?? payload.devpostUrl,
       discordUrl: existing.discordUrl ?? payload.discordUrl,

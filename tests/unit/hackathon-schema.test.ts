@@ -43,6 +43,7 @@ describe("hackathon submission schemas", () => {
       name: "Waterloo Build Weekend",
       organizationName: "Waterloo Builders",
       websiteUrl: "https://example.com",
+      imageUrl: "https://example.com/event-image.jpg",
       country: "Canada",
       startDate: "2026-09-12",
       endDate: "2026-09-14",
@@ -95,6 +96,12 @@ describe("adminHackathonImportSchema", () => {
     const result = adminHackathonImportSchema.safeParse({ hackathons: [payload] });
 
     expect(result.success).toBe(true);
+  });
+
+  it("rejects an invalid image URL", () => {
+    const result = adminHackathonImportSchema.safeParse({ hackathons: [{ ...payload, imageUrl: "not-a-url" }] });
+
+    expect(result.success).toBe(false);
   });
 });
 
