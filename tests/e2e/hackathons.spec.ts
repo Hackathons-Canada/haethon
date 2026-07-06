@@ -12,10 +12,9 @@ test("opens the hackathons browse page from the home nav", async ({ page }) => {
   await expect(
     page.getByRole("navigation", { name: "Primary navigation" })
   ).toBeVisible();
-  await expect(page.getByText("Where").first()).toBeVisible();
-  await expect(page.getByText("When").first()).toBeVisible();
-  await expect(page.getByText("Theme").first()).toBeVisible();
-  await expect(page.getByText("Team").first()).toBeVisible();
+  await expect(page.getByLabel("Name")).toBeVisible();
+  await expect(page.getByLabel("Countries")).toBeVisible();
+  await expect(page.getByLabel("Date")).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Search hackathons" })
   ).toBeVisible();
@@ -57,6 +56,18 @@ test("opens the hackathons browse page from the home nav", async ({ page }) => {
   await hackTheNorth.getByRole("button", { name: "Downvote Hack the North" }).click();
   await expect(hackTheNorth.getByText("141", { exact: true })).toBeVisible();
 
-  await page.locator("summary").filter({ hasText: "Where" }).click();
-  await expect(page.getByText("Suggested locations")).toBeVisible();
+  await page.getByLabel("Countries").fill("can");
+  await page.getByRole("option", { name: "Canada" }).click();
+  await expect(page.getByRole("button", { name: "Remove Canada" })).toBeVisible();
+  await page.getByRole("button", { name: "Search hackathons" }).click();
+  await expect(page).toHaveURL(/countries=Canada/);
+  await page.getByRole("button", { name: "Clear hackathon search" }).click();
+  await expect(page).toHaveURL(/\/hackathons$/);
+
+  await page.getByLabel("Name").fill("Hack the North");
+  await page.getByRole("button", { name: "Search hackathons" }).click();
+  await expect(page).toHaveURL(/\/hackathons\?q=Hack\+the\+North/);
+
+  await expect(page.getByRole("heading", { name: "Hack the North" })).toBeVisible();
+  await expect(page.locator("article")).toHaveCount(1);
 });

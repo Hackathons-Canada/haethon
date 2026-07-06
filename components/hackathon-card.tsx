@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import type { CSSProperties } from "react";
 import Image from "next/image";
 import { ArrowBigDown, ArrowBigUp, Bookmark } from "lucide-react";
 
 type Vote = -1 | 0 | 1;
+type Rgb = [number, number, number];
 
 export type HackathonCardData = {
   badges?: string[];
@@ -22,6 +24,143 @@ export type HackathonCardData = {
 
 function handleUnauthenticated() {
   window.location.href = "/sign-in";
+}
+
+function getInitials(name: string) {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0]?.toUpperCase())
+    .join("");
+}
+
+function getFallbackAccentRgb(name: string): Rgb {
+  const palette: Rgb[] = [
+    [102, 0, 0],
+    [217, 4, 61],
+    [31, 93, 135],
+    [24, 120, 92],
+    [138, 83, 18],
+    [86, 64, 148],
+    [160, 62, 43],
+  ];
+  const hash = Array.from(name).reduce((total, character) => total + character.charCodeAt(0), 0);
+
+  return palette[hash % palette.length] ?? palette[0];
+}
+
+function getGradientStyle(rgb: Rgb) {
+  const [r, g, b] = rgb;
+
+  return {
+    "--hackathon-accent-rgb": `${r} ${g} ${b}`,
+    background: [
+      `radial-gradient(circle at 14% 8%, rgba(${r}, ${g}, ${b}, 0.18), transparent 36%)`,
+      `linear-gradient(135deg, rgba(${r}, ${g}, ${b}, 0.14), #ffffff 52%, #f7f7f4 100%)`,
+    ].join(", "),
+  } as CSSProperties & { "--hackathon-accent-rgb": string };
+}
+
+function findProminentColor(image: HTMLImageElement): Rgb | null {
+  const canvas = document.createElement("canvas");
+  const size = 32;
+  canvas.width = size;
+  canvas.height = size;
+
+  const context = canvas.getContext("2d", { willReadFrequently: true });
+  if (!context) {
+    return null;
+  }
+
+  try {
+    context.drawImage(image, 0, 0, size, size);
+    const pixels = context.getImageData(0, 0, size, size).data;
+    const buckets = new Map<string, { b: number; count: number; g: number; r: number; score: number }>();
+
+    for (let index = 0; index < pixels.length; index += 4) {
+      const alpha = pixels[index + 3] / 255;
+      if (alpha < 0.45) {
+        continue;
+      }
+
+      const r = pixels[index];
+      const g = pixels[index + 1];
+      const b = pixels[index + 2];
+      const max = Math.max(r, g, b);
+      const min = Math.min(r, g, b);
+      const saturation = max === 0 ? 0 : (max - min) / max;
+      const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+
+      if (luminance > 245 || luminance < 12 || (saturation < 0.12 && (luminance > 210 || luminance < 45))) {
+        continue;
+      }
+
+      const bucketR = Math.round(r / 32) * 32;
+      const bucketG = Math.round(g / 32) * 32;
+      const bucketB = Math.round(b / 32) * 32;
+      const key = `${bucketR},${bucketG},${bucketB}`;
+      const score = alpha * (0.55 + saturation) * (luminance > 225 ? 0.45 : 1);
+      const bucket = buckets.get(key) ?? { b: 0, count: 0, g: 0, r: 0, score: 0 };
+
+      bucket.r += r;
+      bucket.g += g;
+      bucket.b += b;
+      bucket.count += 1;
+      bucket.score += score;
+      buckets.set(key, bucket);
+    }
+
+    const best = Array.from(buckets.values()).sort((a, b) => b.score - a.score)[0];
+    if (!best) {
+      return null;
+    }
+
+    return [
+      Math.round(best.r / best.count),
+      Math.round(best.g / best.count),
+      Math.round(best.b / best.count),
+    ];
+  } catch {
+    return null;
+  }
+}
+
+function useLogoAccentRgb(src: string | null | undefined, fallbackRgb: Rgb) {
+  const [sampledColor, setSampledColor] = useState<{ rgb: Rgb; src: string } | null>(null);
+
+  useEffect(() => {
+    if (!src) {
+      return;
+    }
+
+    let canceled = false;
+    const image = new window.Image();
+
+    image.crossOrigin = "anonymous";
+    image.decoding = "async";
+    image.onload = () => {
+      if (canceled) {
+        return;
+      }
+
+      const prominentColor = findProminentColor(image);
+      if (prominentColor) {
+        setSampledColor({ rgb: prominentColor, src });
+      }
+    };
+    image.src = src;
+
+    return () => {
+      canceled = true;
+    };
+  }, [src]);
+
+  if (sampledColor && sampledColor.src === src) {
+    return sampledColor.rgb;
+  }
+
+  return fallbackRgb;
 }
 
 function BookmarkButton({
@@ -75,7 +214,7 @@ function BookmarkButton({
       } library`}
       aria-pressed={saved}
       disabled={saving}
-      className={`absolute right-3 top-3 grid size-10 place-items-center rounded-full bg-white/95 shadow-sm transition-colors hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
+      className={`absolute right-4 top-4 grid size-10 place-items-center rounded-full bg-white/95 shadow-sm transition-colors hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
         saved ? "text-[#660000]" : "text-black"
       } disabled:cursor-wait disabled:opacity-70`}
       onClick={toggleSaved}
@@ -185,83 +324,110 @@ function VoteControl({
   );
 }
 
-function HackathonCoverFallback({ hackathon }: { hackathon: HackathonCardData }) {
-  const initials = hackathon.name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((word) => word[0]?.toUpperCase())
-    .join("");
+function HackathonLogoMark({ hackathon }: { hackathon: HackathonCardData }) {
+  return (
+    <div className="relative grid size-[4.5rem] shrink-0 place-items-center border border-black/10 bg-white/55 shadow-sm">
+      <span
+        aria-hidden="true"
+        className="absolute -right-px top-2 h-3 border-r border-black/25"
+      />
+      <span
+        aria-hidden="true"
+        className="absolute -left-px bottom-2 h-3 border-l border-black/20"
+      />
+      {hackathon.image ? (
+        <Image
+          alt={`${hackathon.name} logo`}
+          className="object-contain p-2.5"
+          fill
+          priority={false}
+          sizes="72px"
+          src={hackathon.image}
+          unoptimized
+        />
+      ) : (
+        <div className="grid size-full place-items-center bg-[rgb(var(--hackathon-accent-rgb)/0.92)] px-2 text-center text-lg font-semibold text-white">
+          {getInitials(hackathon.name) || "HN"}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CardAccentEdges() {
+  return (
+    <>
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute right-2 top-2 h-7 w-7 border-r border-t border-black/25"
+      />
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute bottom-4 left-4 h-6 w-6 border-b border-l border-black/10"
+      />
+    </>
+  );
+}
+
+function HackathonBadges({ badges }: { badges?: string[] }) {
+  if (!badges?.length) {
+    return null;
+  }
 
   return (
-    <div className="absolute inset-0 bg-[#EFEDEA]">
-      <div className="absolute inset-x-0 top-0 h-1/2 bg-[#660000]" />
-      <div className="absolute inset-x-8 bottom-7 top-12 rounded-2xl border border-black/10 bg-white/90 p-5 shadow-sm">
-        <div className="grid size-16 place-items-center rounded-2xl bg-black text-xl font-semibold text-white">
-          {initials || "HN"}
-        </div>
-        <p className="mt-5 line-clamp-2 text-xl font-semibold leading-6 text-black">
-          {hackathon.name}
-        </p>
-        <p className="mt-2 truncate text-sm font-semibold text-[#706F6B]">
-          {hackathon.location}
-        </p>
-      </div>
-    </div>
+    <ul className="mt-5 flex flex-wrap items-start gap-2 overflow-hidden">
+      {badges.map((badge) => (
+        <li
+          className="inline-flex max-w-full rounded-full bg-white/85 px-2.5 py-1.5 text-[11px] font-semibold text-black shadow-sm"
+          key={badge}
+        >
+          <span className="truncate">{badge}</span>
+        </li>
+      ))}
+    </ul>
   );
 }
 
 export function HackathonCard({
   hackathon,
-  index,
 }: {
   hackathon: HackathonCardData;
   index: number;
 }) {
+  const fallbackRgb = useMemo(() => getFallbackAccentRgb(hackathon.name), [hackathon.name]);
+  const accentRgb = useLogoAccentRgb(hackathon.image, fallbackRgb);
+  const gradientStyle = useMemo(() => getGradientStyle(accentRgb), [accentRgb]);
+
   return (
-    <article className="group min-w-0">
-      <div className="relative aspect-[1.08] overflow-hidden rounded-[1.35rem] bg-[#F7F7F4]">
-        {hackathon.image ? (
-          <Image
-            alt={`${hackathon.name} venue preview`}
-            className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-            fill
-            priority={index < 3}
-            sizes="(min-width: 1024px) 347px, (min-width: 640px) 50vw, 100vw"
-            src={hackathon.image}
-            unoptimized
-          />
-        ) : (
-          <HackathonCoverFallback hackathon={hackathon} />
-        )}
-        {hackathon.badges?.length ? (
-          <ul className="absolute left-3 top-7 flex max-w-[calc(100%-1.5rem)] flex-col items-start gap-2 overflow-hidden">
-            {hackathon.badges.map((badge) => (
-              <li
-                className="inline-flex max-w-full rounded-full bg-white px-2.5 py-1.5 text-[11px] font-semibold text-black shadow-sm"
-                key={badge}
-              >
-                <span className="truncate">{badge}</span>
-              </li>
-            ))}
-          </ul>
-        ) : null}
-        <BookmarkButton
-          hackathonId={hackathon.id}
-          hackathonName={hackathon.name}
-          initialSaved={hackathon.isSaved}
-        />
+    <article
+      className="group relative min-w-0 overflow-hidden border border-black/10 p-5 shadow-[0_18px_45px_rgb(0_0_0/0.06)] sm:p-6"
+      style={gradientStyle}
+    >
+      <CardAccentEdges />
+      <BookmarkButton
+        hackathonId={hackathon.id}
+        hackathonName={hackathon.name}
+        initialSaved={hackathon.isSaved}
+      />
+
+      <div className="flex items-start gap-4 pr-12">
+        <HackathonLogoMark hackathon={hackathon} />
+        <div className="min-w-0 pt-1">
+          <h2 className="text-xl font-semibold leading-6 text-black sm:text-[1.35rem]">
+            {hackathon.name}
+          </h2>
+          <p className="mt-1 text-[15px] font-semibold leading-5 text-[#706F6B]">
+            {hackathon.location} · {hackathon.date}
+          </p>
+        </div>
       </div>
+
+      <HackathonBadges badges={hackathon.badges} />
 
       <div className="mt-4 text-base leading-6">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h2 className="text-xl font-semibold leading-6 text-black sm:text-[1.35rem]">
-              {hackathon.name}
-            </h2>
-            <p className="mt-1 text-[15px] font-semibold leading-5 text-[#706F6B]">
-              {hackathon.location} · {hackathon.date}
-            </p>
+            <p className="text-[#706F6B]">{hackathon.duration}</p>
           </div>
           <VoteControl
             hackathonId={hackathon.id}
@@ -273,7 +439,6 @@ export function HackathonCard({
         <p className="mt-3 line-clamp-2 text-[#706F6B]">
           {hackathon.description}
         </p>
-        <p className="mt-1 text-[#706F6B]">{hackathon.duration}</p>
       </div>
     </article>
   );

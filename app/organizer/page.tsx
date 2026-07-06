@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { Building2, ClipboardCheck } from "lucide-react";
 
-import { SubmissionReviewCard } from "@/components/admin/submission-review-card";
+import { SubmissionReviewQueue } from "@/components/admin/submission-review-queue";
 import { getCurrentUserContext, isOrganizerRole } from "@/lib/auth";
 import { getApprovedOrganizationIdsForUser, listHackathonSubmissions } from "@/lib/hackathons/review-service";
 
@@ -53,15 +53,11 @@ export default async function OrganizerPage() {
 
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold text-black">Review queue</h2>
-          {pending.length ? (
-            pending.map((submission) => (
-              <SubmissionReviewCard endpointBase="/api/organizer/hackathon-submissions" key={submission.id} submission={submission} />
-            ))
-          ) : (
-            <div className="rounded-lg border border-black/10 bg-white p-5 text-sm text-[#706F6B]">
-              No pending submissions are connected to your verified organizations.
-            </div>
-          )}
+          <SubmissionReviewQueue
+            emptyMessage="No pending submissions are connected to your verified organizations."
+            endpointBase="/api/organizer/hackathon-submissions"
+            submissions={pending}
+          />
         </section>
       </div>
     </main>

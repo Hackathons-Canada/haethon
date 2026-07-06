@@ -1,11 +1,32 @@
 import { z } from "zod";
 
+import { normalizeCountrySelections } from "@/lib/hackathons/countries";
+import { normalizeCountry, normalizeLocationPayload } from "@/lib/hackathons/location-normalization";
+
 const emptyToUndefined = (value: unknown) => (typeof value === "string" && value.trim() === "" ? undefined : value);
 
 const optionalUrl = z.preprocess(emptyToUndefined, z.string().trim().url().optional());
 const optionalString = (max: number) => z.preprocess(emptyToUndefined, z.string().trim().max(max).optional());
+const optionalBooleanQueryParam = z
+  .enum(["true", "false"])
+  .transform((value) => value === "true")
+  .optional();
 const requiredDate = z.coerce.date();
 const optionalDate = z.preprocess(emptyToUndefined, z.coerce.date().optional());
+const optionalCountryQueryParam = z.preprocess(
+  (value) => (typeof value === "string" && value.trim() ? normalizeCountry(value) : value),
+  z.string().trim().max(120).optional()
+);
+const countriesQueryParam = z.preprocess(
+  (value) => {
+    if (typeof value === "string") {
+      return value.split(",");
+    }
+
+    return Array.isArray(value) ? value : [];
+  },
+  z.array(z.string().trim().max(120)).default([])
+);
 
 const dateRangeRefinement = <T extends { startDate: Date; endDate: Date }>(data: T, ctx: z.RefinementCtx) => {
   if (data.endDate < data.startDate) {
@@ -17,16 +38,22 @@ const dateRangeRefinement = <T extends { startDate: Date; endDate: Date }>(data:
   }
 };
 
-export const hackathonSearchSchema = z.object({
-  q: z.string().trim().max(120).optional(),
-  city: z.string().trim().max(120).optional(),
-  country: z.string().trim().max(120).optional(),
-  format: z.enum(["online", "in_person", "hybrid"]).optional(),
-  status: z.enum(["draft", "upcoming", "live", "completed", "archived"]).optional(),
-  startsAfter: z.coerce.date().optional(),
-  startsBefore: z.coerce.date().optional(),
-  limit: z.coerce.number().int().min(1).max(50).default(12),
-});
+export const hackathonSearchSchema = z
+  .object({
+    q: z.string().trim().max(120).optional(),
+    country: optionalCountryQueryParam,
+    countries: countriesQueryParam,
+    beginnerFriendly: optionalBooleanQueryParam,
+    travelReimbursement: optionalBooleanQueryParam,
+    startsAfter: z.coerce.date().optional(),
+    startsBefore: z.coerce.date().optional(),
+    limit: z.coerce.number().int().min(1).max(50).default(12),
+  })
+  .strip()
+  .transform(({ country, countries, ...filters }) => ({
+    ...filters,
+    countries: normalizeCountrySelections([...(country ? [country] : []), ...countries.flatMap((value) => value.split(","))]),
+  }));
 
 const normalizedHackathonPayloadBaseSchema = z.object({
     name: z.string().trim().min(3).max(180),
@@ -45,31 +72,44 @@ const normalizedHackathonPayloadBaseSchema = z.object({
     applicationOpensAt: optionalDate,
     applicationClosesAt: optionalDate,
     acceptanceAt: optionalDate,
-    submissionDeadlineAt: optionalDate,
     format: z.enum(["online", "in_person", "hybrid"]),
     shortDescription: optionalString(500),
-    discordUrl: optionalUrl,
-    devpostUrl: optionalUrl,
-    eligibility: optionalString(2000),
     beginnerFriendly: z.coerce.boolean().optional().default(false),
     travelReimbursement: z.coerce.boolean().optional().default(false),
     prizeAmountUsd: z.preprocess(emptyToUndefined, z.coerce.number().int().min(0).optional()),
     timeNote: optionalString(160),
 });
 
-export const normalizedHackathonPayloadSchema = normalizedHackathonPayloadBaseSchema.superRefine(dateRangeRefinement);
+export const normalizedHackathonPayloadSchema = normalizedHackathonPayloadBaseSchema
+  .superRefine(dateRangeRefinement);
 
 export const adminHackathonImportPayloadSchema = normalizedHackathonPayloadBaseSchema
   .extend({
     externalId: optionalString(200),
   })
-  .superRefine(dateRangeRefinement);
+  .strip()
+  .superRefine(dateRangeRefinement)
+  .transform((payload) => normalizeLocationPayload(payload));
 
 export const adminHackathonImportSchema = z.preprocess(
   (value) => (Array.isArray(value) ? { hackathons: value } : value),
   z.object({
-    hackathons: z.array(adminHackathonImportPayloadSchema).min(1).max(100),
-  })
+    hackathons: z.array(adminHackathonImportPayloadSchema).min(1).max(1000),
+  }).strip()
+);
+
+export const adminHackathonFixImportItemSchema = z.object({
+  source: optionalString(80),
+  reason: z.string().trim().min(1).max(1000),
+  sourceUrl: optionalUrl,
+  raw: z.unknown(),
+}).strip();
+
+export const adminHackathonFixImportSchema = z.preprocess(
+  (value) => (Array.isArray(value) ? { items: value } : value),
+  z.object({
+    items: z.array(adminHackathonFixImportItemSchema).min(1).max(100),
+  }).strip()
 );
 
 export const organizerSubmissionSchema = normalizedHackathonPayloadBaseSchema
@@ -85,7 +125,7 @@ export const communitySubmissionSchema = z
     submitterType: z.literal("community"),
     name: z.string().trim().min(3).max(180),
     sourceUrl: z.string().trim().url(),
-    websiteUrl: optionalUrl,
+    websiteUrl: z.string().trim().url(),
     imageUrl: optionalUrl,
     applicationUrl: optionalUrl,
     city: optionalString(120),

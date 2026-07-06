@@ -1,24 +1,20 @@
 import Link from "next/link";
 import Image from "next/image";
-import type { LucideIcon } from "lucide-react";
 import {
   ArrowRight,
-  Bell,
   Building2,
-  CalendarDays,
-  ClipboardCheck,
   ClipboardList,
   Maximize2,
-  Megaphone,
   Search,
-  Trophy,
 } from "lucide-react";
 
+import { AdminNavLink } from "@/components/admin-nav-link";
 import { NavAuthLink } from "@/components/nav-auth-link";
+import { HeroEtchTrail } from "@/components/hero-etch-trail";
 import { HeroTypewriterSpan } from "@/components/hero-typewriter-span";
 
 const navItems = [
-  { label: "About", href: "#about" },
+  { label: "About", href: "/about" },
   { label: "FQA", href: "#fqa" },
   { label: "Submit", href: "/submit" },
   { label: "Hackathons", href: "/hackathons" },
@@ -100,192 +96,6 @@ const heroCommunityMembers = [
       "https://images.unsplash.com/photo-1544725176-7c40e5a71c5e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=3534&q=80",
   },
 ];
-
-type HeroDecoration = {
-  name: string;
-  Icon: LucideIcon;
-  className: string;
-  badgeClassName: string;
-  sizeClassName?: string;
-  iconClassName?: string;
-  notification?: string;
-  marks?: "arc" | "bits" | "spark" | "zigzag";
-};
-
-const heroDecorations: HeroDecoration[] = [
-  {
-    name: "deadline calendar",
-    Icon: CalendarDays,
-    className: "-left-3 -top-4 rotate-[-12deg] xl:-left-[4.75rem]",
-    badgeClassName: "bg-[#FFD166]",
-    sizeClassName: "size-16",
-    notification: "3",
-    marks: "arc",
-  },
-  {
-    name: "winner",
-    Icon: Trophy,
-    className: "-left-2 bottom-[1%] rotate-[8deg] xl:-left-[5rem]",
-    badgeClassName: "bg-[#FFB64D]",
-    sizeClassName: "size-16",
-  },
-  {
-    name: "reminder",
-    Icon: Bell,
-    className: "bottom-[-7%] left-[20%] rotate-[-10deg]",
-    badgeClassName: "bg-[#E8E3DA]",
-    sizeClassName: "size-11",
-    iconClassName: "text-[#3F3E3B]",
-    notification: "1",
-  },
-  {
-    name: "submission checklist",
-    Icon: ClipboardCheck,
-    className: "-right-4 top-0 rotate-[3deg] xl:-right-[5rem]",
-    badgeClassName: "bg-[#C99BFF]",
-    sizeClassName: "size-16",
-    notification: "2",
-  },
-  {
-    name: "event search",
-    Icon: Search,
-    className: "-right-14 top-[29%] rotate-[-11deg] xl:-right-[5.75rem]",
-    badgeClassName: "bg-[#F4F1EA]",
-    sizeClassName: "size-12",
-    iconClassName: "text-[#3F3E3B]",
-  },
-  {
-    name: "sponsor call",
-    Icon: Megaphone,
-    className: "right-[3%] bottom-[6%] rotate-[-8deg] xl:-right-[4.25rem]",
-    badgeClassName: "bg-[#F178CE]",
-    sizeClassName: "size-14",
-  },
-];
-
-function HeroMotionMarks({ type }: { type: NonNullable<HeroDecoration["marks"]> }) {
-  if (type === "arc") {
-    return (
-      <svg
-        aria-hidden="true"
-        className="absolute -left-14 -top-8 h-12 w-24 -rotate-6 text-[#3F3E3B]"
-        fill="none"
-        viewBox="0 0 96 48"
-      >
-        <path
-          d="M6 33C25 10 55 6 86 23"
-          stroke="currentColor"
-          strokeLinecap="round"
-          strokeWidth="2.4"
-        />
-        <path
-          d="M16 38C34 22 58 19 80 31"
-          opacity="0.38"
-          stroke="currentColor"
-          strokeLinecap="round"
-          strokeWidth="2"
-        />
-      </svg>
-    );
-  }
-
-  if (type === "bits") {
-    return (
-      <svg
-        aria-hidden="true"
-        className="absolute -right-9 -top-3 h-11 w-11 rotate-12"
-        fill="none"
-        viewBox="0 0 44 44"
-      >
-        <rect fill="#2F80ED" height="8" rx="2" width="8" x="6" y="19" />
-        <rect fill="#34A853" height="8" rx="2" width="8" x="18" y="26" />
-        <rect fill="#FFCC4D" height="8" rx="2" width="8" x="19" y="10" />
-        <rect fill="#FF3B30" height="8" rx="2" width="8" x="30" y="18" />
-      </svg>
-    );
-  }
-
-  if (type === "spark") {
-    return (
-      <svg
-        aria-hidden="true"
-        className="absolute -right-7 -top-8 h-8 w-8 text-[#3F3E3B]"
-        fill="currentColor"
-        viewBox="0 0 32 32"
-      >
-        <path d="M12 3l2.1 6.2L20 12l-5.9 2.8L12 21l-2.1-6.2L4 12l5.9-2.8L12 3Z" />
-        <path d="M24 15l1.2 3.4L29 20l-3.8 1.6L24 25l-1.2-3.4L19 20l3.8-1.6L24 15Z" />
-      </svg>
-    );
-  }
-
-  return (
-    <svg
-      aria-hidden="true"
-      className="absolute -right-12 -top-7 h-14 w-16 text-[#3F3E3B]"
-      fill="none"
-      viewBox="0 0 64 56"
-    >
-      <path
-        d="M9 38c12-4 7-20 23-22"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="2.4"
-      />
-      <path
-        d="M38 9c-5 8-3 15 9 20"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="2.4"
-      />
-    </svg>
-  );
-}
-
-function HeroIconSticker({ decoration }: { decoration: HeroDecoration }) {
-  const {
-    Icon,
-    badgeClassName,
-    className,
-    iconClassName = "text-black",
-    marks,
-    notification,
-    sizeClassName = "size-14",
-  } = decoration;
-
-  return (
-    <div className={`absolute ${className}`}>
-      {marks ? <HeroMotionMarks type={marks} /> : null}
-      <div
-        className={`relative grid place-items-center rounded-full border-2 border-white shadow-[0_12px_32px_rgba(0,0,0,0.16)] ${sizeClassName} ${badgeClassName}`}
-      >
-        <Icon
-          aria-hidden="true"
-          className={`size-[46%] ${iconClassName}`}
-          strokeWidth={2.35}
-        />
-        {notification ? (
-          <span className="absolute -right-1 -top-1 grid size-5 place-items-center rounded-full bg-[#FF3B30] text-[10px] font-semibold leading-none text-white shadow-[0_2px_8px_rgba(255,59,48,0.32)]">
-            {notification}
-          </span>
-        ) : null}
-      </div>
-    </div>
-  );
-}
-
-function HeroIconCloud() {
-  return (
-    <div
-      aria-hidden="true"
-      className="pointer-events-none absolute inset-y-0 left-0 right-0 z-0 hidden lg:block"
-    >
-      {heroDecorations.map((decoration) => (
-        <HeroIconSticker decoration={decoration} key={decoration.name} />
-      ))}
-    </div>
-  );
-}
 
 function HeroCommunityInlineStack() {
   return (
@@ -416,18 +226,28 @@ export default function Home() {
                 {item.label}
               </Link>
             ))}
+            <AdminNavLink className={navLinkClassName} />
             <NavAuthLink className={loginLinkClassName} />
           </div>
         </div>
       </nav>
 
-      <section className="relative isolate min-h-[calc(100vh-68px)] overflow-hidden bg-white px-8 pb-[4.5rem] pt-24 sm:px-14 sm:pb-[5.5rem] sm:pt-32 md:pb-28 md:pt-44 lg:px-20">
+      <section className="relative isolate min-h-[calc(100vh-68px)] overflow-hidden border-b border-black/10 bg-[#cbd8e6] px-8 pb-[4.5rem] pt-24 sm:px-14 sm:pb-[5.5rem] sm:pt-32 md:pb-28 md:pt-44 lg:px-20">
+        <HeroEtchTrail />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 z-[1] bg-[linear-gradient(90deg,_rgba(255,255,255,0.86)_0%,_rgba(255,255,255,0.64)_38%,_rgba(255,255,255,0.18)_68%,_rgba(255,255,255,0)_100%)]"
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-x-0 top-0 z-[1] h-36 bg-[linear-gradient(180deg,_rgba(255,255,255,0.72),_rgba(255,255,255,0))]"
+        />
         <div className="relative z-10 mx-auto max-w-[1120px]">
           <div className="grid items-end gap-8 md:grid-cols-[minmax(0,1fr)_auto]">
             <div>
               <h1
                 aria-label="Search hundreds of upcoming hackathons, build your profile, and never miss another application deadline."
-                className="max-w-[1120px] text-[2.15rem] font-semibold leading-[1.08] tracking-normal text-black sm:text-[2.65rem] lg:text-[2.75rem]"
+                className="max-w-[1120px] text-[2.15rem] font-semibold leading-[1.08] tracking-normal text-black [text-shadow:0_1px_0_rgba(255,255,255,0.72)] sm:text-[2.65rem] lg:text-[2.75rem]"
               >
                 <span className="block">Search hundreds of upcoming</span>{" "}
                 <span className="block">
@@ -443,7 +263,7 @@ export default function Home() {
                   and <HeroTypewriterSpan />
                 </span>
               </h1>
-              <p className="mt-8 max-w-[640px] text-base leading-6 text-[#706F6B]">
+              <p className="mt-8 max-w-[640px] text-base font-medium leading-6 text-[#3F3E3B] [text-shadow:0_1px_0_rgba(255,255,255,0.72)]">
                 Filter for hackathons by location, date, and category, track
                 your achievements, and stay informed with reminders for
                 deadlines and upcoming events.
@@ -452,7 +272,7 @@ export default function Home() {
 
             <Link
               href="/hackathons"
-              className="inline-flex w-fit items-center gap-3 justify-self-start text-sm font-medium text-[#706F6B] hover:text-[#660000] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#660000]/35 md:mb-1 md:justify-self-end"
+              className="inline-flex w-fit items-center gap-3 justify-self-start text-sm font-medium text-[#3F3E3B] hover:text-[#660000] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#660000]/35 md:mb-1 md:justify-self-end"
             >
               <span>Browse events</span>
               <ArrowRight
@@ -461,88 +281,6 @@ export default function Home() {
                 strokeWidth={1.75}
               />
             </Link>
-          </div>
-
-          <div className="relative mt-16 sm:mt-20">
-            <HeroIconCloud />
-            <div className="relative z-10 mx-auto h-[74vh] max-h-[760px] min-h-[520px] w-full overflow-hidden rounded-xl border border-black/15 bg-white shadow-[0_34px_110px_rgba(0,0,0,0.14)] sm:min-h-[600px] lg:min-h-[650px]">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_35%_10%,_rgba(102,0,0,0.05),_rgba(255,255,255,0)_34%)]" />
-              <div className="relative grid h-full grid-cols-[18%_1fr_25%] text-[12px] text-[#706F6B]">
-                <aside className="border-r border-black/10 bg-[#F8F8F4]/95">
-                  <div className="flex h-12 items-center gap-2 border-b border-black/10 px-5">
-                    <span
-                      aria-hidden="true"
-                      className="grid size-4 place-items-center rounded-full bg-[#660000]"
-                    >
-                      <span className="block size-2.5 rounded-full bg-[linear-gradient(45deg,_#fff_0_18%,_transparent_18%_30%,_#fff_30%_48%,_transparent_48%_60%,_#fff_60%_78%,_transparent_78%)]" />
-                    </span>
-                    <span className="font-semibold text-black">Hackathons</span>
-                  </div>
-                  <div className="space-y-3 px-5 py-5">
-                    {["Inbox", "My events", "Reviews", "Pulse"].map((item) => (
-                      <div key={item} className="flex items-center gap-2">
-                        <span className="size-3 rounded-sm border border-black/20" />
-                        <span>{item}</span>
-                      </div>
-                    ))}
-                    <div className="pt-4 text-[#706F6B]/70">Workspace</div>
-                    {["Applications", "Projects", "More"].map((item) => (
-                      <div key={item} className="flex items-center gap-2">
-                        <span className="size-3 rounded-full border border-black/20" />
-                        <span>{item}</span>
-                      </div>
-                    ))}
-                    <div className="pt-4 text-[#706F6B]/70">Favorites</div>
-                    <div className="rounded-md bg-[#660000]/8 px-3 py-2 text-[#660000]">
-                      Global hackathon map
-                    </div>
-                  </div>
-                </aside>
-
-                <div className="grid grid-rows-[3rem_1fr] border-r border-black/10">
-                  <div className="flex items-center justify-between border-b border-black/10 bg-white px-7">
-                    <span className="font-semibold text-black">
-                      Upcoming deadlines
-                    </span>
-                    <span className="text-[#706F6B]">02 / 145</span>
-                  </div>
-                  <div className="bg-white px-16 py-12">
-                    <h2 className="text-2xl font-semibold text-black">
-                      ETHGlobal New York
-                    </h2>
-                    <p className="mt-5 max-w-[560px] text-sm leading-6 text-[#706F6B]">
-                      Track registration, team status, travel notes, and
-                      submission milestones from one calm dashboard.
-                    </p>
-                    <div className="mt-8 space-y-4">
-                      <div className="h-12 rounded-lg border border-black/10 bg-[#F8F8F4]" />
-                      <div className="h-12 rounded-lg border border-black/10 bg-[#F8F8F4]" />
-                      <div className="h-12 rounded-lg border border-black/10 bg-[#F8F8F4]" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white px-8 py-12">
-                  <div className="text-[#706F6B]">NA-2703</div>
-                  <div className="mt-10 space-y-5">
-                    <div>
-                      <div className="text-[#706F6B]">Status</div>
-                      <div className="mt-2 font-medium text-black">
-                        In Progress
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-[#706F6B]">Priority</div>
-                      <div className="mt-2 font-medium text-black">High</div>
-                    </div>
-                    <div>
-                      <div className="text-[#706F6B]">Owner</div>
-                      <div className="mt-2 font-medium text-black">jori</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </section>

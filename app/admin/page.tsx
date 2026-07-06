@@ -1,11 +1,17 @@
 import { redirect } from "next/navigation";
 import { ClipboardCheck, GitMerge, ShieldCheck, Trophy, XCircle } from "lucide-react";
 
+import { BulkIdApproval } from "@/components/admin/bulk-id-approval";
+import { HackathonFixJsonImporter } from "@/components/admin/hackathon-fix-json-importer";
 import { HackathonJsonImporter } from "@/components/admin/hackathon-json-importer";
-import { SubmissionReviewCard } from "@/components/admin/submission-review-card";
+import { SubmissionReviewQueue } from "@/components/admin/submission-review-queue";
 import { requireAdminUser } from "@/lib/auth";
 import { listHackathonSubmissions } from "@/lib/hackathons/review-service";
 import { dateToInputValue } from "@/lib/hackathons/utils";
+
+function needsFix(payload: Record<string, unknown>) {
+  return Boolean(payload.importReason || payload.needsFix);
+}
 
 export default async function AdminPage() {
   const gate = await requireAdminUser();
@@ -16,6 +22,8 @@ export default async function AdminPage() {
 
   const submissions = await listHackathonSubmissions({ limit: 200 });
   const pending = submissions.filter((submission) => submission.status === "pending");
+  const fixQueue = pending.filter((submission) => needsFix(submission.payload));
+  const reviewQueue = pending.filter((submission) => !needsFix(submission.payload));
   const duplicateCandidates = submissions.filter((submission) => Number(submission.duplicateScore ?? 0) >= 0.55);
   const recentlyApproved = submissions.filter((submission) => submission.status === "approved" || submission.status === "merged").slice(0, 6);
   const recentlyRejected = submissions.filter((submission) => submission.status === "rejected").slice(0, 6);
@@ -42,8 +50,8 @@ export default async function AdminPage() {
           {[
             { label: "Pending", value: pending.length, icon: ClipboardCheck },
             { label: "Duplicate candidates", value: duplicateCandidates.length, icon: GitMerge },
+            { label: "Needs fixes", value: fixQueue.length, icon: XCircle },
             { label: "Approved or merged", value: recentlyApproved.length, icon: ShieldCheck },
-            { label: "Rejected", value: recentlyRejected.length, icon: XCircle },
           ].map(({ label, value, icon: Icon }) => (
             <div className="rounded-lg border border-black/10 bg-white p-5" key={label}>
               <Icon aria-hidden="true" className="size-5 text-[#660000]" />
@@ -51,6 +59,24 @@ export default async function AdminPage() {
               <p className="mt-1 text-3xl font-semibold text-black">{value}</p>
             </div>
           ))}
+        </section>
+
+        <BulkIdApproval submissions={submissions} />
+
+        <section className="rounded-lg border border-black/10 bg-white p-6">
+          <HackathonFixJsonImporter />
+        </section>
+
+        <section className="space-y-4">
+          <div className="flex items-center justify-between gap-4">
+            <h2 className="text-2xl font-semibold text-black">JSON fix queue</h2>
+            <p className="text-sm text-[#706F6B]">Broken imports with attached reasons</p>
+          </div>
+          <SubmissionReviewQueue
+            emptyMessage="No imported JSON records need fixes."
+            endpointBase="/api/admin/hackathon-submissions"
+            submissions={fixQueue}
+          />
         </section>
 
         <section className="rounded-lg border border-black/10 bg-white p-6">
@@ -62,15 +88,7 @@ export default async function AdminPage() {
             <h2 className="text-2xl font-semibold text-black">Review queue</h2>
             <p className="text-sm text-[#706F6B]">Organizer and community submissions</p>
           </div>
-          {pending.length ? (
-            <div className="space-y-4">
-              {pending.map((submission) => (
-                <SubmissionReviewCard endpointBase="/api/admin/hackathon-submissions" key={submission.id} submission={submission} />
-              ))}
-            </div>
-          ) : (
-            <div className="rounded-lg border border-black/10 bg-white p-5 text-sm text-[#706F6B]">No pending submissions.</div>
-          )}
+          <SubmissionReviewQueue emptyMessage="No pending submissions." endpointBase="/api/admin/hackathon-submissions" submissions={reviewQueue} />
         </section>
 
         <section className="grid gap-6 xl:grid-cols-2">

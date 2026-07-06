@@ -1,23 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { and, asc, eq, inArray, isNotNull } from "drizzle-orm";
-import {
-  Code2,
-  MapPin,
-  Minus,
-  Plus,
-  Search,
-  Sparkles,
-  Trophy,
-  Users,
-} from "lucide-react";
+import { and, asc, eq, gte, ilike, inArray, isNotNull, lte, sql } from "drizzle-orm";
 
-import { HackathonCard } from "@/components/hackathon-card";
+import { AdminNavLink } from "@/components/admin-nav-link";
+import { HackathonSearch } from "@/components/hackathon-search";
 import type { HackathonCardData } from "@/components/hackathon-card";
 import { NavAuthLink } from "@/components/nav-auth-link";
 import { getCurrentUserRecord } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { hackathonDates, hackathonLocations, hackathons, userHackathons, userHackathonVotes } from "@/lib/db/schema";
+import { dateRangeForPeriod, normalizeSearchFilters } from "@/lib/hackathons/search-filters";
+import type { HackathonSearchFilters } from "@/lib/hackathons/search-filters";
 
 export const metadata: Metadata = {
   title: "Hackathons | Hackathons North America",
@@ -36,81 +29,6 @@ const navLinkClassName =
 
 const loginLinkClassName =
   "inline-flex min-h-9 items-center justify-center border border-[#660000] px-4 text-[#660000] transition-colors hover:bg-[#660000] hover:text-white focus-visible:bg-[#660000] focus-visible:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#660000]";
-
-const locationSuggestions = [
-  {
-    city: "Toronto, Ontario",
-    detail: "Strong university and startup scene",
-  },
-  {
-    city: "New York, New York",
-    detail: "Major in-person and hybrid events",
-  },
-  {
-    city: "San Francisco, California",
-    detail: "AI, infra, and developer tools",
-  },
-  {
-    city: "Montreal, Quebec",
-    detail: "Creative coding and applied research",
-  },
-  {
-    city: "Austin, Texas",
-    detail: "Builder weekends and sponsor tracks",
-  },
-];
-
-const dateRangePills = [
-  "Exact dates",
-  "1 day",
-  "+/- 1 day",
-  "2 days",
-  "+/- 2 days",
-  "3 days",
-  "+/- 3 days",
-  "7 days",
-];
-
-const themes = [
-  {
-    icon: Sparkles,
-    name: "AI and agents",
-    detail: "Model apps, evals, automation",
-  },
-  {
-    icon: Code2,
-    name: "Developer tools",
-    detail: "Infra, APIs, cloud, DX",
-  },
-  {
-    icon: Trophy,
-    name: "Social impact",
-    detail: "Climate, civic tech, health",
-  },
-  {
-    icon: Users,
-    name: "Student friendly",
-    detail: "Mentors, beginner tracks",
-  },
-];
-
-const teamRows = [
-  {
-    label: "Participants",
-    detail: "People on your team",
-    value: "0",
-  },
-  {
-    label: "Experience",
-    detail: "Beginner to advanced",
-    value: "Any",
-  },
-  {
-    label: "Team size",
-    detail: "Solo or group builds",
-    value: "Any",
-  },
-];
 
 const publicStatuses = ["upcoming", "live"] as const;
 const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -205,8 +123,16 @@ function buildBadges({
   ].filter(Boolean) as string[];
 }
 
-async function getHackathonCards(): Promise<HackathonCardData[]> {
+async function getHackathonCards(filters: HackathonSearchFilters): Promise<HackathonCardData[]> {
   const user = await getCurrentUserRecord();
+  const dateRange = dateRangeForPeriod(filters.datePeriod);
+  const name = filters.name.trim();
+  const countries = filters.countries;
+  const beginnerFriendly =
+    filters.beginnerFriendly === "any" ? undefined : filters.beginnerFriendly === "on";
+  const travelReimbursement =
+    filters.travelReimbursement === "any" ? undefined : filters.travelReimbursement === "on";
+
   const rows = await db
     .select({
       id: hackathons.id,
@@ -228,8 +154,19 @@ async function getHackathonCards(): Promise<HackathonCardData[]> {
     .from(hackathons)
     .leftJoin(hackathonLocations, eq(hackathonLocations.hackathonId, hackathons.id))
     .leftJoin(hackathonDates, eq(hackathonDates.hackathonId, hackathons.id))
-    .where(and(isNotNull(hackathons.publishedAt), inArray(hackathons.status, publicStatuses)))
-    .orderBy(asc(hackathonDates.startsAt))
+    .where(
+      and(
+        isNotNull(hackathons.publishedAt),
+        inArray(hackathons.status, publicStatuses),
+        name ? ilike(hackathons.name, `%${name}%`) : undefined,
+        countries.length ? inArray(hackathonLocations.country, countries) : undefined,
+        beginnerFriendly === undefined ? undefined : eq(hackathons.beginnerFriendly, beginnerFriendly),
+        travelReimbursement === undefined ? undefined : eq(hackathons.travelReimbursement, travelReimbursement),
+        dateRange ? gte(hackathonDates.startsAt, dateRange.startsAfter) : undefined,
+        dateRange ? lte(hackathonDates.startsAt, dateRange.startsBefore) : undefined
+      )
+    )
+    .orderBy(name ? sql`similarity(${hackathons.name}, ${name}) desc` : asc(hackathonDates.startsAt))
     .limit(48);
 
   const hackathonIds = rows.map((row) => row.id);
@@ -271,271 +208,13 @@ async function getHackathonCards(): Promise<HackathonCardData[]> {
   }));
 }
 
-type SearchFieldProps = {
-  children: React.ReactNode;
-  label: string;
-  panelClassName?: string;
-  value: string;
-};
-
-function SearchField({
-  children,
-  label,
-  panelClassName = "",
-  value,
-}: SearchFieldProps) {
-  return (
-    <details className="group relative min-w-0 flex-1" name="hackathon-search">
-      <summary className="flex h-full min-h-[4.2rem] cursor-pointer list-none flex-col justify-center rounded-[2rem] px-6 py-3 text-left outline-none hover:bg-[#F7F7F4] focus-visible:bg-[#F7F7F4] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#660000]/35 group-open:bg-[#F7F7F4] [&::-webkit-details-marker]:hidden">
-        <span className="text-xs font-semibold leading-5 text-black">
-          {label}
-        </span>
-        <span className="truncate text-sm leading-5 text-[#706F6B]">
-          {value}
-        </span>
-      </summary>
-      <div
-        className={`z-50 mt-3 hidden rounded-[2rem] border border-black/10 bg-white p-4 text-black shadow-[0_18px_60px_rgba(0,0,0,0.18)] group-open:block md:absolute md:top-full ${panelClassName}`}
-      >
-        {children}
-      </div>
-    </details>
-  );
-}
-
-function WhereDropdown() {
-  return (
-    <div className="w-full md:w-[360px]">
-      <p className="px-2 pb-3 text-sm font-semibold">Suggested locations</p>
-      <div className="space-y-1">
-        {locationSuggestions.map((suggestion) => (
-          <button
-            className="flex w-full items-center gap-3 rounded-xl px-2 py-3 text-left hover:bg-[#F7F7F4] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#660000]/35"
-            key={suggestion.city}
-            type="button"
-          >
-            <span className="grid size-11 shrink-0 place-items-center rounded-lg bg-[#F7F7F4] text-[#660000]">
-              <MapPin aria-hidden="true" className="size-5" strokeWidth={2} />
-            </span>
-            <span className="min-w-0">
-              <span className="block truncate text-sm font-semibold">
-                {suggestion.city}
-              </span>
-              <span className="block truncate text-sm text-[#706F6B]">
-                {suggestion.detail}
-              </span>
-            </span>
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function MonthGrid({
-  days,
-  month,
-  offset,
+export default async function HackathonsPage({
+  searchParams,
 }: {
-  days: number;
-  month: string;
-  offset: number;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  return (
-    <div>
-      <h3 className="mb-4 text-center text-sm font-semibold">{month}</h3>
-      <div className="grid grid-cols-7 text-center text-xs font-semibold text-[#706F6B]">
-        {["S", "M", "T", "W", "T", "F", "S"].map((day, index) => (
-          <span className="py-2" key={`${month}-${day}-${index}`}>
-            {day}
-          </span>
-        ))}
-      </div>
-      <div className="grid grid-cols-7 gap-y-1 text-center text-sm">
-        {Array.from({ length: offset }).map((_, index) => (
-          <span aria-hidden="true" key={`${month}-blank-${index}`} />
-        ))}
-        {Array.from({ length: days }).map((_, index) => {
-          const day = index + 1;
-          const isHighlighted =
-            (month === "July 2026" && day >= 24 && day <= 26) ||
-            (month === "August 2026" && day >= 21 && day <= 23);
-
-          return (
-            <button
-              className={`mx-auto grid size-9 place-items-center rounded-full hover:bg-black hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#660000]/35 ${
-                isHighlighted ? "bg-black text-white" : "text-black"
-              }`}
-              key={`${month}-${day}`}
-              type="button"
-            >
-              {day}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function WhenDropdown() {
-  return (
-    <div className="w-full md:w-[680px]">
-      <div className="mx-auto mb-5 grid w-fit grid-cols-2 rounded-full bg-[#F7F7F4] p-1 text-sm font-semibold">
-        <button className="rounded-full bg-white px-8 py-2 shadow-sm" type="button">
-          Dates
-        </button>
-        <button className="rounded-full px-8 py-2 text-[#706F6B]" type="button">
-          Flexible
-        </button>
-      </div>
-
-      <div className="grid gap-8 md:grid-cols-2">
-        <MonthGrid days={31} month="July 2026" offset={3} />
-        <MonthGrid days={31} month="August 2026" offset={6} />
-      </div>
-
-      <div className="mt-6 flex gap-2 overflow-x-auto pb-1">
-        {dateRangePills.map((range, index) => (
-          <button
-            className={`shrink-0 rounded-full border px-4 py-2 text-sm ${
-              index === 0
-                ? "border-black bg-black text-white"
-                : "border-black/15 text-black hover:border-black"
-            }`}
-            key={range}
-            type="button"
-          >
-            {range}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function ThemeDropdown() {
-  return (
-    <div className="w-full md:w-[420px]">
-      <p className="px-2 pb-3 text-sm font-semibold">Browse by track</p>
-      <div className="grid gap-2 sm:grid-cols-2">
-        {themes.map((theme) => (
-          <button
-            className="rounded-2xl border border-black/10 p-4 text-left hover:border-black hover:bg-[#F7F7F4] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#660000]/35"
-            key={theme.name}
-            type="button"
-          >
-            <theme.icon
-              aria-hidden="true"
-              className="mb-4 size-5 text-[#660000]"
-              strokeWidth={2}
-            />
-            <span className="block text-sm font-semibold">{theme.name}</span>
-            <span className="mt-1 block text-sm leading-5 text-[#706F6B]">
-              {theme.detail}
-            </span>
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function TeamDropdown() {
-  return (
-    <div className="w-full md:w-[420px]">
-      {teamRows.map((row, index) => (
-        <div
-          className={`flex items-center justify-between gap-6 py-4 ${
-            index === 0 ? "" : "border-t border-black/10"
-          }`}
-          key={row.label}
-        >
-          <div>
-            <h3 className="text-sm font-semibold">{row.label}</h3>
-            <p className="mt-1 text-sm text-[#706F6B]">{row.detail}</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              aria-label={`Decrease ${row.label}`}
-              className="grid size-8 place-items-center rounded-full border border-black/20 text-[#706F6B]"
-              type="button"
-            >
-              <Minus aria-hidden="true" className="size-3.5" />
-            </button>
-            <span className="min-w-8 text-center text-sm">{row.value}</span>
-            <button
-              aria-label={`Increase ${row.label}`}
-              className="grid size-8 place-items-center rounded-full border border-black text-black"
-              type="button"
-            >
-              <Plus aria-hidden="true" className="size-3.5" />
-            </button>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function SearchNavigation() {
-  return (
-    <section
-      aria-label="Hackathon filters"
-      className="bg-white px-5 pb-7 pt-14 sm:pt-16"
-    >
-      <div className="mx-auto max-w-[1080px]">
-        <div className="relative z-30 flex flex-col rounded-[2.35rem] border border-black/10 bg-white p-2 shadow-[0_10px_36px_rgba(0,0,0,0.14)] md:flex-row md:items-stretch">
-          <SearchField
-            label="Where"
-            panelClassName="md:left-0"
-            value="Search destinations"
-          >
-            <WhereDropdown />
-          </SearchField>
-
-          <SearchField
-            label="When"
-            panelClassName="md:left-1/2 md:-translate-x-1/2"
-            value="Add dates"
-          >
-            <WhenDropdown />
-          </SearchField>
-
-          <SearchField
-            label="Theme"
-            panelClassName="md:left-1/2 md:-translate-x-1/2"
-            value="Choose a track"
-          >
-            <ThemeDropdown />
-          </SearchField>
-
-          <SearchField
-            label="Team"
-            panelClassName="md:right-0"
-            value="Add builders"
-          >
-            <TeamDropdown />
-          </SearchField>
-
-          <div className="flex items-center px-2 py-2 md:px-3">
-            <button
-              aria-label="Search hackathons"
-              className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[#D9043D] px-5 text-sm font-semibold text-white hover:bg-[#B80033] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#660000]/35 md:size-12 md:min-h-0 md:px-0"
-              type="button"
-            >
-              <Search aria-hidden="true" className="size-5" strokeWidth={2.5} />
-              <span className="md:sr-only">Search</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-export default async function HackathonsPage() {
-  const hackathonCards = await getHackathonCards();
+  const filters = normalizeSearchFilters((await searchParams) ?? {});
+  const hackathonCards = await getHackathonCards(filters);
 
   return (
     <main className="min-h-screen bg-white text-black">
@@ -565,38 +244,14 @@ export default async function HackathonsPage() {
                   {item.label}
                 </Link>
               ))}
+              <AdminNavLink className={navLinkClassName} />
               <NavAuthLink className={loginLinkClassName} />
             </div>
           </div>
         </nav>
       </header>
 
-      <SearchNavigation />
-
-      <section className="px-5 pb-16 pt-10 sm:px-8 sm:pb-20 lg:px-12">
-        <div className="mx-auto max-w-[1120px]">
-          <div className="mb-7">
-            <h1 className="text-3xl font-semibold tracking-normal text-black sm:text-4xl">
-              Upcoming hackathons
-            </h1>
-          </div>
-
-          {hackathonCards.length ? (
-            <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
-              {hackathonCards.map((hackathon, index) => (
-                <HackathonCard hackathon={hackathon} index={index} key={hackathon.id} />
-              ))}
-            </div>
-          ) : (
-            <div className="rounded-lg border border-black/10 bg-[#F7F7F4] p-8 text-center">
-              <h2 className="text-xl font-semibold text-black">No published hackathons yet</h2>
-              <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-[#706F6B]">
-                Approved hackathons from the database will appear here as soon as they are published.
-              </p>
-            </div>
-          )}
-        </div>
-      </section>
+      <HackathonSearch initialFilters={filters} initialHackathons={hackathonCards} />
     </main>
   );
 }

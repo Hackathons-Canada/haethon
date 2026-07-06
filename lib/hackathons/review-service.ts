@@ -13,6 +13,7 @@ import {
   users,
 } from "@/lib/db/schema";
 import type { SelectUser } from "@/lib/db/schema";
+import { normalizeLocationPayload } from "@/lib/hackathons/location-normalization";
 import {
   calculateDuplicateScore,
   deriveHackathonStatus,
@@ -21,18 +22,23 @@ import {
   slugify,
 } from "@/lib/hackathons/utils";
 import type { HackathonSubmissionInput, NormalizedHackathonPayload } from "@/lib/hackathons/utils";
-import { adminHackathonImportPayloadSchema, reviewActionSchema } from "@/lib/validations/hackathon";
+import {
+  adminHackathonFixImportItemSchema,
+  adminHackathonImportPayloadSchema,
+  reviewActionSchema,
+} from "@/lib/validations/hackathon";
 
 export type ReviewAction = z.infer<typeof reviewActionSchema>;
 export type AdminHackathonImportPayload = z.infer<typeof adminHackathonImportPayloadSchema>;
+export type AdminHackathonFixImportItem = z.infer<typeof adminHackathonFixImportItemSchema>;
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function payloadWithValidOrganizationId(payload: AdminHackathonImportPayload): NormalizedHackathonPayload {
-  return {
+  return normalizeLocationPayload({
     ...payload,
     organizationId: payload.organizationId && uuidPattern.test(payload.organizationId) ? payload.organizationId : undefined,
-  };
+  });
 }
 
 async function findOrganizationByName(name: string | undefined) {
@@ -129,13 +135,12 @@ export async function isVerifiedOrganizerForOrganization(userId: string, role: s
   return Boolean(membership);
 }
 
-export async function findBestDuplicate(payload: NormalizedHackathonPayload) {
+export async function findBestDuplicate(payload: { name: string; websiteUrl?: string | null; sourceUrl?: string | null }) {
   const rows = await db
     .select({
       id: hackathons.id,
       name: hackathons.name,
       websiteUrl: hackathons.websiteUrl,
-      devpostUrl: hackathons.devpostUrl,
     })
     .from(hackathons)
     .orderBy(desc(hackathons.createdAt))
@@ -150,7 +155,6 @@ export async function findBestDuplicate(payload: NormalizedHackathonPayload) {
       candidateSourceUrl: payload.sourceUrl,
       existingName: row.name,
       existingWebsiteUrl: row.websiteUrl,
-      existingDevpostUrl: row.devpostUrl,
     });
 
     if (!best || score > best.score) {
@@ -162,6 +166,7 @@ export async function findBestDuplicate(payload: NormalizedHackathonPayload) {
 }
 
 export async function createPublishedHackathon(payload: NormalizedHackathonPayload) {
+  payload = normalizeLocationPayload(payload);
   const organizationId = await ensureOrganization(payload);
   const slug = await uniqueHackathonSlug(payload.name);
   const now = new Date();
@@ -176,12 +181,9 @@ export async function createPublishedHackathon(payload: NormalizedHackathonPaylo
       websiteUrl: payload.websiteUrl,
       imageUrl: payload.imageUrl,
       applicationUrl: payload.applicationUrl,
-      devpostUrl: payload.devpostUrl,
-      discordUrl: payload.discordUrl,
       venue: payload.venue,
       format: payload.format,
       status: deriveHackathonStatus(payload.startDate, payload.endDate, now),
-      eligibility: payload.eligibility,
       beginnerFriendly: payload.beginnerFriendly,
       travelReimbursement: payload.travelReimbursement,
       prizeAmountUsd: payload.prizeAmountUsd,
@@ -198,7 +200,6 @@ export async function createPublishedHackathon(payload: NormalizedHackathonPaylo
     applicationOpensAt: payload.applicationOpensAt,
     applicationClosesAt: payload.applicationClosesAt,
     acceptanceAt: payload.acceptanceAt,
-    submissionDeadlineAt: payload.submissionDeadlineAt,
   });
 
   await db.insert(hackathonLocations).values({
@@ -210,7 +211,7 @@ export async function createPublishedHackathon(payload: NormalizedHackathonPaylo
 
   await db.insert(sources).values({
     hackathonId: created.id,
-    sourceType: payload.devpostUrl ? "devpost" : "manual",
+    sourceType: "manual",
     sourceUrl: payload.sourceUrl ?? payload.websiteUrl,
     reliabilityScore: "0.85",
   });
@@ -219,6 +220,7 @@ export async function createPublishedHackathon(payload: NormalizedHackathonPaylo
 }
 
 export async function mergeIntoHackathon(targetHackathonId: string, payload: NormalizedHackathonPayload) {
+  payload = normalizeLocationPayload(payload);
   const [existing] = await db.select().from(hackathons).where(eq(hackathons.id, targetHackathonId)).limit(1);
 
   if (!existing) {
@@ -232,10 +234,7 @@ export async function mergeIntoHackathon(targetHackathonId: string, payload: Nor
       websiteUrl: existing.websiteUrl ?? payload.websiteUrl,
       imageUrl: existing.imageUrl ?? payload.imageUrl,
       applicationUrl: existing.applicationUrl ?? payload.applicationUrl,
-      devpostUrl: existing.devpostUrl ?? payload.devpostUrl,
-      discordUrl: existing.discordUrl ?? payload.discordUrl,
       venue: existing.venue ?? payload.venue,
-      eligibility: existing.eligibility ?? payload.eligibility,
       beginnerFriendly: existing.beginnerFriendly || payload.beginnerFriendly,
       travelReimbursement: existing.travelReimbursement || payload.travelReimbursement,
       prizeAmountUsd: existing.prizeAmountUsd ?? payload.prizeAmountUsd,
@@ -253,7 +252,6 @@ export async function mergeIntoHackathon(targetHackathonId: string, payload: Nor
         applicationOpensAt: existingDates.applicationOpensAt ?? payload.applicationOpensAt,
         applicationClosesAt: existingDates.applicationClosesAt ?? payload.applicationClosesAt,
         acceptanceAt: existingDates.acceptanceAt ?? payload.acceptanceAt,
-        submissionDeadlineAt: existingDates.submissionDeadlineAt ?? payload.submissionDeadlineAt,
       })
       .where(eq(hackathonDates.id, existingDates.id));
   } else {
@@ -264,7 +262,6 @@ export async function mergeIntoHackathon(targetHackathonId: string, payload: Nor
       applicationOpensAt: payload.applicationOpensAt,
       applicationClosesAt: payload.applicationClosesAt,
       acceptanceAt: payload.acceptanceAt,
-      submissionDeadlineAt: payload.submissionDeadlineAt,
     });
   }
 
@@ -294,7 +291,7 @@ export async function mergeIntoHackathon(targetHackathonId: string, payload: Nor
 
   await db.insert(sources).values({
     hackathonId: targetHackathonId,
-    sourceType: payload.devpostUrl ? "devpost" : "manual",
+    sourceType: "manual",
     sourceUrl: payload.sourceUrl ?? payload.websiteUrl,
     reliabilityScore: "0.7",
   });
@@ -354,6 +351,148 @@ export async function createHackathonSubmission(input: HackathonSubmissionInput,
     .returning();
 
   return { submission, publishedHackathonId: null, publishedDirectly: false };
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
+}
+
+function stringField(value: unknown) {
+  return typeof value === "string" || typeof value === "number" ? String(value).trim() : "";
+}
+
+function firstString(...values: unknown[]) {
+  for (const value of values) {
+    const candidate = stringField(value);
+
+    if (candidate) {
+      return candidate;
+    }
+  }
+
+  return "";
+}
+
+function dateString(value: unknown, fallback: Date) {
+  const raw = stringField(value);
+  const date = raw ? new Date(raw) : fallback;
+
+  return Number.isNaN(date.getTime()) ? fallback.toISOString() : date.toISOString();
+}
+
+function lumaUrl(value: unknown) {
+  const slug = stringField(value);
+
+  if (!slug) {
+    return "";
+  }
+
+  return slug.startsWith("http") ? slug : `https://luma.com/${slug}`;
+}
+
+function importedFallbackUrl(index: number) {
+  return `https://haethon.local/admin/imports/${index + 1}`;
+}
+
+function deriveFixPayload(item: AdminHackathonFixImportItem, index: number) {
+  const raw = asRecord(item.raw);
+  const event = asRecord(raw.event ?? raw);
+  const calendar = asRecord(raw.calendar);
+  const geoAddress = asRecord(event.geo_address_info);
+  const localized = asRecord(geoAddress.localized);
+  const englishAddress = asRecord(localized["en-GB"] ?? localized.en);
+  const hosts = Array.isArray(raw.hosts) ? raw.hosts.map(asRecord) : [];
+  const primaryHost = hosts[0] ?? {};
+  const fallbackStart = new Date();
+  const fallbackEnd = new Date(fallbackStart.getTime() + 24 * 60 * 60 * 1000);
+  const sourceUrl = firstString(item.sourceUrl, lumaUrl(event.url), event.sourceUrl, raw.sourceUrl, raw.url, importedFallbackUrl(index));
+  const name = firstString(event.name, raw.name, raw.title, `Imported hackathon ${index + 1}`).slice(0, 180);
+  const country = firstString(geoAddress.country, englishAddress.country, calendar.geo_country);
+  const city = firstString(geoAddress.city, englishAddress.city, calendar.geo_city);
+  const region = firstString(geoAddress.region, englishAddress.region, calendar.geo_region);
+  const venue = firstString(geoAddress.address, geoAddress.short_address, englishAddress.address, englishAddress.short_address);
+  const organizationName = firstString(
+    calendar.is_personal ? undefined : calendar.name,
+    asRecord(calendar.personal_user).name,
+    primaryHost.name
+  );
+
+  return {
+    name,
+    organizationName,
+    websiteUrl: sourceUrl,
+    imageUrl: firstString(event.cover_url, event.social_image_url, calendar.cover_image_url),
+    sourceUrl,
+    applicationUrl: sourceUrl,
+    city,
+    region,
+    country,
+    venue,
+    startDate: dateString(event.start_at ?? raw.start_at, fallbackStart),
+    endDate: dateString(event.end_at ?? raw.end_at, fallbackEnd),
+    format: event.location_type === "online" ? "online" : "in_person",
+    shortDescription: firstString(raw.description, event.description),
+    beginnerFriendly: false,
+    travelReimbursement: false,
+    importReason: item.reason,
+    importSource: item.source ?? "unknown",
+    importSourceUrl: sourceUrl,
+    externalId: firstString(raw.api_id, event.api_id),
+    rawImport: item.raw,
+    needsFix: true,
+  };
+}
+
+export async function importAdminHackathonFixItems(input: { items: AdminHackathonFixImportItem[]; reviewerUserId: string }) {
+  const results: Array<{
+    duplicateScore: number;
+    index: number;
+    matchedHackathonId?: string;
+    name: string;
+    reason: string;
+    source: string;
+    sourceUrl: string;
+    submissionId: string;
+  }> = [];
+
+  for (const [index, item] of input.items.entries()) {
+    const payload = deriveFixPayload(item, index);
+    const duplicate = await findBestDuplicate(payload);
+    const duplicateScore = Number((duplicate?.score ?? 0).toFixed(2));
+
+    const [submission] = await db
+      .insert(hackathonSubmissions)
+      .values({
+        submittedByUserId: input.reviewerUserId,
+        submitterType: "community",
+        matchedHackathonId: duplicate?.id,
+        status: "pending",
+        payload,
+        normalizedName: payload.name,
+        websiteUrl: payload.websiteUrl,
+        sourceUrl: payload.sourceUrl,
+        duplicateScore: duplicateScore.toFixed(2),
+        reviewerNotes: `Imported for manual fix: ${item.reason}`,
+      })
+      .returning({ id: hackathonSubmissions.id });
+
+    results.push({
+      duplicateScore,
+      index,
+      matchedHackathonId: duplicate?.id,
+      name: payload.name,
+      reason: item.reason,
+      source: item.source ?? "unknown",
+      sourceUrl: payload.sourceUrl,
+      submissionId: submission.id,
+    });
+  }
+
+  return {
+    queuedCount: results.length,
+    results,
+    total: results.length,
+  };
 }
 
 export async function importAdminHackathons(input: { payloads: AdminHackathonImportPayload[]; reviewerUserId: string }) {

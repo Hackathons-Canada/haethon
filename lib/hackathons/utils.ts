@@ -6,6 +6,7 @@ import {
   normalizedHackathonPayloadSchema,
   organizerSubmissionSchema,
 } from "@/lib/validations/hackathon";
+import { normalizeLocationPayload } from "@/lib/hackathons/location-normalization";
 
 export type CommunitySubmissionInput = z.infer<typeof communitySubmissionSchema>;
 export type OrganizerSubmissionInput = z.infer<typeof organizerSubmissionSchema>;
@@ -73,13 +74,13 @@ export function deriveHackathonStatus(startsAt: Date, endsAt: Date, now = new Da
 
 export function normalizeSubmissionPayload(input: HackathonSubmissionInput): NormalizedHackathonPayload {
   if (input.submitterType === "organizer") {
-    return {
+    return normalizeLocationPayload({
       ...input,
       sourceUrl: input.sourceUrl ?? input.websiteUrl,
-    };
+    });
   }
 
-  return {
+  return normalizeLocationPayload({
     name: input.name,
     websiteUrl: input.websiteUrl ?? input.sourceUrl,
     imageUrl: input.imageUrl,
@@ -95,7 +96,7 @@ export function normalizeSubmissionPayload(input: HackathonSubmissionInput): Nor
     timeNote: input.timeNote,
     beginnerFriendly: false,
     travelReimbursement: false,
-  };
+  });
 }
 
 export function payloadForJson(payload: NormalizedHackathonPayload & { submitterType?: "organizer" | "community" }) {
@@ -106,7 +107,6 @@ export function payloadForJson(payload: NormalizedHackathonPayload & { submitter
     applicationOpensAt: payload.applicationOpensAt?.toISOString(),
     applicationClosesAt: payload.applicationClosesAt?.toISOString(),
     acceptanceAt: payload.acceptanceAt?.toISOString(),
-    submissionDeadlineAt: payload.submissionDeadlineAt?.toISOString(),
   };
 }
 
@@ -150,14 +150,13 @@ export function calculateDuplicateScore(input: {
   candidateSourceUrl?: string | null;
   existingName: string;
   existingWebsiteUrl?: string | null;
-  existingDevpostUrl?: string | null;
 }) {
   const nameScore = jaccardSimilarity(input.candidateName, input.existingName);
   const candidateDomains = new Set(
     [domainFromUrl(input.candidateWebsiteUrl), domainFromUrl(input.candidateSourceUrl)].filter(Boolean)
   );
   const existingDomains = new Set(
-    [domainFromUrl(input.existingWebsiteUrl), domainFromUrl(input.existingDevpostUrl)].filter(Boolean)
+    [domainFromUrl(input.existingWebsiteUrl)].filter(Boolean)
   );
   const domainMatch = [...candidateDomains].some((domain) => existingDomains.has(domain));
 

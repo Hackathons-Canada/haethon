@@ -1,22 +1,53 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { Building2, Send, UsersRound } from "lucide-react";
 
 type SubmitterType = "organizer" | "community";
 
+// Sentinel source URL so reviewers can tell a submission came from this form
+// rather than a scraped or imported source.
+const FORM_SUBMISSION_SOURCE_URL = "https://haethon.local/submissions/community-form";
+
 const inputClassName =
-  "w-full rounded-lg border-0 bg-[#D2D2D2] px-3 py-2.5 text-sm text-[#181818] outline-none transition placeholder:text-[#747474] focus:bg-[#C8C8C8]";
-const labelClassName = "mb-1.5 block text-sm font-semibold text-[#222222]";
+  "w-full rounded-none border-0 border-b border-black/15 bg-transparent px-0 py-2 text-[15px] text-black outline-none transition-colors placeholder:text-[#9C9A94] focus:border-[#660000]";
+const labelClassName =
+  "mb-2 block font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-[#706F6B]";
 
 function fieldValue(formData: FormData, name: string) {
   return formData.get(name)?.toString() ?? "";
+}
+
+function urlValue(formData: FormData, name: string) {
+  const value = fieldValue(formData, name).trim();
+
+  if (!value || /^https?:\/\//i.test(value)) {
+    return value;
+  }
+
+  return `https://${value}`;
 }
 
 function optionalNumber(formData: FormData, name: string) {
   const value = fieldValue(formData, name);
 
   return value ? Number(value) : "";
+}
+
+function messageFromError(error: unknown) {
+  if (typeof error === "string") {
+    return error;
+  }
+
+  if (error && typeof error === "object" && "fieldErrors" in error) {
+    const fieldErrors = (error as { fieldErrors: Record<string, string[] | undefined> }).fieldErrors;
+    const [field, issues] = Object.entries(fieldErrors).find(([, value]) => value?.length) ?? [];
+
+    if (field && issues) {
+      return `${field}: ${issues[0]}`;
+    }
+  }
+
+  return "Check the highlighted details and try again.";
 }
 
 export function HackathonSubmissionForm() {
@@ -26,10 +57,11 @@ export function HackathonSubmissionForm() {
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const form = event.currentTarget;
     setStatus("submitting");
     setMessage(null);
 
-    const formData = new FormData(event.currentTarget);
+    const formData = new FormData(form);
     const commonPayload = {
       submitterType,
       name: fieldValue(formData, "name"),
@@ -39,8 +71,6 @@ export function HackathonSubmissionForm() {
       country: fieldValue(formData, "country"),
       city: fieldValue(formData, "city"),
       region: fieldValue(formData, "region"),
-      imageUrl: fieldValue(formData, "imageUrl"),
-      applicationUrl: fieldValue(formData, "applicationUrl"),
       shortDescription: fieldValue(formData, "shortDescription"),
     };
     const payload =
@@ -48,81 +78,80 @@ export function HackathonSubmissionForm() {
         ? {
             ...commonPayload,
             organizationName: fieldValue(formData, "organizationName"),
-            websiteUrl: fieldValue(formData, "websiteUrl"),
+            websiteUrl: urlValue(formData, "websiteUrl"),
             applicationOpensAt: fieldValue(formData, "applicationOpensAt"),
             applicationClosesAt: fieldValue(formData, "applicationClosesAt"),
-            acceptanceAt: fieldValue(formData, "acceptanceAt"),
-            submissionDeadlineAt: fieldValue(formData, "submissionDeadlineAt"),
             venue: fieldValue(formData, "venue"),
-            discordUrl: fieldValue(formData, "discordUrl"),
-            devpostUrl: fieldValue(formData, "devpostUrl"),
-            eligibility: fieldValue(formData, "eligibility"),
             beginnerFriendly: formData.get("beginnerFriendly") === "on",
             travelReimbursement: formData.get("travelReimbursement") === "on",
             prizeAmountUsd: optionalNumber(formData, "prizeAmountUsd"),
           }
         : {
             ...commonPayload,
-            sourceUrl: fieldValue(formData, "sourceUrl"),
-            websiteUrl: fieldValue(formData, "websiteUrl"),
-            timeNote: fieldValue(formData, "timeNote"),
+            sourceUrl: FORM_SUBMISSION_SOURCE_URL,
+            websiteUrl: urlValue(formData, "websiteUrl"),
           };
 
-    const response = await fetch("/api/hackathon-submissions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const body = (await response.json()) as { error?: unknown; data?: { publishedDirectly?: boolean } };
+    try {
+      const response = await fetch("/api/hackathon-submissions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const body = (await response.json()) as { error?: unknown; data?: { publishedDirectly?: boolean } };
 
-    if (!response.ok) {
+      if (!response.ok) {
+        setStatus("error");
+        setMessage(messageFromError(body.error));
+        return;
+      }
+
+      setStatus("success");
+      setMessage(
+        body.data?.publishedDirectly ? "Published directly for your verified organization." : "Submitted for review."
+      );
+      form.reset();
+    } catch {
       setStatus("error");
-      setMessage(typeof body.error === "string" ? body.error : "Check the highlighted details and try again.");
-      return;
+      setMessage("Something went wrong sending your submission. Please try again.");
     }
-
-    setStatus("success");
-    setMessage(body.data?.publishedDirectly ? "Published directly for your verified organization." : "Submitted for review.");
-    event.currentTarget.reset();
   }
 
   return (
-    <form onSubmit={onSubmit} className="overflow-hidden rounded-lg border border-black/10 bg-[#EFEFEF] text-[#181818] shadow-sm">
-      <div className="border-b border-black/10 bg-[#DCDCDC]">
-        <div className="flex" role="tablist" aria-label="Submission type">
-          {[
-            {
-              value: "community" as const,
-              label: "Community",
-              Icon: UsersRound,
-            },
-            {
-              value: "organizer" as const,
-              label: "Organizer",
-              Icon: Building2,
-            },
-          ].map(({ value, label, Icon }) => (
-            <button
-              aria-selected={submitterType === value}
-              className={`inline-flex min-h-14 flex-1 items-center justify-center gap-2 border-b-2 px-4 text-sm font-semibold outline-none transition ${
-                submitterType === value
-                  ? "border-[#666666] bg-[#EFEFEF] text-[#181818]"
-                  : "border-transparent text-[#666666] hover:bg-[#D4D4D4] hover:text-[#222222]"
-              }`}
-              key={value}
-              onClick={() => setSubmitterType(value)}
-              role="tab"
-              type="button"
-            >
-              <Icon aria-hidden="true" className="size-4 text-[#5F5F5F]" />
-              {label}
-            </button>
-          ))}
-        </div>
+    <form onSubmit={onSubmit} className="border border-black/10 bg-white text-black">
+      <div className="flex border-b border-black/10" role="tablist" aria-label="Submission type">
+        {[
+          {
+            value: "community" as const,
+            label: "Community",
+            note: "Passersby who saw a hackathon and want to help",
+          },
+          {
+            value: "organizer" as const,
+            label: "Organizer",
+            note: "Register your own hackathon",
+          },
+        ].map(({ value, label, note }) => (
+          <button
+            aria-selected={submitterType === value}
+            className={`flex flex-1 flex-col items-center justify-center gap-1.5 border-b-2 px-4 py-4 outline-none transition-colors ${
+              submitterType === value
+                ? "border-[#660000] text-black"
+                : "border-transparent text-[#706F6B] hover:text-black focus-visible:text-black"
+            }`}
+            key={value}
+            onClick={() => setSubmitterType(value)}
+            role="tab"
+            type="button"
+          >
+            <span className="font-mono text-xs font-medium uppercase tracking-[0.14em]">{label}</span>
+            <span className="text-xs text-[#706F6B]">{note}</span>
+          </button>
+        ))}
       </div>
 
-      <div className="space-y-8 p-6">
-        <div className="grid gap-5 md:grid-cols-2">
+      <div className="space-y-10 p-6 sm:p-10">
+        <div className="grid gap-x-8 gap-y-7 md:grid-cols-2">
           <div>
             <label className={labelClassName} htmlFor="name">
               Event name
@@ -130,53 +159,45 @@ export function HackathonSubmissionForm() {
             <input id="name" name="name" required className={inputClassName} />
           </div>
           {submitterType === "organizer" ? (
-            <div>
-              <label className={labelClassName} htmlFor="organizationName">
-                Organization
-              </label>
-              <input id="organizationName" name="organizationName" required className={inputClassName} />
-            </div>
+            <>
+              <div>
+                <label className={labelClassName} htmlFor="organizationName">
+                  Organization
+                </label>
+                <input id="organizationName" name="organizationName" required className={inputClassName} />
+              </div>
+              <div>
+                <label className={labelClassName} htmlFor="websiteUrl">
+                  Website URL
+                </label>
+                <input
+                  id="websiteUrl"
+                  name="websiteUrl"
+                  required
+                  type="text"
+                  placeholder="www.example.com"
+                  className={inputClassName}
+                />
+              </div>
+            </>
           ) : (
             <div>
-              <label className={labelClassName} htmlFor="sourceUrl">
-                Website or source URL
+              <label className={labelClassName} htmlFor="websiteUrl">
+                Website
               </label>
-              <input id="sourceUrl" name="sourceUrl" required type="url" className={inputClassName} />
+              <input
+                id="websiteUrl"
+                name="websiteUrl"
+                required
+                type="text"
+                placeholder="No link? Put www.example.com"
+                className={inputClassName}
+              />
             </div>
           )}
         </div>
 
-        <div className="grid gap-5 md:grid-cols-2">
-          {submitterType === "organizer" ? (
-            <div>
-              <label className={labelClassName} htmlFor="websiteUrl">
-                Website URL
-              </label>
-              <input id="websiteUrl" name="websiteUrl" required type="url" className={inputClassName} />
-            </div>
-          ) : (
-            <div>
-              <label className={labelClassName} htmlFor="websiteUrl">
-                Official website if known
-              </label>
-              <input id="websiteUrl" name="websiteUrl" type="url" className={inputClassName} />
-            </div>
-          )}
-          <div>
-            <label className={labelClassName} htmlFor="applicationUrl">
-              Application URL
-            </label>
-            <input id="applicationUrl" name="applicationUrl" type="url" className={inputClassName} />
-          </div>
-          <div>
-            <label className={labelClassName} htmlFor="imageUrl">
-              Image URL
-            </label>
-            <input id="imageUrl" name="imageUrl" type="url" className={inputClassName} />
-          </div>
-        </div>
-
-        <div className="grid gap-5 md:grid-cols-4">
+        <div className="grid gap-x-8 gap-y-7 md:grid-cols-4">
           <div>
             <label className={labelClassName} htmlFor="startDate">
               Start date
@@ -207,7 +228,7 @@ export function HackathonSubmissionForm() {
           </div>
         </div>
 
-        <div className="grid gap-5 md:grid-cols-3">
+        <div className="grid gap-x-8 gap-y-7 md:grid-cols-3">
           <div>
             <label className={labelClassName} htmlFor="city">
               City
@@ -220,25 +241,18 @@ export function HackathonSubmissionForm() {
             </label>
             <input id="region" name="region" className={inputClassName} />
           </div>
-          {submitterType === "community" ? (
-            <div>
-              <label className={labelClassName} htmlFor="timeNote">
-                Time note
-              </label>
-              <input id="timeNote" name="timeNote" placeholder="e.g. starts at 9 AM ET" className={inputClassName} />
-            </div>
-          ) : (
+          {submitterType === "organizer" ? (
             <div>
               <label className={labelClassName} htmlFor="venue">
                 Venue
               </label>
               <input id="venue" name="venue" className={inputClassName} />
             </div>
-          )}
+          ) : null}
         </div>
 
         {submitterType === "organizer" ? (
-          <div className="grid gap-5 border-t border-black/10 pt-6 md:grid-cols-2">
+          <div className="grid gap-x-8 gap-y-7 border-t border-black/10 pt-10 md:grid-cols-2">
             <div>
               <label className={labelClassName} htmlFor="applicationOpensAt">
                 Application opens
@@ -252,57 +266,27 @@ export function HackathonSubmissionForm() {
               <input id="applicationClosesAt" name="applicationClosesAt" type="date" className={inputClassName} />
             </div>
             <div>
-              <label className={labelClassName} htmlFor="acceptanceAt">
-                Acceptance date
-              </label>
-              <input id="acceptanceAt" name="acceptanceAt" type="date" className={inputClassName} />
-            </div>
-            <div>
-              <label className={labelClassName} htmlFor="submissionDeadlineAt">
-                Submission deadline
-              </label>
-              <input id="submissionDeadlineAt" name="submissionDeadlineAt" type="date" className={inputClassName} />
-            </div>
-            <div>
-              <label className={labelClassName} htmlFor="discordUrl">
-                Discord URL
-              </label>
-              <input id="discordUrl" name="discordUrl" type="url" className={inputClassName} />
-            </div>
-            <div>
-              <label className={labelClassName} htmlFor="devpostUrl">
-                Devpost URL
-              </label>
-              <input id="devpostUrl" name="devpostUrl" type="url" className={inputClassName} />
-            </div>
-            <div>
               <label className={labelClassName} htmlFor="prizeAmountUsd">
                 Prize amount USD
               </label>
               <input id="prizeAmountUsd" name="prizeAmountUsd" min="0" type="number" className={inputClassName} />
             </div>
-            <div className="flex items-end gap-5 pb-2">
-              <label className="inline-flex items-center gap-2 text-sm font-semibold text-[#222222]">
-                <input name="beginnerFriendly" type="checkbox" className="size-4 accent-[#555555]" />
+            <div className="flex items-end gap-6 pb-2">
+              <label className="inline-flex items-center gap-2.5 text-sm text-black">
+                <input name="beginnerFriendly" type="checkbox" className="size-4 accent-[#660000]" />
                 Beginner friendly
               </label>
-              <label className="inline-flex items-center gap-2 text-sm font-semibold text-[#222222]">
-                <input name="travelReimbursement" type="checkbox" className="size-4 accent-[#555555]" />
+              <label className="inline-flex items-center gap-2.5 text-sm text-black">
+                <input name="travelReimbursement" type="checkbox" className="size-4 accent-[#660000]" />
                 Travel reimbursement
               </label>
-            </div>
-            <div className="md:col-span-2">
-              <label className={labelClassName} htmlFor="eligibility">
-                Eligibility
-              </label>
-              <textarea id="eligibility" name="eligibility" rows={3} className={inputClassName} />
             </div>
           </div>
         ) : null}
 
         <div>
           <label className={labelClassName} htmlFor="shortDescription">
-            {submitterType === "organizer" ? "Short description" : "Short note if known"}
+            {submitterType === "organizer" ? "Short description" : "Notes"}
           </label>
           <textarea
             id="shortDescription"
@@ -313,17 +297,18 @@ export function HackathonSubmissionForm() {
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-4 border-t border-black/10 pt-8">
           <button
             disabled={status === "submitting"}
             type="submit"
-            className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-[#4A4A4A] px-5 text-sm font-semibold text-white transition hover:bg-[#3A3A3A] disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex min-h-11 items-center justify-center border border-[#660000] px-6 font-mono text-xs font-medium uppercase tracking-[0.14em] text-[#660000] transition-colors hover:bg-[#660000] hover:text-white focus-visible:bg-[#660000] focus-visible:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#660000] disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <Send aria-hidden="true" className="size-4" />
             {status === "submitting" ? "Submitting" : "Submit for review"}
           </button>
           {message ? (
-            <p className={`text-sm font-semibold ${status === "error" ? "text-[#3F3F3F]" : "text-[#555555]"}`}>{message}</p>
+            <p aria-live="polite" className={`text-sm ${status === "error" ? "text-[#660000]" : "text-[#3F3E3B]"}`}>
+              {message}
+            </p>
           ) : null}
         </div>
       </div>

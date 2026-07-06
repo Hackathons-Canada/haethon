@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { and, desc, eq, isNotNull, or, sql } from "drizzle-orm";
 import { CalendarDays, MapPin, Trophy } from "lucide-react";
 
+import { AccountSignOutButton } from "@/components/account-sign-out-button";
 import { AccountProfileForm } from "@/components/forms/account-profile-form";
 import { getCurrentUserContext } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -11,7 +12,6 @@ import {
   hackathonLocations,
   hackathonResults,
   hackathons,
-  hackathonSubmissions,
   userHackathonAttendanceDays,
   userHackathons,
   userProfiles,
@@ -48,6 +48,16 @@ function activityWeeks(attendance: { attendedOn: Date }[]) {
   return weeks;
 }
 
+function formatChartDate(value: string | undefined) {
+  if (!value) {
+    return "";
+  }
+
+  const date = new Date(`${value}T00:00:00`);
+
+  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(date);
+}
+
 const sectionHeadingClassName = "text-sm font-semibold uppercase tracking-[0.2em] text-[#660000]";
 
 export default async function AccountPage() {
@@ -57,7 +67,7 @@ export default async function AccountPage() {
     redirect("/sign-in");
   }
 
-  const [[profile], savedHackathons, wins, submissions, attendance, attendedHackathons] = await Promise.all([
+  const [[profile], savedHackathons, wins, attendance, attendedHackathons] = await Promise.all([
     db.select().from(userProfiles).where(eq(userProfiles.userId, context.user.id)).limit(1),
     db
       .select({
@@ -96,12 +106,6 @@ export default async function AccountPage() {
       .orderBy(desc(hackathonResults.createdAt))
       .limit(8),
     db
-      .select()
-      .from(hackathonSubmissions)
-      .where(eq(hackathonSubmissions.submittedByUserId, context.user.id))
-      .orderBy(desc(hackathonSubmissions.createdAt))
-      .limit(8),
-    db
       .select({ attendedOn: userHackathonAttendanceDays.attendedOn })
       .from(userHackathonAttendanceDays)
       .where(eq(userHackathonAttendanceDays.userId, context.user.id)),
@@ -132,6 +136,11 @@ export default async function AccountPage() {
   ]);
   const weeks = activityWeeks(attendance);
   const yearAttendanceCount = weeks.reduce((total, week) => total + week.count, 0);
+  const chartLabels = [
+    { className: "text-left", text: formatChartDate(weeks[0]?.key) },
+    { className: "text-center", text: formatChartDate(weeks[Math.floor(weeks.length / 2)]?.key) },
+    { className: "text-right", text: formatChartDate(weeks.at(-1)?.key) },
+  ];
   const displayName = [context.user.firstName, context.user.lastName].filter(Boolean).join(" ") || context.user.email;
   const pinnedWins = wins.slice(0, 6);
 
@@ -147,10 +156,13 @@ export default async function AccountPage() {
             >
               Account Settings
             </Link>
+            <div className="mt-3">
+              <AccountSignOutButton />
+            </div>
           </aside>
 
           <div className="min-w-0 space-y-6">
-            <section className="rounded-lg border border-black/10 bg-[#F7F7F4] p-5">
+            <section className="rounded-lg bg-[#F7F7F4] p-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h2 className={sectionHeadingClassName}>Pinned</h2>
                 <p className="text-sm text-[#706F6B]">Verified wins</p>
@@ -179,7 +191,7 @@ export default async function AccountPage() {
               </div>
             </section>
 
-            <section id="activity" className="rounded-lg border border-black/10 bg-[#F7F7F4] p-5">
+            <section id="activity" className="rounded-lg bg-[#F7F7F4] p-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h2 className={sectionHeadingClassName}>Activity</h2>
                 <div className="rounded-lg border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-black">
@@ -199,6 +211,13 @@ export default async function AccountPage() {
                     />
                   ))}
                 </div>
+                <div className="mt-2 grid min-w-[624px] grid-cols-3 text-xs text-[#706F6B]">
+                  {chartLabels.map((label) => (
+                    <span className={label.className} key={label.className}>
+                      {label.text}
+                    </span>
+                  ))}
+                </div>
                 <div className="mt-3 flex items-center justify-end gap-2 text-xs text-[#706F6B]">
                   <span>Less</span>
                   <span className="size-3 rounded-[3px] bg-black/10" />
@@ -209,7 +228,7 @@ export default async function AccountPage() {
               </div>
             </section>
 
-            <div className="grid gap-6 xl:grid-cols-2">
+            <div className="space-y-6">
               <section className="rounded-lg border border-black/10 bg-[#F7F7F4] p-5">
                 <h2 className={sectionHeadingClassName}>Hackathons attended</h2>
                 <div className="mt-4 space-y-3">
@@ -260,33 +279,6 @@ export default async function AccountPage() {
                 </div>
               </section>
             </div>
-
-            <section id="submissions" className="rounded-lg border border-black/10 bg-[#F7F7F4] p-5">
-              <h2 className={sectionHeadingClassName}>Submissions</h2>
-              <div className="mt-4 overflow-x-auto">
-                <table className="w-full min-w-[640px] text-left text-sm">
-                  <thead className="border-b border-black/10 text-xs uppercase tracking-[0.16em] text-[#706F6B]">
-                    <tr>
-                      <th className="py-3 pr-4">Hackathon</th>
-                      <th className="py-3 pr-4">Type</th>
-                      <th className="py-3 pr-4">Status</th>
-                      <th className="py-3 pr-4">Submitted</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-black/10">
-                    {submissions.map((submission) => (
-                      <tr key={submission.id}>
-                        <td className="py-3 pr-4 font-semibold text-black">{submission.normalizedName}</td>
-                        <td className="py-3 pr-4 capitalize text-[#706F6B]">{submission.submitterType}</td>
-                        <td className="py-3 pr-4 capitalize text-[#660000]">{submission.status}</td>
-                        <td className="py-3 pr-4 text-[#706F6B]">{dateToInputValue(submission.createdAt)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {!submissions.length ? <p className="mt-3 text-sm text-[#706F6B]">Your submitted hackathons will appear here.</p> : null}
-              </div>
-            </section>
           </div>
         </div>
       </div>

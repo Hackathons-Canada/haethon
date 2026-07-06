@@ -3,7 +3,7 @@
 import { FormEvent, useState } from "react";
 import { Check, GitMerge, X } from "lucide-react";
 
-type SubmissionReviewItem = {
+export type SubmissionReviewItem = {
   id: string;
   submitterEmail: string | null;
   submitterType: "organizer" | "community";
@@ -36,14 +36,27 @@ function dateValue(payload: Record<string, unknown>, key: string) {
   return Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 10);
 }
 
+function importReason(payload: Record<string, unknown>) {
+  return value(payload, "importReason") || value(payload, "reason");
+}
+
 const inputClassName =
   "w-full rounded-lg border border-black/15 bg-white px-3 py-2 text-sm text-black outline-none focus:border-[#660000] focus:ring-2 focus:ring-[#660000]/15";
 const labelClassName = "mb-1 block text-xs font-semibold uppercase tracking-[0.14em] text-[#706F6B]";
 
-export function SubmissionReviewCard({ endpointBase, submission }: { endpointBase: string; submission: SubmissionReviewItem }) {
+export function SubmissionReviewCard({
+  endpointBase,
+  onReviewed,
+  submission,
+}: {
+  endpointBase: string;
+  onReviewed?: (submissionId: string) => void;
+  submission: SubmissionReviewItem;
+}) {
   const [status, setStatus] = useState<"idle" | "submitting" | "done" | "error">("idle");
   const [message, setMessage] = useState<string | null>(null);
   const disabled = status === "submitting" || submission.status !== "pending";
+  const fixReason = importReason(submission.payload);
 
   async function submitReview(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -69,12 +82,8 @@ export function SubmissionReviewCard({ endpointBase, submission }: { endpointBas
       applicationOpensAt: formData.get("applicationOpensAt")?.toString() ?? "",
       applicationClosesAt: formData.get("applicationClosesAt")?.toString() ?? "",
       acceptanceAt: formData.get("acceptanceAt")?.toString() ?? "",
-      submissionDeadlineAt: formData.get("submissionDeadlineAt")?.toString() ?? "",
       format: formData.get("format")?.toString() ?? "in_person",
       shortDescription: formData.get("shortDescription")?.toString() ?? "",
-      discordUrl: formData.get("discordUrl")?.toString() ?? "",
-      devpostUrl: formData.get("devpostUrl")?.toString() ?? "",
-      eligibility: formData.get("eligibility")?.toString() ?? "",
       beginnerFriendly: formData.get("beginnerFriendly") === "on",
       travelReimbursement: formData.get("travelReimbursement") === "on",
       prizeAmountUsd: formData.get("prizeAmountUsd")?.toString() ?? "",
@@ -114,7 +123,8 @@ export function SubmissionReviewCard({ endpointBase, submission }: { endpointBas
     }
 
     setStatus("done");
-    setMessage("Review action saved. Refresh to see the updated queue.");
+    setMessage("Review action saved.");
+    onReviewed?.(submission.id);
   }
 
   return (
@@ -141,6 +151,13 @@ export function SubmissionReviewCard({ endpointBase, submission }: { endpointBas
       </div>
 
       <form onSubmit={submitReview} className="mt-5 space-y-5">
+        {fixReason ? (
+          <div className="rounded-lg border border-[#B54708]/25 bg-[#FFFAEB] p-4 text-sm leading-6 text-[#704600]">
+            <p className="font-semibold text-[#B54708]">Needs fix</p>
+            <p className="mt-1">{fixReason}</p>
+          </div>
+        ) : null}
+
         <div className="grid gap-4 md:grid-cols-3">
           <div className="md:col-span-2">
             <label className={labelClassName} htmlFor={`${submission.id}-name`}>
@@ -276,7 +293,13 @@ export function SubmissionReviewCard({ endpointBase, submission }: { endpointBas
           <label className={labelClassName} htmlFor={`${submission.id}-reviewerNotes`}>
             Reviewer notes
           </label>
-          <textarea id={`${submission.id}-reviewerNotes`} name="reviewerNotes" rows={2} className={inputClassName} />
+          <textarea
+            id={`${submission.id}-reviewerNotes`}
+            name="reviewerNotes"
+            rows={2}
+            defaultValue={value(submission.payload, "importReason") ? `Fixed imported record: ${value(submission.payload, "importReason")}` : ""}
+            className={inputClassName}
+          />
         </div>
 
         <div className="flex flex-wrap items-center gap-3">

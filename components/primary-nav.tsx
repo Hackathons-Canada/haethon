@@ -1,9 +1,10 @@
 import Link from "next/link";
 
+import { AdminNavLink } from "@/components/admin-nav-link";
 import { NavAuthLink } from "@/components/nav-auth-link";
 
 const navItems = [
-  { label: "About", href: "/#about" },
+  { label: "About", href: "/about" },
   { label: "FQA", href: "/#fqa" },
   { label: "Submit", href: "/submit" },
   { label: "Hackathons", href: "/hackathons" },
@@ -46,6 +47,10 @@ export function PrimaryNav({ activeHref, className = "bg-white" }: PrimaryNavPro
                 {item.label}
               </Link>
             ))}
+            <AdminNavLink
+              active={activeHref === "/admin"}
+              className={`${navLinkClassName} ${activeHref === "/admin" ? "text-[#660000] underline" : ""}`}
+            />
             <NavAuthLink className={loginLinkClassName} />
           </div>
         </div>
