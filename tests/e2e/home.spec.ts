@@ -7,9 +7,9 @@ test("loads the home page shell", async ({ page }) => {
   await expect(page.getByRole("navigation", { name: "Primary navigation" })).toBeVisible();
   await expect(page.getByRole("link", { name: "About", exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "FQA", exact: true })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Submit", exact: true })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Hackathons", exact: true })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Login", exact: true })).toHaveAttribute("href", "/sign-in");
+  await expect(page.getByRole("link", { name: "Submit", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Hackathons", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Open App", exact: true })).toHaveAttribute("href", "/hackathons");
   await expect(
     page.getByRole("heading", {
       name: "Search hundreds of upcoming hackathons, build your profile, and never miss another application deadline.",

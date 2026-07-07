@@ -10,6 +10,12 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      { source: "/saved", destination: "/my", permanent: false },
+      { source: "/reminders", destination: "/my", permanent: false },
+    ];
+  },
 };
 
 export default withSentryConfig(nextConfig, {

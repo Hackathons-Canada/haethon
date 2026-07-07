@@ -14,7 +14,6 @@ import {
   hackathonResults,
   hackathons,
   userHackathonAttendanceDays,
-  userHackathons,
   userProfiles,
 } from "@/lib/db/schema";
 import { deriveAttendanceTrustTier, type AttendanceSource, type AttendanceTrustTier } from "@/lib/hackathons/attendance-rules";
@@ -90,27 +89,8 @@ export default async function AccountPage() {
     redirect("/sign-in");
   }
 
-  const [[profile], savedHackathons, wins, attendance, attendedHackathons] = await Promise.all([
+  const [[profile], wins, attendance, attendedHackathons] = await Promise.all([
     db.select().from(userProfiles).where(eq(userProfiles.userId, context.user.id)).limit(1),
-    db
-      .select({
-        id: userHackathons.id,
-        hackathonId: hackathons.id,
-        applicationStatus: userHackathons.applicationStatus,
-        hackathonName: hackathons.name,
-        city: hackathonLocations.city,
-        region: hackathonLocations.region,
-        country: hackathonLocations.country,
-        startsAt: hackathonDates.startsAt,
-        endsAt: hackathonDates.endsAt,
-      })
-      .from(userHackathons)
-      .innerJoin(hackathons, eq(hackathons.id, userHackathons.hackathonId))
-      .leftJoin(hackathonLocations, eq(hackathonLocations.hackathonId, hackathons.id))
-      .leftJoin(hackathonDates, eq(hackathonDates.hackathonId, hackathons.id))
-      .where(and(eq(userHackathons.userId, context.user.id), eq(userHackathons.isSaved, true)))
-      .orderBy(desc(userHackathons.updatedAt))
-      .limit(8),
     db
       .select({
         id: hackathonResults.id,
@@ -291,26 +271,17 @@ export default async function AccountPage() {
               </section>
 
               <section id="saved" className="rounded-lg border border-black/10 bg-[#F7F7F4] p-5">
-                <h2 className={sectionHeadingClassName}>Saved hackathons</h2>
-                <div className="mt-4 space-y-3">
-                  {savedHackathons.length ? (
-                    savedHackathons.map((hackathon) => (
-                      <article className="rounded-lg border border-black/10 bg-white p-4" key={hackathon.id}>
-                        <p className="font-semibold text-black">{hackathon.hackathonName}</p>
-                        <p className="mt-1 text-sm text-[#706F6B]">
-                          {[hackathon.city, hackathon.region, hackathon.country].filter(Boolean).join(", ")} ·{" "}
-                          {dateToInputValue(hackathon.startsAt)}
-                        </p>
-                        <p className="mt-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#660000]">
-                          {hackathon.applicationStatus}
-                        </p>
-                        <HackathonCheckinForm hackathonId={hackathon.hackathonId} />
-                      </article>
-                    ))
-                  ) : (
-                    <p className="text-sm text-[#706F6B]">Saved hackathons will appear here.</p>
-                  )}
-                </div>
+                <h2 className={sectionHeadingClassName}>Pipeline</h2>
+                <p className="mt-3 text-sm text-[#706F6B]">
+                  Saved hackathons and application tracking moved to{" "}
+                  <Link
+                    className="font-semibold text-[#660000] underline decoration-1 underline-offset-4 hover:no-underline"
+                    href="/my"
+                  >
+                    My hackathons
+                  </Link>
+                  .
+                </p>
               </section>
             </div>
           </div>

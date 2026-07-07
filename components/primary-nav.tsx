@@ -1,19 +1,14 @@
 import Link from "next/link";
 
-import { AdminNavLink } from "@/components/admin-nav-link";
-import { NavAuthLink } from "@/components/nav-auth-link";
-
 const navItems = [
   { label: "About", href: "/about" },
   { label: "FQA", href: "/#fqa" },
-  { label: "Submit", href: "/submit" },
-  { label: "Hackathons", href: "/hackathons" },
 ];
 
 const navLinkClassName =
   "decoration-[#660000] decoration-1 underline-offset-6 hover:text-[#660000] hover:underline focus-visible:text-[#660000] focus-visible:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#660000]";
 
-const loginLinkClassName =
+const openAppLinkClassName =
   "inline-flex min-h-9 items-center justify-center border border-[#660000] px-4 text-[#660000] transition-colors hover:bg-[#660000] hover:text-white focus-visible:bg-[#660000] focus-visible:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#660000]";
 
 type PrimaryNavProps = {
@@ -47,11 +42,9 @@ export function PrimaryNav({ activeHref, className = "bg-white" }: PrimaryNavPro
                 {item.label}
               </Link>
             ))}
-            <AdminNavLink
-              active={activeHref === "/admin"}
-              className={`${navLinkClassName} ${activeHref === "/admin" ? "text-[#660000] underline" : ""}`}
-            />
-            <NavAuthLink className={loginLinkClassName} />
+            <Link className={openAppLinkClassName} href="/hackathons">
+              Open App
+            </Link>
           </div>
         </div>
       </nav>

@@ -1,14 +1,12 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { and, asc, eq, gte, ilike, inArray, isNotNull, lte, sql } from "drizzle-orm";
 
-import { AdminNavLink } from "@/components/admin-nav-link";
 import { HackathonSearch } from "@/components/hackathon-search";
 import type { HackathonCardData } from "@/components/hackathon-card";
-import { NavAuthLink } from "@/components/nav-auth-link";
 import { getCurrentUserRecord } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { hackathonDates, hackathonLocations, hackathons, userHackathons, userHackathonVotes } from "@/lib/db/schema";
+import { buildBadges, formatDateRange, formatDuration, formatLocation } from "@/lib/hackathons/card-format";
 import { dateRangeForPeriod, normalizeSearchFilters } from "@/lib/hackathons/search-filters";
 import type { HackathonSearchFilters } from "@/lib/hackathons/search-filters";
 
@@ -17,111 +15,7 @@ export const metadata: Metadata = {
   description: "Browse upcoming hackathons across North America.",
 };
 
-const navItems = [
-  { label: "About", href: "/#about" },
-  { label: "FQA", href: "/#fqa" },
-  { label: "Submit", href: "/submit" },
-  { label: "Hackathons", href: "/hackathons" },
-];
-
-const navLinkClassName =
-  "decoration-[#660000] decoration-1 underline-offset-6 hover:text-[#660000] hover:underline focus-visible:text-[#660000] focus-visible:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#660000]";
-
-const loginLinkClassName =
-  "inline-flex min-h-9 items-center justify-center border border-[#660000] px-4 text-[#660000] transition-colors hover:bg-[#660000] hover:text-white focus-visible:bg-[#660000] focus-visible:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#660000]";
-
 const publicStatuses = ["upcoming", "live"] as const;
-const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-function formatDateRange(startsAt: Date | null, endsAt: Date | null) {
-  if (!startsAt) {
-    return "Dates TBA";
-  }
-
-  const start = {
-    day: startsAt.getUTCDate(),
-    month: monthNames[startsAt.getUTCMonth()],
-    year: startsAt.getUTCFullYear(),
-  };
-
-  if (!endsAt) {
-    return `${start.month} ${start.day}, ${start.year}`;
-  }
-
-  const end = {
-    day: endsAt.getUTCDate(),
-    month: monthNames[endsAt.getUTCMonth()],
-    year: endsAt.getUTCFullYear(),
-  };
-
-  if (start.year === end.year && start.month === end.month && start.day === end.day) {
-    return `${start.month} ${start.day}, ${start.year}`;
-  }
-
-  if (start.year === end.year && start.month === end.month) {
-    return `${start.month} ${start.day}-${end.day}, ${start.year}`;
-  }
-
-  if (start.year === end.year) {
-    return `${start.month} ${start.day}-${end.month} ${end.day}, ${start.year}`;
-  }
-
-  return `${start.month} ${start.day}, ${start.year}-${end.month} ${end.day}, ${end.year}`;
-}
-
-function formatDuration(startsAt: Date | null, endsAt: Date | null, format: string) {
-  const formatLabel = format.replace("_", " ");
-
-  if (!startsAt || !endsAt) {
-    return `Duration TBA · ${formatLabel}`;
-  }
-
-  const hours = Math.max(1, Math.round((endsAt.getTime() - startsAt.getTime()) / 3_600_000));
-  const duration = hours <= 96 ? `${hours} hours` : `${Math.ceil(hours / 24)} days`;
-
-  return `${duration} · ${formatLabel}`;
-}
-
-function formatLocation({
-  city,
-  country,
-  format,
-  region,
-  venue,
-}: {
-  city: string | null;
-  country: string | null;
-  format: string;
-  region: string | null;
-  venue: string | null;
-}) {
-  if (format === "online") {
-    return "Online";
-  }
-
-  const locality = [city, region].filter(Boolean).join(", ");
-
-  return locality || venue || country || "Location TBA";
-}
-
-function buildBadges({
-  beginnerFriendly,
-  format,
-  status,
-  travelReimbursement,
-}: {
-  beginnerFriendly: boolean;
-  format: string;
-  status: string;
-  travelReimbursement: boolean;
-}) {
-  return [
-    status === "live" ? "Live now" : "Upcoming",
-    format.replace("_", " "),
-    beginnerFriendly ? "Beginner friendly" : null,
-    travelReimbursement ? "Travel support" : null,
-  ].filter(Boolean) as string[];
-}
 
 async function getHackathonCards(filters: HackathonSearchFilters): Promise<HackathonCardData[]> {
   const user = await getCurrentUserRecord();
@@ -138,6 +32,7 @@ async function getHackathonCards(filters: HackathonSearchFilters): Promise<Hacka
     .select({
       id: hackathons.id,
       name: hackathons.name,
+      slug: hackathons.slug,
       shortDescription: hackathons.shortDescription,
       websiteUrl: hackathons.websiteUrl,
       imageUrl: hackathons.imageUrl,
@@ -206,6 +101,7 @@ async function getHackathonCards(filters: HackathonSearchFilters): Promise<Hacka
     isSaved: savedByHackathon.get(row.id) ?? false,
     location: formatLocation(row),
     name: row.name,
+    slug: row.slug,
     userVote: (voteByHackathon.get(row.id) ?? 0) as -1 | 0 | 1,
     voteScore: row.voteScore,
     websiteUrl: row.websiteUrl,
@@ -222,39 +118,6 @@ export default async function HackathonsPage({
 
   return (
     <main className="min-h-screen bg-white text-black">
-      <header className="sticky top-0 z-40 bg-white">
-        <nav
-          aria-label="Primary navigation"
-          className="border-b border-black/10 bg-white px-8 font-mono text-xs font-medium uppercase tracking-[0.14em] text-[#706F6B] sm:px-14 lg:px-20"
-        >
-          <div className="mx-auto flex min-h-20 max-w-[1120px] flex-col items-start justify-center gap-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:py-0">
-            <Link
-              className={`${navLinkClassName} font-serif text-xl font-semibold normal-case leading-none tracking-normal text-black sm:text-2xl`}
-              href="/"
-            >
-              Hackathons North America
-            </Link>
-
-            <div className="flex flex-wrap items-center justify-start gap-x-5 gap-y-3 sm:justify-end sm:gap-x-8">
-              {navItems.map((item) => (
-                <Link
-                  aria-current={item.href === "/hackathons" ? "page" : undefined}
-                  className={`${navLinkClassName} ${
-                    item.href === "/hackathons" ? "text-[#660000] underline" : ""
-                  }`}
-                  href={item.href}
-                  key={item.label}
-                >
-                  {item.label}
-                </Link>
-              ))}
-              <AdminNavLink className={navLinkClassName} />
-              <NavAuthLink className={loginLinkClassName} />
-            </div>
-          </div>
-        </nav>
-      </header>
-
       <HackathonSearch initialFilters={filters} initialHackathons={hackathonCards} />
     </main>
   );

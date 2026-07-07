@@ -1,22 +1,43 @@
 import Link from "next/link";
 import { Building2, ClipboardList, Maximize2, Search } from "lucide-react";
 
-import { AdminNavLink } from "@/components/admin-nav-link";
-import { NavAuthLink } from "@/components/nav-auth-link";
+import { HeroMapScroll } from "@/components/hero-map-scroll";
 import { HeroTypewriterSpan } from "@/components/hero-typewriter-span";
+import WorldMap from "@/components/ui/world-map";
 
 const navItems = [
   { label: "About", href: "/about" },
   { label: "FQA", href: "#fqa" },
-  { label: "Submit", href: "/submit" },
-  { label: "Hackathons", href: "/hackathons" },
 ];
 
 const navLinkClassName =
   "decoration-[#660000] decoration-1 underline-offset-6 hover:text-[#660000] hover:underline focus-visible:text-[#660000] focus-visible:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#660000]";
 
-const loginLinkClassName =
+const openAppLinkClassName =
   "inline-flex min-h-9 items-center justify-center border border-[#660000] px-4 text-[#660000] transition-colors hover:bg-[#660000] hover:text-white focus-visible:bg-[#660000] focus-visible:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#660000]";
+
+const heroMapDots = [
+  {
+    start: { lat: 49.2827, lng: -123.1207, label: "Vancouver" },
+    end: { lat: 43.6532, lng: -79.3832, label: "Toronto" },
+  },
+  {
+    start: { lat: 37.7749, lng: -122.4194, label: "San Francisco" },
+    end: { lat: 40.7128, lng: -74.006, label: "New York" },
+  },
+  {
+    start: { lat: 47.6062, lng: -122.3321, label: "Seattle" },
+    end: { lat: 30.2672, lng: -97.7431, label: "Austin" },
+  },
+  {
+    start: { lat: 19.4326, lng: -99.1332, label: "Mexico City" },
+    end: { lat: 25.7617, lng: -80.1918, label: "Miami" },
+  },
+  {
+    start: { lat: 34.0522, lng: -118.2437, label: "Los Angeles" },
+    end: { lat: 42.3601, lng: -71.0589, label: "Boston" },
+  },
+];
 
 const hackathonPlaceholders = [
   "Hackathon 01",
@@ -145,8 +166,9 @@ export default function Home() {
                 {item.label}
               </Link>
             ))}
-            <AdminNavLink className={navLinkClassName} />
-            <NavAuthLink className={loginLinkClassName} />
+            <Link className={openAppLinkClassName} href="/hackathons">
+              Open App
+            </Link>
           </div>
         </div>
       </nav>
@@ -165,6 +187,12 @@ export default function Home() {
             achievements, and stay informed with reminders for deadlines and
             upcoming events.
           </p>
+
+          <div className="mt-16 sm:mt-20">
+            <HeroMapScroll>
+              <WorldMap dots={heroMapDots} />
+            </HeroMapScroll>
+          </div>
         </div>
       </section>
 

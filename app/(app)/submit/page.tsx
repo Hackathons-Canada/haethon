@@ -1,11 +1,8 @@
 import { HackathonSubmissionForm } from "@/components/forms/hackathon-submission-form";
-import { PrimaryNav } from "@/components/primary-nav";
 
 export default function SubmitPage() {
   return (
     <div className="min-h-screen bg-white text-black">
-      <PrimaryNav activeHref="/submit" />
-
       <main className="px-5 pb-20 pt-14 sm:px-8 sm:pt-20 lg:px-12">
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-12">
           <div className="max-w-3xl">

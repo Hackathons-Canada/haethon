@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { ArrowBigDown, ArrowBigUp, Bookmark } from "lucide-react";
 
 type Vote = -1 | 0 | 1;
@@ -18,6 +19,7 @@ export type HackathonCardData = {
   isSaved: boolean;
   location: string;
   name: string;
+  slug?: string | null;
   userVote: Vote;
   voteScore: number;
   websiteUrl?: string | null;
@@ -402,7 +404,13 @@ export function HackathonCard({
       className="group relative min-w-0 overflow-hidden border border-black/10 p-5 shadow-[0_18px_45px_rgb(0_0_0/0.06)] transition-transform duration-200 ease-out hover:z-10 hover:scale-110 sm:p-6"
       style={gradientStyle}
     >
-      {hackathon.websiteUrl && !preview ? (
+      {hackathon.slug && !preview ? (
+        <Link
+          aria-label={`View ${hackathon.name} details`}
+          className="absolute inset-0 z-[1]"
+          href={`/hackathons/${hackathon.slug}`}
+        />
+      ) : hackathon.websiteUrl && !preview ? (
         <a
           aria-label={`Visit ${hackathon.name} website`}
           className="absolute inset-0 z-[1]"

@@ -195,6 +195,10 @@ export const hackathonSaveSchema = z.object({
   isSaved: z.boolean(),
 });
 
+export const hackathonTrackSchema = z.object({
+  applicationStatus: z.enum(["interested", "applied", "accepted", "attending"]),
+});
+
 export const hackathonCheckinRedeemSchema = z.object({
   code: z.string().trim().min(4).max(20),
 });

@@ -195,6 +195,7 @@ export async function GET(request: Request) {
       isSaved: savedByHackathon.get(row.id) ?? false,
       location: formatLocation(row),
       name: row.name,
+      slug: row.slug,
       userVote: (voteByHackathon.get(row.id) ?? 0) as -1 | 0 | 1,
       voteScore: row.voteScore,
       websiteUrl: row.websiteUrl,

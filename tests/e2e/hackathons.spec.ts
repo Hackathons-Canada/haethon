@@ -5,12 +5,12 @@ test("opens the hackathons browse page from the home nav", async ({ page }) => {
 
   await page
     .getByRole("navigation", { name: "Primary navigation" })
-    .getByRole("link", { name: "Hackathons", exact: true })
+    .getByRole("link", { name: "Open App", exact: true })
     .click();
 
   await expect(page).toHaveURL(/\/hackathons$/);
   await expect(
-    page.getByRole("navigation", { name: "Primary navigation" })
+    page.getByRole("navigation", { name: "App navigation" })
   ).toBeVisible();
   await expect(page.getByLabel("Name")).toBeVisible();
   await expect(page.getByLabel("Countries")).toBeVisible();
