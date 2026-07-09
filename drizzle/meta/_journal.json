@@ -22,6 +22,13 @@
       "when": 1783454771237,
       "tag": "0002_hackathon_series_discord_sync",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1783557740227,
+      "tag": "0003_great_prima",
+      "breakpoints": true
     }
   ]
 }

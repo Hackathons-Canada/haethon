@@ -43,6 +43,9 @@ Recommended to fully wire the stack:
 - `DISCORD_BOT_TOKEN`
 - `DISCORD_CLIENT_ID`
 - `DISCORD_GUILD_ID`
+- `DISCORD_CANADA_CATEGORY_ID`
+- `DISCORD_US_CATEGORY_ID`
+- `DISCORD_PAST_CATEGORY_ID`
 - `UPLOADTHING_TOKEN`
 - `CRON_SECRET`
 
@@ -84,6 +87,25 @@ pnpm db:push
    - `http://localhost:3000/sign-in`
    - `http://localhost:3000/sign-up`
 5. For admin access later, add `publicMetadata.role = "admin"` to the relevant Clerk user.
+
+## Discord Setup
+
+1. Create an application in the Discord Developer Portal.
+2. Open its **Bot** page and generate a bot token. Store it in `DISCORD_BOT_TOKEN`; never commit or share it.
+3. Copy the Application ID into `DISCORD_CLIENT_ID`.
+4. On the app's **Installation** page, enable the `bot` scope with **View Channels** and **Manage Channels**, then install it in the Discord server.
+5. Enable Developer Mode in Discord. Right-click the server and copy its ID into `DISCORD_GUILD_ID`.
+6. Right-click each existing category, choose **Copy Channel ID**, and configure:
+
+```dotenv
+DISCORD_CANADA_CATEGORY_ID=
+DISCORD_US_CATEGORY_ID=
+DISCORD_PAST_CATEGORY_ID=
+```
+
+Category IDs are optional. When one is omitted, the sync finds a category by its configured name and creates it if it does not exist.
+
+The website performs Discord REST API calls itself, so no separate always-on bot process is required. The deployed Next.js app and the scheduled `/api/cron/sync-discord` request perform the synchronization.
 
 ## Local Development
 

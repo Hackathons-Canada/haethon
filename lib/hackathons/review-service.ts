@@ -2,7 +2,7 @@ import { and, desc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@/lib/db";
-import { syncHackathonDiscordChannelSafely } from "@/lib/discord/sync";
+import { previewHackathonDiscordChannel, syncHackathonDiscordChannelSafely } from "@/lib/discord/sync";
 import {
   hackathonDates,
   hackathonLocations,
@@ -30,6 +30,7 @@ import {
   reviewActionSchema,
 } from "@/lib/validations/hackathon";
 
+export type DiscordChannelPreview = Awaited<ReturnType<typeof previewHackathonDiscordChannel>>;
 export type ReviewAction = z.infer<typeof reviewActionSchema>;
 export type AdminHackathonImportPayload = z.infer<typeof adminHackathonImportPayloadSchema>;
 export type AdminHackathonFixImportItem = z.infer<typeof adminHackathonFixImportItemSchema>;
@@ -167,7 +168,10 @@ export async function findBestDuplicate(payload: { name: string; websiteUrl?: st
   return best && best.score >= 0.55 ? best : null;
 }
 
-export async function createPublishedHackathon(payload: NormalizedHackathonPayload) {
+export async function createPublishedHackathon(
+  payload: NormalizedHackathonPayload,
+  options?: { syncDiscord?: boolean }
+) {
   payload = normalizeLocationPayload(payload);
   const organizationId = await ensureOrganization(payload);
   const seriesId = await ensureHackathonSeries(payload);
@@ -220,7 +224,11 @@ export async function createPublishedHackathon(payload: NormalizedHackathonPaylo
     reliabilityScore: "0.85",
   });
 
-  await syncHackathonDiscordChannelSafely(created.id);
+  // The bulk import flow passes syncDiscord: false so the channel is created only
+  // after the admin explicitly approves it in a second step (see importAdminHackathons).
+  if (options?.syncDiscord !== false) {
+    await syncHackathonDiscordChannelSafely(created.id);
+  }
 
   return created.id;
 }
@@ -508,6 +516,7 @@ export async function importAdminHackathonFixItems(input: { items: AdminHackatho
 
 export async function importAdminHackathons(input: { payloads: AdminHackathonImportPayload[]; reviewerUserId: string }) {
   const results: Array<{
+    discord?: DiscordChannelPreview;
     duplicateScore: number;
     externalId?: string;
     hackathonId?: string;
@@ -552,7 +561,9 @@ export async function importAdminHackathons(input: { payloads: AdminHackathonImp
       continue;
     }
 
-    const hackathonId = await createPublishedHackathon(payload);
+    // Do not create the Discord channel yet — the admin approves that separately.
+    const hackathonId = await createPublishedHackathon(payload, { syncDiscord: false });
+    const discord = await previewHackathonDiscordChannel(hackathonId);
     const [submission] = await db
       .insert(hackathonSubmissions)
       .values({
@@ -572,6 +583,7 @@ export async function importAdminHackathons(input: { payloads: AdminHackathonImp
       .returning({ id: hackathonSubmissions.id });
 
     results.push({
+      discord,
       duplicateScore,
       externalId: rawPayload.externalId,
       hackathonId,

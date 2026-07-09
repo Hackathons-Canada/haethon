@@ -1,10 +1,27 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { and, asc, eq, inArray, isNotNull, isNull } from "drizzle-orm";
-import { ArrowLeft, ArrowUpRight, BellRing, CalendarDays, Landmark, MapPin, Trophy } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowUpRight,
+  BellRing,
+  CalendarClock,
+  CalendarDays,
+  CircleCheck,
+  CircleDot,
+  Clock,
+  Globe,
+  Landmark,
+  type LucideIcon,
+  MapPin,
+  Tag as TagIcon,
+  Trophy,
+} from "lucide-react";
 
+import { AddToCalendarButton } from "@/components/add-to-calendar-button";
 import { HackathonStatusTracker } from "@/components/hackathon-status-tracker";
 import { getCurrentUserRecord } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -18,7 +35,7 @@ import {
   tags,
   userHackathons,
 } from "@/lib/db/schema";
-import { buildBadges, formatDateRange, formatDuration, formatLocation } from "@/lib/hackathons/card-format";
+import { formatDateRange, formatDuration, formatLocation } from "@/lib/hackathons/card-format";
 import { formatReminderDate, reminderTypeLabels } from "@/lib/hackathons/reminder-labels";
 
 const publicStatuses = ["upcoming", "live", "completed"] as const;
@@ -97,7 +114,29 @@ function getInitials(name: string) {
     .join("");
 }
 
-const factLabelClassName = "font-mono text-xs font-medium uppercase tracking-[0.14em] text-[#706F6B]";
+function getStatusPill(status: string) {
+  switch (status) {
+    case "live":
+      return { label: "Live now", dot: "#1A7F37", bg: "#E6F4EA", text: "#1A7F37" };
+    case "completed":
+      return { label: "Completed", dot: "#706F6B", bg: "#EDEDEA", text: "#3F3E3B" };
+    default:
+      return { label: "Upcoming", dot: "#B7791F", bg: "#FBF3E4", text: "#8A5A00" };
+  }
+}
+
+// Notion-style property row: muted label column on the left, value on the right.
+function Property({ children, icon: Icon, label }: { children: ReactNode; icon: LucideIcon; label: string }) {
+  return (
+    <div className="flex items-start gap-4 rounded-md px-2 py-1.5 transition-colors hover:bg-[#F7F7F4]">
+      <div className="flex w-40 shrink-0 items-center gap-2 pt-px text-sm text-[#706F6B]">
+        <Icon aria-hidden="true" className="size-4 shrink-0" />
+        <span className="truncate">{label}</span>
+      </div>
+      <div className="min-w-0 flex-1 text-sm text-black">{children}</div>
+    </div>
+  );
+}
 
 export default async function HackathonDetailPage({ params }: PageProps) {
   const { slug } = await params;
@@ -135,11 +174,16 @@ export default async function HackathonDetailPage({ params }: PageProps) {
       : Promise.resolve([]),
   ]);
 
-  const badges = buildBadges(hackathon);
   const applyUrl = hackathon.applicationUrl ?? hackathon.websiteUrl;
+  const statusPill = getStatusPill(hackathon.status);
+  const propertyTags = [
+    hackathon.beginnerFriendly ? "Beginner friendly" : null,
+    hackathon.travelReimbursement ? "Travel support" : null,
+    ...tagRows.map((tag) => tag.name),
+  ].filter(Boolean) as string[];
 
   return (
-    <main className="min-h-screen bg-white px-5 pb-20 pt-10 text-black sm:px-8 lg:px-12">
+    <main className="min-h-screen bg-white px-5 pb-40 pt-10 text-black sm:px-8 lg:px-12">
       <div className="mx-auto w-full max-w-[860px]">
         <Link
           className="inline-flex items-center gap-1.5 font-mono text-xs font-medium uppercase tracking-[0.14em] text-[#706F6B] hover:text-[#660000]"
@@ -164,31 +208,94 @@ export default async function HackathonDetailPage({ params }: PageProps) {
               <span className="text-xl font-semibold text-[#660000]">{getInitials(hackathon.name) || "HN"}</span>
             )}
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 self-center">
             <h1 className="text-3xl font-semibold tracking-normal text-black sm:text-4xl">{hackathon.name}</h1>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {badges.map((badge) => (
-                <span
-                  className="rounded-full border border-black/10 px-2.5 py-0.5 font-mono text-xs font-medium uppercase tracking-[0.12em] text-[#706F6B]"
-                  key={badge}
-                >
-                  {badge}
-                </span>
-              ))}
-              {tagRows.map((tag) => (
-                <span
-                  className="rounded-full border border-[#660000]/20 bg-[#660000]/5 px-2.5 py-0.5 font-mono text-xs font-medium uppercase tracking-[0.12em] text-[#660000]"
-                  key={tag.name}
-                >
-                  {tag.name}
-                </span>
-              ))}
-            </div>
           </div>
         </header>
 
+        <section className="mt-8">
+          <p className="px-2 text-sm font-medium text-[#706F6B]">Properties</p>
+          <div className="mt-2 space-y-0.5">
+            <Property icon={CalendarDays} label="Date">
+              <span className="font-medium">{formatDateRange(hackathon.startsAt, hackathon.endsAt)}</span>
+              <span className="ml-2 text-[#706F6B]">
+                {formatDuration(hackathon.startsAt, hackathon.endsAt, hackathon.format)}
+              </span>
+            </Property>
+
+            <Property icon={Clock} label="Application deadline">
+              <span className="font-medium">{formatDeadline(hackathon.applicationClosesAt)}</span>
+            </Property>
+
+            <Property icon={CalendarClock} label="Applications open">
+              <span className="font-medium">{formatDeadline(hackathon.applicationOpensAt)}</span>
+            </Property>
+
+            <Property icon={CircleCheck} label="Acceptances out">
+              <span className="font-medium">
+                {hackathon.acceptanceAt ? formatDeadline(hackathon.acceptanceAt) : "TBA"}
+              </span>
+            </Property>
+
+            <Property icon={MapPin} label="Location">
+              <span className="font-medium">{formatLocation(hackathon)}</span>
+              {hackathon.venue ? <span className="ml-2 text-[#706F6B]">{hackathon.venue}</span> : null}
+            </Property>
+
+            <Property icon={Globe} label="Format">
+              <span className="font-medium capitalize">{hackathon.format.replace("_", " ")}</span>
+            </Property>
+
+            <Property icon={Trophy} label="Prize">
+              <span className="font-medium">
+                {hackathon.prizeAmountUsd ? `$${hackathon.prizeAmountUsd.toLocaleString("en-US")} prize pool` : "TBA"}
+              </span>
+            </Property>
+
+            {hackathon.organizationName ? (
+              <Property icon={Landmark} label="Source">
+                <span className="font-medium">{hackathon.organizationName}</span>
+              </Property>
+            ) : null}
+
+            {propertyTags.length ? (
+              <Property icon={TagIcon} label="Tags">
+                <div className="flex flex-wrap gap-1.5">
+                  {propertyTags.map((tag) => (
+                    <span
+                      className="rounded-full bg-[#660000]/5 px-2 py-0.5 text-xs font-medium text-[#660000]"
+                      key={tag}
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </Property>
+            ) : null}
+
+            <Property icon={CircleDot} label="Status">
+              <span
+                className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-sm font-medium"
+                style={{ backgroundColor: statusPill.bg, color: statusPill.text }}
+              >
+                <span
+                  aria-hidden="true"
+                  className="size-1.5 rounded-full"
+                  style={{ backgroundColor: statusPill.dot }}
+                />
+                {statusPill.label}
+              </span>
+            </Property>
+          </div>
+        </section>
+
         {hackathon.shortDescription ? (
-          <p className="mt-6 max-w-[640px] text-base leading-7 text-[#3F3E3B]">{hackathon.shortDescription}</p>
+          <section className="mt-8">
+            <p className="px-2 text-sm font-medium text-[#706F6B]">Description</p>
+            <p className="mt-2 max-w-[640px] px-2 text-base leading-7 text-[#3F3E3B]">
+              {hackathon.shortDescription}
+            </p>
+          </section>
         ) : null}
 
         <section className="mt-8 rounded-lg border border-black/10 bg-[#F7F7F4] p-5">
@@ -226,53 +333,23 @@ export default async function HackathonDetailPage({ params }: PageProps) {
           ) : null}
         </section>
 
-        <section className="mt-6 grid gap-4 sm:grid-cols-2">
-          <div className="rounded-lg border border-black/10 p-5">
-            <p className={factLabelClassName}>Event dates</p>
-            <p className="mt-2 flex items-center gap-2 text-base font-semibold text-black">
-              <CalendarDays aria-hidden="true" className="size-4 shrink-0 text-[#660000]" />
-              {formatDateRange(hackathon.startsAt, hackathon.endsAt)}
-            </p>
-            <p className="mt-1 text-sm text-[#706F6B]">
-              {formatDuration(hackathon.startsAt, hackathon.endsAt, hackathon.format)}
-            </p>
-          </div>
-
-          <div className="rounded-lg border border-black/10 p-5">
-            <p className={factLabelClassName}>Location</p>
-            <p className="mt-2 flex items-center gap-2 text-base font-semibold text-black">
-              <MapPin aria-hidden="true" className="size-4 shrink-0 text-[#660000]" />
-              {formatLocation(hackathon)}
-            </p>
-            {hackathon.venue ? <p className="mt-1 text-sm text-[#706F6B]">{hackathon.venue}</p> : null}
-          </div>
-
-          <div className="rounded-lg border border-black/10 p-5">
-            <p className={factLabelClassName}>Application window</p>
-            <p className="mt-2 text-base font-semibold text-black">
-              {formatDeadline(hackathon.applicationOpensAt)} → {formatDeadline(hackathon.applicationClosesAt)}
-            </p>
-            <p className="mt-1 text-sm text-[#706F6B]">
-              Acceptances {hackathon.acceptanceAt ? formatDeadline(hackathon.acceptanceAt) : "TBA"}
-            </p>
-          </div>
-
-          <div className="rounded-lg border border-black/10 p-5">
-            <p className={factLabelClassName}>Prizes</p>
-            <p className="mt-2 flex items-center gap-2 text-base font-semibold text-black">
-              <Trophy aria-hidden="true" className="size-4 shrink-0 text-[#660000]" />
-              {hackathon.prizeAmountUsd ? `$${hackathon.prizeAmountUsd.toLocaleString("en-US")} prize pool` : "TBA"}
-            </p>
-            {hackathon.organizationName ? (
-              <p className="mt-1 flex items-center gap-1.5 text-sm text-[#706F6B]">
-                <Landmark aria-hidden="true" className="size-3.5 shrink-0" />
-                {hackathon.organizationName}
-              </p>
-            ) : null}
-          </div>
-        </section>
-
         <div className="mt-8 flex flex-wrap gap-3">
+          {hackathon.startsAt ? (
+            <AddToCalendarButton
+              description={hackathon.shortDescription}
+              endsAt={(hackathon.endsAt ?? hackathon.startsAt).toISOString()}
+              location={
+                hackathon.format === "online"
+                  ? "Online"
+                  : [hackathon.venue, hackathon.city, hackathon.region, hackathon.country]
+                      .filter(Boolean)
+                      .join(", ")
+              }
+              startsAt={hackathon.startsAt.toISOString()}
+              title={hackathon.name}
+              url={hackathon.websiteUrl}
+            />
+          ) : null}
           {applyUrl ? (
             <a
               className="inline-flex min-h-11 items-center justify-center gap-1.5 border border-[#660000] bg-[#660000] px-6 text-sm font-semibold text-white transition-colors hover:bg-[#4d0000]"

@@ -172,6 +172,10 @@ export const reviewActionSchema = z.discriminatedUnion("action", [
   }),
 ]);
 
+export const discordChannelDecisionSchema = z.object({
+  action: z.enum(["approve", "deny"]),
+});
+
 export const profileUpdateSchema = z.object({
   headline: optionalString(160),
   bio: optionalString(2000),
@@ -190,6 +194,8 @@ export const profileUpdateSchema = z.object({
 export const userHackathonUpdateSchema = z.object({
   applicationStatus: z.enum(["interested", "applied", "accepted", "attending", "attended", "won"]).optional(),
   isSaved: z.boolean().optional(),
+  isPinned: z.boolean().optional(),
+  awardName: optionalString(180),
   notes: optionalString(2000),
 });
 

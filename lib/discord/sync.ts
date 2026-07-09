@@ -3,17 +3,16 @@ import { REST } from "@discordjs/rest";
 import { ChannelType, Routes } from "discord-api-types/v10";
 
 import { db } from "@/lib/db";
+import { categoryForHackathon, channelNameForHackathon, type DiscordCategoryKey } from "@/lib/discord/channel-rules";
 import {
   discordChannels,
   discordGuilds,
   hackathonDates,
   hackathonLocations,
-  hackathonSeries,
   hackathons,
 } from "@/lib/db/schema";
 import { env } from "@/lib/env";
 import { assignHackathonSeries } from "@/lib/hackathons/series";
-import { slugify } from "@/lib/hackathons/utils";
 
 type DiscordGuild = {
   id: string;
@@ -28,13 +27,21 @@ type DiscordChannel = {
   type: number;
 };
 
-type DiscordCategoryKey = "canada" | "past" | "us";
-
-const categoryNames: Record<DiscordCategoryKey, string> = {
+export const categoryNames: Record<DiscordCategoryKey, string> = {
   canada: "Canadian Hackathons",
   us: "US Hackathons",
   past: "Past Hackathons",
 };
+
+function configuredCategoryId(category: DiscordCategoryKey) {
+  const ids: Record<DiscordCategoryKey, string | undefined> = {
+    canada: env.DISCORD_CANADA_CATEGORY_ID,
+    us: env.DISCORD_US_CATEGORY_ID,
+    past: env.DISCORD_PAST_CATEGORY_ID,
+  };
+
+  return ids[category];
+}
 
 function discordRest() {
   if (!env.DISCORD_BOT_TOKEN || !env.DISCORD_GUILD_ID) {
@@ -50,29 +57,6 @@ function isUnknownChannelError(error: unknown) {
     "code" in error &&
     (error as { code?: unknown }).code === 10003
   );
-}
-
-function isCanada(country: string | null) {
-  return country?.trim().toLowerCase() === "canada";
-}
-
-function categoryForHackathon(input: {
-  country: string | null;
-  endsAt: Date | null;
-  status: string;
-  now?: Date;
-}): DiscordCategoryKey {
-  const now = input.now ?? new Date();
-
-  if (input.status === "completed" || input.status === "archived" || (input.endsAt && input.endsAt < now)) {
-    return "past";
-  }
-
-  return isCanada(input.country) ? "canada" : "us";
-}
-
-function channelNameForSeries(slug: string) {
-  return slugify(slug).slice(0, 100);
 }
 
 function formatDate(value: Date | null) {
@@ -125,8 +109,27 @@ async function ensureDiscordGuild(rest: REST, guildSnowflake: string) {
   return upserted.id;
 }
 
-async function ensureCategory(rest: REST, guildSnowflake: string, name: string) {
+async function ensureCategory(
+  rest: REST,
+  guildSnowflake: string,
+  category: DiscordCategoryKey
+) {
   const channels = await listGuildChannels(rest, guildSnowflake);
+  const configuredId = configuredCategoryId(category);
+  const name = categoryNames[category];
+
+  if (configuredId) {
+    const configured = channels.find((channel) => channel.id === configuredId);
+
+    if (!configured || configured.type !== ChannelType.GuildCategory) {
+      throw new Error(
+        `The configured Discord category ID for "${name}" was not found in the configured guild.`
+      );
+    }
+
+    return configured.id;
+  }
+
   const existing = channels.find((channel) => channel.type === ChannelType.GuildCategory && channel.name === name);
 
   if (existing) {
@@ -180,6 +183,41 @@ async function upsertDiscordChannelRecord(input: {
   });
 }
 
+async function removeIneligibleDiscordChannel(input: {
+  rest: REST;
+  guildSnowflake: string;
+  seriesId: string;
+}) {
+  const [mapped] = await db
+    .select({
+      channelId: discordChannels.id,
+      channelSnowflake: discordChannels.channelSnowflake,
+    })
+    .from(discordChannels)
+    .innerJoin(discordGuilds, eq(discordGuilds.id, discordChannels.guildId))
+    .where(
+      and(
+        eq(discordGuilds.guildSnowflake, input.guildSnowflake),
+        eq(discordChannels.seriesId, input.seriesId)
+      )
+    )
+    .limit(1);
+
+  if (!mapped) {
+    return;
+  }
+
+  try {
+    await input.rest.delete(Routes.channel(mapped.channelSnowflake));
+  } catch (error) {
+    if (!isUnknownChannelError(error)) {
+      throw error;
+    }
+  }
+
+  await db.delete(discordChannels).where(eq(discordChannels.id, mapped.channelId));
+}
+
 export async function syncHackathonDiscordChannel(hackathonId: string) {
   const rest = discordRest();
 
@@ -195,14 +233,11 @@ export async function syncHackathonDiscordChannel(hackathonId: string) {
       hackathonId: hackathons.id,
       name: hackathons.name,
       seriesId: hackathons.seriesId,
-      seriesName: hackathonSeries.name,
-      seriesSlug: hackathonSeries.slug,
       startsAt: hackathonDates.startsAt,
       status: hackathons.status,
       websiteUrl: hackathons.websiteUrl,
     })
     .from(hackathons)
-    .leftJoin(hackathonSeries, eq(hackathonSeries.id, hackathons.seriesId))
     .leftJoin(hackathonLocations, eq(hackathonLocations.hackathonId, hackathons.id))
     .leftJoin(hackathonDates, eq(hackathonDates.hackathonId, hackathons.id))
     .where(eq(hackathons.id, hackathonId))
@@ -218,10 +253,30 @@ export async function syncHackathonDiscordChannel(hackathonId: string) {
       name: row.name,
       websiteUrl: row.websiteUrl ?? "",
     }));
+  const category = categoryForHackathon({
+    country: row.country,
+    endsAt: row.endsAt,
+    status: row.status,
+  });
+
+  if (!category) {
+    await removeIneligibleDiscordChannel({
+      rest,
+      guildSnowflake: env.DISCORD_GUILD_ID,
+      seriesId,
+    });
+    return {
+      status: "skipped" as const,
+      reason: "Only Canadian and US hackathons are synced to Discord.",
+    };
+  }
+
   const guildId = await ensureDiscordGuild(rest, env.DISCORD_GUILD_ID);
-  const category = categoryForHackathon({ country: row.country, endsAt: row.endsAt, status: row.status });
-  const parentId = await ensureCategory(rest, env.DISCORD_GUILD_ID, categoryNames[category]);
-  const name = channelNameForSeries(row.seriesSlug ?? row.name);
+  const parentId = await ensureCategory(rest, env.DISCORD_GUILD_ID, category);
+  const name = channelNameForHackathon({
+    name: row.name,
+    startsAt: row.startsAt,
+  });
   const topic = channelTopic({
     applicationUrl: row.applicationUrl,
     endsAt: row.endsAt,
@@ -237,6 +292,9 @@ export async function syncHackathonDiscordChannel(hackathonId: string) {
     .limit(1);
 
   let channelSnowflake: string | undefined = mapped?.channelSnowflake;
+  // "recycled" = we reused the series' existing channel and just moved/renamed it;
+  // "created" = no usable channel existed, so a brand new one was made.
+  let action: "created" | "recycled" = "created";
 
   if (channelSnowflake) {
     try {
@@ -247,6 +305,7 @@ export async function syncHackathonDiscordChannel(hackathonId: string) {
           topic,
         },
       });
+      action = "recycled";
     } catch (error) {
       if (!isUnknownChannelError(error)) {
         throw error;
@@ -266,6 +325,7 @@ export async function syncHackathonDiscordChannel(hackathonId: string) {
       },
     })) as DiscordChannel;
     channelSnowflake = created.id;
+    action = "created";
   }
 
   await upsertDiscordChannelRecord({
@@ -277,7 +337,84 @@ export async function syncHackathonDiscordChannel(hackathonId: string) {
     seriesId,
   });
 
-  return { category, channelSnowflake, status: "synced" as const };
+  return {
+    action,
+    category,
+    categoryName: categoryNames[category],
+    channelSnowflake,
+    name,
+    status: "synced" as const,
+  };
+}
+
+/**
+ * Works out what syncing this hackathon *would* do, using only the database and
+ * the channel rules — it makes no Discord API calls. Used to show an admin, before
+ * they confirm, whether approving will create a new channel or recycle the series'
+ * existing one, and which category it lands in.
+ */
+export async function previewHackathonDiscordChannel(hackathonId: string) {
+  const [row] = await db
+    .select({
+      country: hackathonLocations.country,
+      endsAt: hackathonDates.endsAt,
+      name: hackathons.name,
+      seriesId: hackathons.seriesId,
+      startsAt: hackathonDates.startsAt,
+      status: hackathons.status,
+    })
+    .from(hackathons)
+    .leftJoin(hackathonLocations, eq(hackathonLocations.hackathonId, hackathons.id))
+    .leftJoin(hackathonDates, eq(hackathonDates.hackathonId, hackathons.id))
+    .where(eq(hackathons.id, hackathonId))
+    .limit(1);
+
+  if (!row) {
+    throw new Error("Hackathon not found.");
+  }
+
+  const category = categoryForHackathon({
+    country: row.country,
+    endsAt: row.endsAt,
+    status: row.status,
+  });
+
+  if (!category) {
+    return { eligible: false as const };
+  }
+
+  const name = channelNameForHackathon({ name: row.name, startsAt: row.startsAt });
+
+  let action: "create" | "recycle" = "create";
+  let existingChannelName: string | null = null;
+
+  if (row.seriesId && env.DISCORD_GUILD_ID) {
+    const [existing] = await db
+      .select({ name: discordChannels.name })
+      .from(discordChannels)
+      .innerJoin(discordGuilds, eq(discordGuilds.id, discordChannels.guildId))
+      .where(
+        and(
+          eq(discordGuilds.guildSnowflake, env.DISCORD_GUILD_ID),
+          eq(discordChannels.seriesId, row.seriesId)
+        )
+      )
+      .limit(1);
+
+    if (existing) {
+      action = "recycle";
+      existingChannelName = existing.name;
+    }
+  }
+
+  return {
+    action,
+    category,
+    categoryName: categoryNames[category],
+    eligible: true as const,
+    existingChannelName,
+    name,
+  };
 }
 
 export async function syncHackathonDiscordChannelSafely(hackathonId: string) {

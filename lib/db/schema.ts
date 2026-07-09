@@ -248,6 +248,8 @@ export const userHackathons = pgTable(
       .references(() => hackathons.id, { onDelete: "cascade" }),
     applicationStatus: applicationStatusEnum("application_status").notNull().default("interested"),
     isSaved: boolean("is_saved").notNull().default(true),
+    isPinned: boolean("is_pinned").notNull().default(false),
+    awardName: varchar("award_name", { length: 180 }),
     notes: text("notes"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),

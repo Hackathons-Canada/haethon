@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { and, asc, eq, isNull, ne, or } from "drizzle-orm";
 import { BellRing, CalendarDays, MapPin, Trophy } from "lucide-react";
 
+import { HackathonResultActions } from "@/components/hackathon-result-actions";
 import { HackathonStatusTracker } from "@/components/hackathon-status-tracker";
 import { MarkAttendedButton } from "@/components/mark-attended-button";
 import { ReminderMuteButton } from "@/components/reminder-mute-button";
@@ -21,6 +22,8 @@ export const metadata: Metadata = {
 type PipelineRow = {
   id: string;
   applicationStatus: string;
+  isPinned: boolean;
+  awardName: string | null;
   hackathonId: string;
   hackathonName: string;
   slug: string;
@@ -69,6 +72,8 @@ export default async function MyHackathonsPage() {
       .select({
         id: userHackathons.id,
         applicationStatus: userHackathons.applicationStatus,
+        isPinned: userHackathons.isPinned,
+        awardName: userHackathons.awardName,
         hackathonId: hackathons.id,
         hackathonName: hackathons.name,
         slug: hackathons.slug,
@@ -247,26 +252,58 @@ export default async function MyHackathonsPage() {
                 See your full record on your profile
               </Link>
             </div>
-            <ul className="mt-4 grid gap-2 sm:grid-cols-2">
-              {pastRows.map((row) => (
-                <li key={row.id}>
-                  <Link
-                    className="flex items-center justify-between gap-3 rounded-lg border border-black/10 p-4 transition-colors hover:border-[#660000]/40"
-                    href={`/hackathons/${row.slug}`}
-                  >
-                    <span className="min-w-0">
-                      <span className="block truncate font-semibold text-black">{row.hackathonName}</span>
-                      <span className="mt-0.5 block text-sm text-[#706F6B]">
-                        {formatDateRange(row.startsAt, row.endsAt)}
-                      </span>
-                    </span>
-                    {row.applicationStatus === "won" ? (
-                      <Trophy aria-hidden="true" className="size-4 shrink-0 text-[#660000]" />
+            <div className="mt-4 space-y-3">
+              {pastRows.map((row) => {
+                const won = row.applicationStatus === "won";
+
+                return (
+                  <article className="rounded-lg border border-black/10 bg-[#F7F7F4] p-5" key={row.id}>
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                      <div className="min-w-0">
+                        <Link
+                          className="text-lg font-semibold text-black underline-offset-4 hover:text-[#660000] hover:underline"
+                          href={`/hackathons/${row.slug}`}
+                        >
+                          {row.hackathonName}
+                        </Link>
+                        <p className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-[#706F6B]">
+                          <span className="inline-flex items-center gap-1">
+                            <CalendarDays aria-hidden="true" className="size-3.5 shrink-0" />
+                            {formatDateRange(row.startsAt, row.endsAt)}
+                          </span>
+                          <span className="inline-flex items-center gap-1">
+                            <MapPin aria-hidden="true" className="size-3.5 shrink-0" />
+                            {formatLocation(row)}
+                          </span>
+                        </p>
+                      </div>
+                      {won ? (
+                        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#660000]/25 bg-white px-3 py-1 font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-[#660000]">
+                          <Trophy aria-hidden="true" className="size-3.5" />
+                          Winner
+                        </span>
+                      ) : (
+                        <span className="inline-flex shrink-0 items-center rounded-full border border-black/10 bg-white px-3 py-1 font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-[#706F6B]">
+                          Attended
+                        </span>
+                      )}
+                    </div>
+
+                    {won && row.awardName ? (
+                      <p className="mt-3 text-sm font-semibold text-black">{row.awardName}</p>
                     ) : null}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+
+                    <div className="mt-4">
+                      <HackathonResultActions
+                        isPinned={row.isPinned}
+                        status={won ? "won" : "attended"}
+                        userHackathonId={row.id}
+                      />
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
           </section>
         ) : null}
       </div>

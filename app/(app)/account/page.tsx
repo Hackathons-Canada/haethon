@@ -14,6 +14,7 @@ import {
   hackathonResults,
   hackathons,
   userHackathonAttendanceDays,
+  userHackathons,
   userProfiles,
 } from "@/lib/db/schema";
 import { deriveAttendanceTrustTier, type AttendanceSource, type AttendanceTrustTier } from "@/lib/hackathons/attendance-rules";
@@ -89,7 +90,7 @@ export default async function AccountPage() {
     redirect("/sign-in");
   }
 
-  const [[profile], wins, attendance, attendedHackathons] = await Promise.all([
+  const [[profile], wins, pinnedSelfReported, attendance, attendedHackathons] = await Promise.all([
     db.select().from(userProfiles).where(eq(userProfiles.userId, context.user.id)).limit(1),
     db
       .select({
@@ -108,6 +109,19 @@ export default async function AccountPage() {
         )
       )
       .orderBy(desc(hackathonResults.createdAt))
+      .limit(8),
+    db
+      .select({
+        id: userHackathons.id,
+        applicationStatus: userHackathons.applicationStatus,
+        awardName: userHackathons.awardName,
+        updatedAt: userHackathons.updatedAt,
+        hackathonName: hackathons.name,
+      })
+      .from(userHackathons)
+      .innerJoin(hackathons, eq(hackathons.id, userHackathons.hackathonId))
+      .where(and(eq(userHackathons.userId, context.user.id), eq(userHackathons.isPinned, true)))
+      .orderBy(desc(userHackathons.updatedAt))
       .limit(8),
     db
       .select({ attendedOn: userHackathonAttendanceDays.attendedOn })
@@ -147,13 +161,27 @@ export default async function AccountPage() {
     { className: "text-right", text: formatChartDate(weeks.at(-1)?.key) },
   ];
   const displayName = [context.user.firstName, context.user.lastName].filter(Boolean).join(" ") || context.user.email;
-  const pinnedWins = wins.slice(0, 6);
+  const hasActivity = yearAttendanceCount > 0;
+  const pinnedItems = [
+    ...wins.map((win) => ({
+      id: `win-${win.id}`,
+      hackathonName: win.hackathonName,
+      detail: win.awardName ?? win.placement ?? "Verified win",
+      tier: "verified" as AttendanceTrustTier,
+    })),
+    ...pinnedSelfReported.map((row) => ({
+      id: `pin-${row.id}`,
+      hackathonName: row.hackathonName,
+      detail: row.applicationStatus === "won" ? row.awardName ?? "Winner" : "Attended",
+      tier: "self_reported" as AttendanceTrustTier,
+    })),
+  ].slice(0, 6);
 
   return (
     <main className="min-h-[calc(100vh-80px)] bg-white px-5 py-8 text-black sm:px-8 lg:px-12">
       <div className="mx-auto w-full max-w-[1120px]">
         <div className="grid gap-8 lg:grid-cols-[296px_minmax(0,1fr)]">
-          <aside id="profile" className="lg:sticky lg:top-24 lg:self-start">
+          <aside id="profile" className="lg:sticky lg:top-24 lg:self-start lg:pt-8">
             <AccountProfileForm displayEmail={context.user.email} displayName={displayName} profile={profile ?? null} />
             <Link
               className="mt-4 inline-flex min-h-10 w-full items-center justify-center rounded-lg border border-[#660000] bg-white px-4 text-sm font-semibold text-[#660000] transition hover:bg-[#660000] hover:text-white focus-visible:bg-[#660000] focus-visible:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#660000]"
@@ -167,31 +195,38 @@ export default async function AccountPage() {
           </aside>
 
           <div className="min-w-0 space-y-6">
-            <section className="rounded-lg bg-[#F7F7F4] p-5">
+            <section className="rounded-lg bg-[#F7F7F4] px-5 py-8">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h2 className={sectionHeadingClassName}>Pinned</h2>
-                <p className="text-sm text-[#706F6B]">Verified wins</p>
+                <p className="text-sm text-[#706F6B]">Wins &amp; attended events you&apos;ve pinned</p>
               </div>
               <div className="mt-4 grid gap-4 md:grid-cols-2">
-                {pinnedWins.length ? (
-                  pinnedWins.map((win) => (
-                    <article className="min-h-28 rounded-lg border border-black/10 bg-white p-4" key={win.id}>
+                {pinnedItems.length ? (
+                  pinnedItems.map((item) => (
+                    <article className="min-h-28 rounded-lg bg-white p-4" key={item.id}>
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex min-w-0 items-start gap-2">
                           <Trophy aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-[#660000]" />
                           <div className="min-w-0">
-                            <p className="truncate font-semibold text-black">{win.hackathonName}</p>
-                            <p className="mt-2 text-sm text-[#706F6B]">{win.awardName ?? win.placement}</p>
+                            <p className="truncate font-semibold text-black">{item.hackathonName}</p>
+                            <p className="mt-2 text-sm text-[#706F6B]">{item.detail}</p>
                           </div>
                         </div>
-                        <span className="rounded-full border border-black/10 px-2 py-0.5 text-xs font-semibold text-[#706F6B]">
-                          Won
-                        </span>
+                        <AttendanceTierBadge tier={item.tier} />
                       </div>
                     </article>
                   ))
                 ) : (
-                  <p className="text-sm text-[#706F6B]">Verified results from organizers and admins will appear here.</p>
+                  <p className="text-sm text-[#706F6B]">
+                    Pin wins and attended events from{" "}
+                    <Link
+                      className="font-semibold text-[#660000] underline decoration-1 underline-offset-4 hover:no-underline"
+                      href="/my"
+                    >
+                      My hackathons
+                    </Link>{" "}
+                    to feature them here.
+                  </p>
                 )}
               </div>
             </section>
@@ -199,12 +234,12 @@ export default async function AccountPage() {
             <section id="activity" className="rounded-lg bg-[#F7F7F4] p-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h2 className={sectionHeadingClassName}>Activity</h2>
-                <div className="rounded-lg border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-black">
+                <div className="rounded-lg bg-white px-4 py-3 text-sm font-semibold text-black">
                   {yearAttendanceCount} attended days
                 </div>
               </div>
               <p className="mt-4 text-sm font-semibold text-black">{yearAttendanceCount} hackathon attendance entries in the last year</p>
-              <div className="mt-3 overflow-x-auto rounded-lg border border-black/10 bg-white p-4">
+              <div className={`mt-3 overflow-x-auto ${hasActivity ? "rounded-lg bg-white p-4" : ""}`}>
                 <div className="grid min-w-[624px] grid-cols-[repeat(52,minmax(0,1fr))] gap-1">
                   {weeks.map((week) => (
                     <div
@@ -234,7 +269,7 @@ export default async function AccountPage() {
             </section>
 
             <div className="space-y-6">
-              <section className="rounded-lg border border-black/10 bg-[#F7F7F4] p-5">
+              <section className="rounded-lg bg-[#F7F7F4] p-5">
                 <h2 className={sectionHeadingClassName}>Hackathons attended</h2>
                 <div className="mt-4 space-y-3">
                   {attendedHackathons.length ? (
@@ -242,7 +277,7 @@ export default async function AccountPage() {
                       const tier = deriveAttendanceTrustTier(hackathon.sources ?? []);
 
                       return (
-                        <article className="rounded-lg border border-black/10 bg-white p-4" key={hackathon.id}>
+                        <article className="rounded-lg bg-white p-4" key={hackathon.id}>
                           <div className="flex items-start justify-between gap-3">
                             <div className="flex min-w-0 items-start gap-2">
                               <CalendarDays aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-[#660000]" />
@@ -268,20 +303,6 @@ export default async function AccountPage() {
                     <p className="text-sm text-[#706F6B]">Hackathons attended will appear here.</p>
                   )}
                 </div>
-              </section>
-
-              <section id="saved" className="rounded-lg border border-black/10 bg-[#F7F7F4] p-5">
-                <h2 className={sectionHeadingClassName}>Pipeline</h2>
-                <p className="mt-3 text-sm text-[#706F6B]">
-                  Saved hackathons and application tracking moved to{" "}
-                  <Link
-                    className="font-semibold text-[#660000] underline decoration-1 underline-offset-4 hover:no-underline"
-                    href="/my"
-                  >
-                    My hackathons
-                  </Link>
-                  .
-                </p>
               </section>
             </div>
           </div>

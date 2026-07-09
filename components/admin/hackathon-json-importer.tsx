@@ -6,7 +6,21 @@ import { useRouter } from "next/navigation";
 
 import { HackathonCardPreview, HackathonPayloadDetails, type PreviewPayload } from "@/components/admin/hackathon-card-preview";
 
+type DiscordPreview =
+  | { eligible: false }
+  | {
+      action: "create" | "recycle";
+      category: "canada" | "past" | "us";
+      categoryName: string;
+      eligible: true;
+      existingChannelName: string | null;
+      name: string;
+    };
+
+type EligibleDiscordPreview = Extract<DiscordPreview, { eligible: true }>;
+
 type ImportResult = {
+  discord?: DiscordPreview;
   duplicateScore: number;
   externalId?: string;
   hackathonId?: string;
@@ -15,6 +29,15 @@ type ImportResult = {
   name: string;
   status: "imported" | "duplicate_queued";
   submissionId: string;
+};
+
+type DiscordSyncResult =
+  | { action: "created" | "recycled"; categoryName: string; channelSnowflake: string; name: string; status: "synced" }
+  | { reason?: string; status: "denied" | "skipped" };
+
+type DiscordDecisionResponse = {
+  data?: DiscordSyncResult;
+  error?: unknown;
 };
 
 type ImportResponse = {
@@ -55,6 +78,8 @@ export function HackathonJsonImporter() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [results, setResults] = useState<ImportResult[]>([]);
   const [skippedCount, setSkippedCount] = useState(0);
+  const [pendingDiscord, setPendingDiscord] = useState<{ discord: EligibleDiscordPreview; hackathonId: string } | null>(null);
+  const [discordBusy, setDiscordBusy] = useState(false);
 
   const activePayload = queue[currentIndex];
   const remainingCount = Math.max(queue.length - currentIndex, 0);
@@ -78,6 +103,7 @@ export function HackathonJsonImporter() {
     setResults([]);
     setSkippedCount(0);
     setCurrentIndex(0);
+    setPendingDiscord(null);
 
     let parsed: unknown;
 
@@ -123,11 +149,68 @@ export function HackathonJsonImporter() {
     }
 
     const data = body.data;
-    setStatus("success");
-    setMessage(data.duplicateCount ? "Queued as a duplicate for later review." : "Imported.");
     setResults((current) => [...current, ...data.results]);
-    setCurrentIndex((current) => current + 1);
     router.refresh();
+
+    const first = data.results[0];
+
+    // Canadian/US events pause here for a separate Discord channel decision. The
+    // channel is not created until the admin approves it in decideDiscord.
+    if (first?.status === "imported" && first.hackathonId && first.discord?.eligible) {
+      setStatus("idle");
+      setMessage(null);
+      setPendingDiscord({ discord: first.discord, hackathonId: first.hackathonId });
+      return;
+    }
+
+    setStatus("success");
+    setMessage(
+      data.duplicateCount
+        ? "Queued as a duplicate for later review."
+        : "Imported. Not a Canada/US event, so no Discord channel is offered."
+    );
+    setCurrentIndex((current) => current + 1);
+  }
+
+  async function decideDiscord(action: "approve" | "deny") {
+    if (!pendingDiscord) {
+      return;
+    }
+
+    setDiscordBusy(true);
+    setMessage(null);
+
+    const response = await fetch(`/api/admin/hackathons/${pendingDiscord.hackathonId}/discord-channel`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action }),
+    });
+    const body = (await response.json()) as DiscordDecisionResponse;
+    setDiscordBusy(false);
+
+    if (!response.ok || !body.data) {
+      setStatus("error");
+      setMessage(body.error ? stringifyError(body.error) : "Discord channel action failed.");
+      return;
+    }
+
+    const result = body.data;
+    setStatus("success");
+
+    if ("action" in result) {
+      setMessage(
+        result.action === "created"
+          ? `Created a new channel #${result.name} in ${result.categoryName}.`
+          : `Recycled the existing channel as #${result.name} in ${result.categoryName}.`
+      );
+    } else if (result.status === "denied") {
+      setMessage("Discord channel denied. The hackathon stays published without one.");
+    } else {
+      setMessage(result.reason ?? "No Discord channel was created.");
+    }
+
+    setPendingDiscord(null);
+    setCurrentIndex((current) => current + 1);
   }
 
   function skipActive() {
@@ -144,6 +227,7 @@ export function HackathonJsonImporter() {
     setSkippedCount(0);
     setStatus("idle");
     setMessage(null);
+    setPendingDiscord(null);
   }
 
   if (queue.length) {
@@ -177,34 +261,80 @@ export function HackathonJsonImporter() {
               <HackathonCardPreview payload={activePayload} previewId={`import-preview-${currentIndex}`} />
               <HackathonPayloadDetails payload={activePayload} />
             </div>
-            <div className="flex flex-col justify-between rounded-lg border border-black/10 bg-[#F7F7F4] p-4">
-              <div>
-                <p className="text-sm font-semibold text-black">Does this card look right?</p>
-                <p className="mt-2 text-sm leading-6 text-[#706F6B]">
-                  Yes imports this record. No skips it and shows the next card.
-                </p>
+            {pendingDiscord ? (
+              <div className="flex flex-col justify-between rounded-lg border border-[#660000]/20 bg-[#FBF5F5] p-4">
+                <div>
+                  <p className="text-sm font-semibold text-black">Create a Discord channel?</p>
+                  <p className="mt-2 text-sm leading-6 text-[#706F6B]">
+                    Imported. This qualifies for the{" "}
+                    <span className="font-semibold text-black">{pendingDiscord.discord.categoryName}</span> category.
+                    Approving will{" "}
+                    {pendingDiscord.discord.action === "create" ? (
+                      <>create a new channel</>
+                    ) : (
+                      <>
+                        recycle the existing{" "}
+                        <span className="font-semibold text-black">
+                          #{pendingDiscord.discord.existingChannelName}
+                        </span>{" "}
+                        channel
+                      </>
+                    )}{" "}
+                    named <span className="font-semibold text-black">#{pendingDiscord.discord.name}</span> and place it
+                    there. Deny keeps the hackathon published without a channel.
+                  </p>
+                </div>
+                <div className="mt-5 grid gap-3">
+                  <button
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#027A48] px-4 text-sm font-semibold text-white disabled:opacity-50"
+                    disabled={discordBusy}
+                    onClick={() => decideDiscord("approve")}
+                    type="button"
+                  >
+                    <Check aria-hidden="true" className="size-4" />
+                    Approve channel
+                  </button>
+                  <button
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[#B42318] px-4 text-sm font-semibold text-[#B42318] disabled:opacity-50"
+                    disabled={discordBusy}
+                    onClick={() => decideDiscord("deny")}
+                    type="button"
+                  >
+                    <X aria-hidden="true" className="size-4" />
+                    Deny channel
+                  </button>
+                </div>
               </div>
-              <div className="mt-5 grid gap-3">
-                <button
-                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#027A48] px-4 text-sm font-semibold text-white disabled:opacity-50"
-                  disabled={status === "submitting"}
-                  onClick={approveActive}
-                  type="button"
-                >
-                  <Check aria-hidden="true" className="size-4" />
-                  Yes
-                </button>
-                <button
-                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[#B42318] px-4 text-sm font-semibold text-[#B42318] disabled:opacity-50"
-                  disabled={status === "submitting"}
-                  onClick={skipActive}
-                  type="button"
-                >
-                  <X aria-hidden="true" className="size-4" />
-                  No
-                </button>
+            ) : (
+              <div className="flex flex-col justify-between rounded-lg border border-black/10 bg-[#F7F7F4] p-4">
+                <div>
+                  <p className="text-sm font-semibold text-black">Does this card look right?</p>
+                  <p className="mt-2 text-sm leading-6 text-[#706F6B]">
+                    Yes imports this record. No skips it and shows the next card.
+                  </p>
+                </div>
+                <div className="mt-5 grid gap-3">
+                  <button
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#027A48] px-4 text-sm font-semibold text-white disabled:opacity-50"
+                    disabled={status === "submitting"}
+                    onClick={approveActive}
+                    type="button"
+                  >
+                    <Check aria-hidden="true" className="size-4" />
+                    Yes
+                  </button>
+                  <button
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[#B42318] px-4 text-sm font-semibold text-[#B42318] disabled:opacity-50"
+                    disabled={status === "submitting"}
+                    onClick={skipActive}
+                    type="button"
+                  >
+                    <X aria-hidden="true" className="size-4" />
+                    No
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         ) : null}
 
