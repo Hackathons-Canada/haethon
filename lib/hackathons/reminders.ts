@@ -1,9 +1,10 @@
 import { and, eq, isNull, sql } from "drizzle-orm";
 
 import { db } from "@/lib/db";
-import { hackathonDates, reminders, userHackathonNotificationPreferences } from "@/lib/db/schema";
+import { hackathonDates, reminders, userHackathonNotificationPreferences, userHackathons } from "@/lib/db/schema";
 import {
   computeSelectableReminderPlan,
+  getSelectableReminderTypesForStatus,
   selectableReminderTypes,
   type SelectableReminderType,
 } from "@/lib/hackathons/reminder-plan";
@@ -104,20 +105,30 @@ export async function syncRemindersForUserHackathon({
     return;
   }
 
-  const [dates] = await db
-    .select({
-      startsAt: hackathonDates.startsAt,
-      endsAt: hackathonDates.endsAt,
-      applicationOpensAt: hackathonDates.applicationOpensAt,
-      applicationClosesAt: hackathonDates.applicationClosesAt,
-      acceptanceAt: hackathonDates.acceptanceAt,
-    })
-    .from(hackathonDates)
-    .where(eq(hackathonDates.hackathonId, hackathonId))
-    .limit(1);
+  const [[dates], [userHackathon]] = await Promise.all([
+    db
+      .select({
+        startsAt: hackathonDates.startsAt,
+        endsAt: hackathonDates.endsAt,
+        applicationOpensAt: hackathonDates.applicationOpensAt,
+        applicationClosesAt: hackathonDates.applicationClosesAt,
+        acceptanceAt: hackathonDates.acceptanceAt,
+      })
+      .from(hackathonDates)
+      .where(eq(hackathonDates.hackathonId, hackathonId))
+      .limit(1),
+    db
+      .select({ applicationStatus: userHackathons.applicationStatus })
+      .from(userHackathons)
+      .where(and(eq(userHackathons.userId, userId), eq(userHackathons.hackathonId, hackathonId)))
+      .limit(1),
+  ]);
 
   const enabledByType = await getEnabledEmailReminderTypes(userId, hackathonId);
-  const plan = computeSelectableReminderPlan(dates ?? null, now).filter((entry) => enabledByType.get(entry.type));
+  const availableReminderTypes = new Set(getSelectableReminderTypesForStatus(userHackathon?.applicationStatus ?? null));
+  const plan = computeSelectableReminderPlan(dates ?? null, now).filter(
+    (entry) => availableReminderTypes.has(entry.type) && enabledByType.get(entry.type)
+  );
 
   if (!plan.length) {
     return;

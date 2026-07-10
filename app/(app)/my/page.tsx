@@ -1,18 +1,25 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { and, asc, eq, isNull, ne, or } from "drizzle-orm";
-import { BellRing, CalendarDays, ExternalLink, MapPin, Pin, Trophy } from "lucide-react";
+import { and, asc, eq, ne, or } from "drizzle-orm";
+import { CalendarDays, ExternalLink, MapPin, Pin, Trophy } from "lucide-react";
 
+import { HackathonNotificationPreferences } from "@/components/hackathon-notification-preferences";
 import { HackathonResultActions } from "@/components/hackathon-result-actions";
 import { HackathonStatusTracker } from "@/components/hackathon-status-tracker";
 import { MarkAttendedButton } from "@/components/mark-attended-button";
-import { ReminderMuteButton } from "@/components/reminder-mute-button";
 import { getCurrentUserRecord } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { hackathonDates, hackathonLocations, hackathons, reminders, userHackathons } from "@/lib/db/schema";
+import {
+  hackathonDates,
+  hackathonLocations,
+  hackathons,
+  userHackathonNotificationPreferences,
+  userHackathons,
+} from "@/lib/db/schema";
 import { formatDateRange, formatLocation } from "@/lib/hackathons/card-format";
-import { formatReminderDate, reminderTypeLabels } from "@/lib/hackathons/reminder-labels";
+import { formatReminderDate } from "@/lib/hackathons/reminder-labels";
+import { computeSelectableReminderPlan } from "@/lib/hackathons/reminder-plan";
 
 export const metadata: Metadata = {
   title: "My Hackathons | Hackathons North America",
@@ -68,7 +75,7 @@ export default async function MyHackathonsPage() {
     redirect("/sign-in");
   }
 
-  const [rows, pendingReminders] = await Promise.all([
+  const [rows, notificationPreferenceRows] = await Promise.all([
     db
       .select({
         id: userHackathons.id,
@@ -103,23 +110,29 @@ export default async function MyHackathonsPage() {
       .orderBy(asc(hackathonDates.startsAt)),
     db
       .select({
-        id: reminders.id,
-        hackathonId: reminders.hackathonId,
-        type: reminders.type,
-        scheduledFor: reminders.scheduledFor,
+        hackathonId: userHackathonNotificationPreferences.hackathonId,
+        type: userHackathonNotificationPreferences.type,
+        enabled: userHackathonNotificationPreferences.enabled,
       })
-      .from(reminders)
-      .where(and(eq(reminders.userId, user.id), isNull(reminders.sentAt)))
-      .orderBy(asc(reminders.scheduledFor)),
+      .from(userHackathonNotificationPreferences)
+      .where(
+        and(
+          eq(userHackathonNotificationPreferences.userId, user.id),
+          eq(userHackathonNotificationPreferences.channel, "email")
+        )
+      ),
   ]);
 
   const now = new Date();
-  const remindersByHackathon = new Map<string, typeof pendingReminders>();
 
-  for (const reminder of pendingReminders) {
-    const list = remindersByHackathon.get(reminder.hackathonId) ?? [];
-    list.push(reminder);
-    remindersByHackathon.set(reminder.hackathonId, list);
+  // Map each hackathon to its saved email toggles, keyed by reminder type.
+  // Anything without a stored row defaults to enabled, matching the reminder sync.
+  const preferencesByHackathon = new Map<string, Map<string, boolean>>();
+
+  for (const preference of notificationPreferenceRows) {
+    const byType = preferencesByHackathon.get(preference.hackathonId) ?? new Map<string, boolean>();
+    byType.set(preference.type, preference.enabled);
+    preferencesByHackathon.set(preference.hackathonId, byType);
   }
 
   const byStage = new Map<string, PipelineRow[]>();
@@ -177,7 +190,21 @@ export default async function MyHackathonsPage() {
               <div className="mt-4 space-y-3">
                 {stageRows.map((row) => {
                   const deadline = nextDeadline(row, now);
-                  const rowReminders = remindersByHackathon.get(row.hackathonId) ?? [];
+                  const enabledByType = preferencesByHackathon.get(row.hackathonId);
+                  const notificationPreferences = computeSelectableReminderPlan(
+                    {
+                      startsAt: row.startsAt,
+                      endsAt: row.endsAt,
+                      applicationOpensAt: row.applicationOpensAt,
+                      applicationClosesAt: row.applicationClosesAt,
+                      acceptanceAt: row.acceptanceAt,
+                    },
+                    now
+                  ).map(({ type, scheduledFor }) => ({
+                    type,
+                    enabled: enabledByType?.get(type) ?? true,
+                    scheduledFor: scheduledFor.toISOString(),
+                  }));
 
                   return (
                     <article className="rounded-lg border border-black/10 bg-[#F7F7F4] p-5" key={row.id}>
@@ -215,22 +242,11 @@ export default async function MyHackathonsPage() {
                         />
                       </div>
 
-                      {rowReminders.length ? (
-                        <ul className="mt-4 space-y-1 border-t border-black/10 pt-3">
-                          {rowReminders.map((reminder) => {
-                            const label = reminderTypeLabels[reminder.type] ?? reminder.type;
-
-                            return (
-                              <li className="flex items-center justify-between gap-2 text-sm text-[#3F3E3B]" key={reminder.id}>
-                                <span className="inline-flex items-center gap-2">
-                                  <BellRing aria-hidden="true" className="size-3.5 shrink-0 text-[#660000]" />
-                                  {label} · {formatReminderDate(reminder.scheduledFor)}
-                                </span>
-                                <ReminderMuteButton label={label} reminderId={reminder.id} />
-                              </li>
-                            );
-                          })}
-                        </ul>
+                      {notificationPreferences.length ? (
+                        <HackathonNotificationPreferences
+                          hackathonId={row.hackathonId}
+                          initialPreferences={notificationPreferences}
+                        />
                       ) : null}
                     </article>
                   );

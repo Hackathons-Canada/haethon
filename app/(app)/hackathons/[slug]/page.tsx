@@ -41,7 +41,11 @@ import {
   userHackathons,
 } from "@/lib/db/schema";
 import { formatDateRange, formatDuration, formatLocation } from "@/lib/hackathons/card-format";
-import { computeSelectableReminderPlan, selectableReminderTypes } from "@/lib/hackathons/reminder-plan";
+import {
+  computeSelectableReminderPlan,
+  getSelectableReminderTypesForStatus,
+  selectableReminderTypes,
+} from "@/lib/hackathons/reminder-plan";
 import { formatReminderDate, reminderTypeLabels } from "@/lib/hackathons/reminder-labels";
 
 const publicStatuses = ["upcoming", "live", "completed"] as const;
@@ -241,7 +245,6 @@ export default async function HackathonDetailPage({ params }: PageProps) {
     },
     new Date()
   );
-  const scheduledByType = new Map(selectableReminderPlan.map((entry) => [entry.type, entry.scheduledFor]));
   const enabledByType = new Map(selectableReminderTypes.map((type) => [type, true]));
 
   for (const row of notificationPreferenceRows) {
@@ -250,11 +253,18 @@ export default async function HackathonDetailPage({ params }: PageProps) {
     }
   }
 
-  const notificationPreferences = selectableReminderTypes.map((type) => ({
-    type,
-    enabled: enabledByType.get(type) ?? true,
-    scheduledFor: scheduledByType.get(type)?.toISOString() ?? null,
-  }));
+  // Only show a notification control when its source date is known and the
+  // reminder can still be delivered. This keeps a missing application window
+  // from looking like a selectable "Date TBA" reminder, while the event
+  // reminders continue to be calculated from the hackathon start date.
+  const availableReminderTypes = new Set(getSelectableReminderTypesForStatus(tracked?.applicationStatus ?? null));
+  const notificationPreferences = selectableReminderPlan
+    .filter(({ type }) => availableReminderTypes.has(type))
+    .map(({ type, scheduledFor }) => ({
+      type,
+      enabled: enabledByType.get(type) ?? true,
+      scheduledFor: scheduledFor.toISOString(),
+    }));
 
   return (
     <main className="min-h-screen bg-white px-5 pb-40 pt-10 text-black sm:px-8 lg:px-12">
@@ -393,7 +403,7 @@ export default async function HackathonDetailPage({ params }: PageProps) {
               </Link>
             )}
           </div>
-          {user ? (
+          {user && notificationPreferences.length ? (
             <HackathonNotificationPreferences
               hackathonId={hackathon.id}
               initialPreferences={notificationPreferences}

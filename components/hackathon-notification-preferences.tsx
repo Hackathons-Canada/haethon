@@ -79,30 +79,29 @@ export function HackathonNotificationPreferences({
       <div className="mt-3 grid gap-2 sm:grid-cols-3">
         {preferences.map((preference) => {
           const scheduledFor = preference.scheduledFor ? new Date(preference.scheduledFor) : null;
-          const unavailable = !scheduledFor;
           const pending = pendingType === preference.type;
 
           return (
             <label
               className={`flex min-h-20 cursor-pointer flex-col justify-between rounded-md border bg-white p-3 text-sm transition-colors ${
-                preference.enabled && !unavailable
+                preference.enabled
                   ? "border-[#660000]/40 text-black"
                   : "border-black/10 text-[#706F6B]"
-              } ${unavailable ? "cursor-not-allowed opacity-60" : "hover:border-[#660000]/40"}`}
+              } hover:border-[#660000]/40`}
               key={preference.type}
             >
               <span className="flex items-start justify-between gap-3">
                 <span className="font-medium">{reminderTypeLabels[preference.type] ?? preference.type}</span>
                 <input
-                  checked={preference.enabled && !unavailable}
+                  checked={preference.enabled}
                   className="mt-0.5 size-4 accent-[#660000]"
-                  disabled={pendingType !== null || unavailable}
+                  disabled={pendingType !== null}
                   onChange={(event) => updatePreference(preference.type, event.target.checked)}
                   type="checkbox"
                 />
               </span>
               <span className="mt-2 text-xs text-[#706F6B]">
-                {scheduledFor ? formatReminderDate(scheduledFor) : "Date TBA"}
+                {scheduledFor ? formatReminderDate(scheduledFor) : "Date unavailable"}
                 {pending ? " - saving" : ""}
               </span>
             </label>

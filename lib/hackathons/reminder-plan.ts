@@ -19,6 +19,8 @@ export const selectableReminderTypes = [
 
 export type SelectableReminderType = (typeof selectableReminderTypes)[number];
 
+export type ReminderApplicationStatus = "interested" | "applied" | "accepted" | "attending" | "attended" | "won";
+
 export type SelectableReminderPlanEntry = {
   type: SelectableReminderType;
   scheduledFor: Date;
@@ -31,6 +33,21 @@ export type HackathonDatesInput = {
   applicationClosesAt: Date | null;
   acceptanceAt: Date | null;
 };
+
+/**
+ * Notification choices follow the hacker's current stage. Application
+ * reminders are useful while they are interested; once accepted, only the
+ * event-start reminders are relevant.
+ */
+export function getSelectableReminderTypesForStatus(
+  applicationStatus: ReminderApplicationStatus | null
+): SelectableReminderType[] {
+  if (applicationStatus === "accepted" || applicationStatus === "attending") {
+    return ["hackathon_week_before", "hackathon_day_before"];
+  }
+
+  return applicationStatus === "interested" ? ["application_open"] : [];
+}
 
 const DAY_MS = 86_400_000;
 
