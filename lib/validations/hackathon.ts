@@ -231,6 +231,24 @@ export const hackathonTrackSchema = z.object({
   applicationStatus: z.enum(["interested", "applied", "accepted", "attending"]),
 });
 
+export const hackathonNotificationPreferencesSchema = z.object({
+  preferences: z
+    .array(
+      z.object({
+        type: z.enum(["application_open", "hackathon_week_before", "hackathon_day_before"]),
+        enabled: z.boolean(),
+      })
+    )
+    .min(1)
+    .max(3),
+});
+
+export const reminderEmailTestSchema = z.object({
+  email: z.string().trim().email(),
+  hackathonId: z.string().uuid(),
+  type: z.enum(["application_open", "hackathon_week_before", "hackathon_day_before"]),
+});
+
 export const hackathonCheckinRedeemSchema = z.object({
   code: z.string().trim().min(4).max(20),
 });

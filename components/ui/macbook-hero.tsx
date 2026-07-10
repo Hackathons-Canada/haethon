@@ -8,12 +8,17 @@ import {
   useTransform,
 } from "motion/react";
 
-// Pose of the machine: the lid starts slightly reclined and settles almost
-// parallel to the viewer's screen, while the base hangs back so the hinge
-// stays around 105deg — the keyboard is visible but heavily foreshortened.
+import { MacbookScreenHackathons } from "@/components/ui/macbook-screen-hackathons";
+
+// Pose of the machine. The lid settles almost parallel to the viewer's screen
+// while the base folds toward the camera (positive rotateX, origin at the
+// hinge), so the keyboard reads heavily foreshortened and flares slightly
+// wider at the bottom — like looking at an open MacBook from just above the
+// screen. Everything is sized proportionally to the component width so the
+// same geometry holds from mobile to desktop.
 const SCROLL_RANGE: [number, number] = [0, 420];
-const LID_TILT: [number, number] = [15, 2];
-const DECK_TILT: [number, number] = [-85, -73];
+const LID_TILT: [number, number] = [9, 3];
+const DECK_TILT: [number, number] = [69, 61];
 
 type KeyDef = {
   main: string;
@@ -56,7 +61,6 @@ const tabRow: KeyDef[] = [
   { main: "\\", top: "|" },
 ];
 
-// The deck is cut off right below this row — nothing past ASDF gets drawn.
 const homeRow: KeyDef[] = [
   { main: "caps lock", grow: 1.75, align: "bl" },
   ...letters("ASDFGHJKL"),
@@ -65,18 +69,31 @@ const homeRow: KeyDef[] = [
   { main: "return", grow: 1.75, align: "br" },
 ];
 
-function KeyCap({ def, short = false }: { def: KeyDef; short?: boolean }) {
+// Only a clipped sliver of this row renders — the deck is cut off right
+// below the ASDF line.
+const bottomRow: KeyDef[] = [
+  { main: "shift", grow: 2.3, align: "bl" },
+  ...letters("ZXCVBNM"),
+  { main: ",", top: "<" },
+  { main: ".", top: ">" },
+  { main: "/", top: "?" },
+  { main: "shift", grow: 2.3, align: "br" },
+];
+
+const keyLabelClassName = "text-[clamp(4px,0.85vw,10px)]";
+
+function KeyCap({ def }: { def: KeyDef }) {
   const alignment =
     def.align === "bl"
-      ? "items-end justify-start pl-1 pb-0.5"
+      ? "items-end justify-start pl-[8%] pb-[4%]"
       : def.align === "br"
-        ? "items-end justify-end pr-1 pb-0.5"
+        ? "items-end justify-end pr-[8%] pb-[4%]"
         : "items-center justify-center";
 
   return (
     <div
       style={{ flexGrow: def.grow ?? 1, flexBasis: 0 }}
-      className={`flex ${short ? "h-4" : "h-7"} ${alignment} rounded-[4px] bg-[#0f0f13] text-[6px] font-medium leading-[1.15] text-neutral-400 shadow-[inset_0_-0.5px_1px_rgba(255,255,255,0.08),inset_0_1px_2px_rgba(0,0,0,0.7)]`}
+      className={`flex h-full ${alignment} ${keyLabelClassName} rounded-[clamp(2px,0.4vw,5px)] bg-[#131318] font-medium leading-[1.15] text-neutral-400 shadow-[inset_0_-1px_2px_rgba(255,255,255,0.1),inset_0_2px_3px_rgba(0,0,0,0.7)]`}
     >
       {def.top ? (
         <span className="flex flex-col items-center">
@@ -90,11 +107,17 @@ function KeyCap({ def, short = false }: { def: KeyDef; short?: boolean }) {
   );
 }
 
-function KeyRow({ keys, short = false }: { keys: KeyDef[]; short?: boolean }) {
+function KeyRow({
+  keys,
+  aspect = "aspect-[16/1]",
+}: {
+  keys: KeyDef[];
+  aspect?: string;
+}) {
   return (
-    <div className="flex w-full gap-[2px]">
+    <div className={`flex w-full gap-[0.45%] ${aspect} mb-[0.4%]`}>
       {keys.map((def, i) => (
-        <KeyCap key={`${def.main}-${i}`} def={def} short={short} />
+        <KeyCap key={`${def.main}-${i}`} def={def} />
       ))}
     </div>
   );
@@ -106,22 +129,6 @@ const speakerGridStyle: CSSProperties = {
   backgroundSize: "4px 4px",
 };
 
-function DefaultScreen() {
-  return (
-    <div className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden bg-[#0b0b0b] text-center">
-      <div
-        aria-hidden="true"
-        className="absolute inset-x-0 bottom-[-40%] h-[80%] rounded-[100%] bg-[#660000]/35 blur-3xl"
-      />
-      <p className="relative font-serif text-xl font-semibold text-[#f7f3ea] sm:text-3xl">
-        Hackathons North America
-      </p>
-      <p className="relative mt-3 font-mono text-[8px] font-medium uppercase tracking-[0.2em] text-[#f7f3ea]/55 sm:text-[10px]">
-        hundreds of hackathons &middot; one profile
-      </p>
-    </div>
-  );
-}
 
 export function MacbookHero({ children }: { children?: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -130,61 +137,73 @@ export function MacbookHero({ children }: { children?: ReactNode }) {
   const { scrollY } = useScroll();
   const lidTilt = useTransform(scrollY, SCROLL_RANGE, LID_TILT);
   const deckTilt = useTransform(scrollY, SCROLL_RANGE, DECK_TILT);
-  // The deck's projected height grows as it opens, so the shadow tracks its
-  // bottom edge instead of sitting at a fixed offset.
-  const shadowY = useTransform(scrollY, SCROLL_RANGE, [-26, 0]);
-  const shadowOpacity = useTransform(scrollY, SCROLL_RANGE, [0.55, 1]);
+  // The deck's projected height grows as it opens toward its final pose, so
+  // the shadow rides up under the cutoff edge instead of sitting at a fixed
+  // offset. Percentages keep it proportional at every width.
+  const shadowY = useTransform(scrollY, SCROLL_RANGE, ["-28%", "0%"]);
+  const shadowOpacity = useTransform(scrollY, SCROLL_RANGE, [0.7, 1]);
 
   return (
-    <div
-      ref={ref}
-      className="relative mx-auto w-[21.5rem] max-w-full sm:w-[30rem] lg:w-[36rem]"
-    >
+    <div ref={ref} className="relative mx-auto w-full max-w-[1080px]">
       {/* Lid */}
       <motion.div
         style={{
           rotateX: prefersReducedMotion ? LID_TILT[1] : lidTilt,
-          transformPerspective: 1800,
+          transformPerspective: 2000,
         }}
-        className="relative z-10 origin-bottom rounded-t-[1.15rem] rounded-b-md border border-[#2a2a2e] bg-[#050507] p-2 shadow-[0_40px_90px_-24px_rgba(0,0,0,0.55)] sm:p-2.5"
+        className="relative z-10 origin-bottom"
       >
-        <div
-          aria-hidden="true"
-          className="absolute left-1/2 top-[5px] size-1 -translate-x-1/2 rounded-full bg-[#1e1e23]"
-        />
-        <div className="relative aspect-[16/10] w-full overflow-hidden rounded-lg bg-[#101014]">
-          {children ?? <DefaultScreen />}
+        {/* shell rim, outside in: white edge → light gray line → large dark bezel.
+            The rim only wraps the top and sides — the lid's bottom edge slides
+            behind the deck, so no rim or corner rounding down there. */}
+        <div className="rounded-t-[clamp(1.1rem,2.6vw,2.4rem)] bg-white px-[0.3%] pt-[0.3%] shadow-[0_60px_120px_-40px_rgba(0,0,0,0.5)]">
+          <div className="rounded-t-[clamp(1rem,2.45vw,2.25rem)] bg-[#c9c9ce] px-[0.3%] pt-[0.3%]">
+            <div className="relative rounded-t-[clamp(0.9rem,2.3vw,2.1rem)] bg-[#0a0a0c] p-[1.6%] pb-[2.9%]">
+              <div className="relative aspect-[16/10] w-full overflow-hidden rounded-[clamp(0.55rem,1.3vw,1.2rem)] bg-white">
+                {/* rectangular camera dock (notch) hanging into the screen */}
+                <div
+                  aria-hidden="true"
+                  className="absolute left-1/2 top-0 z-10 h-[3.2%] w-[11%] -translate-x-1/2 rounded-b-[clamp(3px,0.45vw,7px)] bg-[#0a0a0c]"
+                />
+                {children ?? <MacbookScreenHackathons />}
+              </div>
+              <span
+                aria-hidden="true"
+                className="absolute inset-x-0 bottom-[0.85%] text-center text-[clamp(3px,0.65vw,8px)] font-medium tracking-[0.08em] text-neutral-500"
+              >
+                Hackathons North America
+              </span>
+            </div>
+          </div>
         </div>
       </motion.div>
 
-      {/* Base — rotated back around the hinge; layout height is kept short
-          because the rotation collapses most of its projected height. */}
-      <div className="relative h-9">
+      {/* Base — folded toward the viewer around the hinge. The wrapper only
+          reserves the projected (foreshortened) height. */}
+      <div className="relative aspect-[13/2]">
         <motion.div
+          aria-hidden="true"
           style={{
             rotateX: prefersReducedMotion ? DECK_TILT[1] : deckTilt,
             transformPerspective: 1800,
           }}
-          className="absolute inset-x-0 top-0 origin-top border-x border-[#2a2a2e] bg-[#1c1c20] px-2 pt-1"
+          className="absolute inset-x-0 top-0 origin-top border-x border-[#26272c] bg-[#141418] px-[1.4%] pt-[0.5%] shadow-[inset_0_1px_0_rgba(70,70,78,0.6)]"
         >
-          <div className="mx-auto mb-1 h-1.5 w-[38%] rounded-b-md bg-[#0a0a0c]" />
-          <div className="flex gap-1 pb-[3px]">
-            <div
-              aria-hidden="true"
-              className="w-[7%] rounded-md bg-[#0e0e11]"
-              style={speakerGridStyle}
-            />
-            <div className="flex flex-1 flex-col gap-[2px] rounded-md bg-[#0a0a0d] p-1">
-              <KeyRow keys={fnRow} short />
+          {/* hinge vent */}
+          <div className="mx-auto mb-[0.5%] w-[30%] rounded-b-md bg-[#0a0a0c] py-[0.35%]" />
+          <div className="flex gap-[0.8%]">
+            <div className="w-[5.5%] rounded-md bg-[#1b1b20]" style={speakerGridStyle} />
+            <div className="min-w-0 flex-1 rounded-lg bg-[#0b0b0e] p-[0.7%]">
+              <KeyRow keys={fnRow} aspect="aspect-[32/1]" />
               <KeyRow keys={numberRow} />
               <KeyRow keys={tabRow} />
               <KeyRow keys={homeRow} />
+              {/* abrupt cutoff mid-key below the ASDF line */}
+              <div className="w-full overflow-hidden aspect-[40/1]">
+                <KeyRow keys={bottomRow} />
+              </div>
             </div>
-            <div
-              aria-hidden="true"
-              className="w-[7%] rounded-md bg-[#0e0e11]"
-              style={speakerGridStyle}
-            />
+            <div className="w-[5.5%] rounded-md bg-[#1b1b20]" style={speakerGridStyle} />
           </div>
         </motion.div>
       </div>
@@ -193,11 +212,16 @@ export function MacbookHero({ children }: { children?: ReactNode }) {
       <motion.div
         aria-hidden="true"
         style={
-          prefersReducedMotion ? undefined : { y: shadowY, opacity: shadowOpacity }
+          prefersReducedMotion
+            ? undefined
+            : { y: shadowY, opacity: shadowOpacity }
         }
-        className="pointer-events-none relative left-1/2 h-24 w-[110%] -translate-x-1/2"
+        className="pointer-events-none relative left-1/2 -mt-[1.5%] aspect-[1000/190] w-[112%] -translate-x-1/2"
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/15 to-transparent blur-[2px] [mask-image:linear-gradient(to_right,transparent,black_16%,black_84%,transparent)]" />
+        {/* tight contact shadow hugging the cut line */}
+        <div className="absolute inset-x-[3%] top-0 h-[38%] bg-gradient-to-b from-black/90 via-black/50 to-transparent blur-[5px] [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)]" />
+        {/* long falloff */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/30 to-transparent blur-[8px] [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]" />
       </motion.div>
     </div>
   );

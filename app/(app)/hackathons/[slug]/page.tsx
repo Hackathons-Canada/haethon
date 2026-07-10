@@ -23,6 +23,7 @@ import {
 
 import { AddToCalendarButton } from "@/components/add-to-calendar-button";
 import { DiscordGlyph } from "@/components/discord-glyph";
+import { HackathonNotificationPreferences } from "@/components/hackathon-notification-preferences";
 import { HackathonStatusTracker } from "@/components/hackathon-status-tracker";
 import { getCurrentUserRecord } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -36,9 +37,11 @@ import {
   organizations,
   reminders,
   tags,
+  userHackathonNotificationPreferences,
   userHackathons,
 } from "@/lib/db/schema";
 import { formatDateRange, formatDuration, formatLocation } from "@/lib/hackathons/card-format";
+import { computeSelectableReminderPlan, selectableReminderTypes } from "@/lib/hackathons/reminder-plan";
 import { formatReminderDate, reminderTypeLabels } from "@/lib/hackathons/reminder-labels";
 
 const publicStatuses = ["upcoming", "live", "completed"] as const;
@@ -46,6 +49,10 @@ const publicStatuses = ["upcoming", "live", "completed"] as const;
 type PageProps = {
   params: Promise<{ slug: string }>;
 };
+
+function isSelectableReminderType(type: string): type is (typeof selectableReminderTypes)[number] {
+  return selectableReminderTypes.some((selectableType) => selectableType === type);
+}
 
 async function getHackathon(slug: string) {
   const [row] = await db
@@ -173,7 +180,7 @@ export default async function HackathonDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const [tagRows, [tracked], upcomingReminders, discordChannelLink] = await Promise.all([
+  const [tagRows, [tracked], upcomingReminders, notificationPreferenceRows, discordChannelLink] = await Promise.all([
     db
       .select({ name: tags.name })
       .from(hackathonTags)
@@ -199,6 +206,21 @@ export default async function HackathonDetailPage({ params }: PageProps) {
           )
           .orderBy(asc(reminders.scheduledFor))
       : Promise.resolve([]),
+    user
+      ? db
+          .select({
+            type: userHackathonNotificationPreferences.type,
+            enabled: userHackathonNotificationPreferences.enabled,
+          })
+          .from(userHackathonNotificationPreferences)
+          .where(
+            and(
+              eq(userHackathonNotificationPreferences.userId, user.id),
+              eq(userHackathonNotificationPreferences.hackathonId, hackathon.id),
+              eq(userHackathonNotificationPreferences.channel, "email")
+            )
+          )
+      : Promise.resolve([]),
     getDiscordChannelLink(hackathon.id, hackathon.seriesId),
   ]);
 
@@ -209,6 +231,30 @@ export default async function HackathonDetailPage({ params }: PageProps) {
     hackathon.travelReimbursement ? "Travel support" : null,
     ...tagRows.map((tag) => tag.name),
   ].filter(Boolean) as string[];
+  const selectableReminderPlan = computeSelectableReminderPlan(
+    {
+      startsAt: hackathon.startsAt,
+      endsAt: hackathon.endsAt,
+      applicationOpensAt: hackathon.applicationOpensAt,
+      applicationClosesAt: hackathon.applicationClosesAt,
+      acceptanceAt: hackathon.acceptanceAt,
+    },
+    new Date()
+  );
+  const scheduledByType = new Map(selectableReminderPlan.map((entry) => [entry.type, entry.scheduledFor]));
+  const enabledByType = new Map(selectableReminderTypes.map((type) => [type, true]));
+
+  for (const row of notificationPreferenceRows) {
+    if (isSelectableReminderType(row.type)) {
+      enabledByType.set(row.type, row.enabled);
+    }
+  }
+
+  const notificationPreferences = selectableReminderTypes.map((type) => ({
+    type,
+    enabled: enabledByType.get(type) ?? true,
+    scheduledFor: scheduledByType.get(type)?.toISOString() ?? null,
+  }));
 
   return (
     <main className="min-h-screen bg-white px-5 pb-40 pt-10 text-black sm:px-8 lg:px-12">
@@ -347,6 +393,12 @@ export default async function HackathonDetailPage({ params }: PageProps) {
               </Link>
             )}
           </div>
+          {user ? (
+            <HackathonNotificationPreferences
+              hackathonId={hackathon.id}
+              initialPreferences={notificationPreferences}
+            />
+          ) : null}
           {upcomingReminders.length ? (
             <ul className="mt-5 space-y-2 border-t border-black/10 pt-4">
               {upcomingReminders.map((reminder) => (

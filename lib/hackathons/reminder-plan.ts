@@ -1,18 +1,26 @@
-export type ApplicationStatus = "interested" | "applied" | "accepted" | "attending" | "attended" | "won";
-
 export type ReminderType =
   | "application_open"
   | "application_close"
   | "acceptance_date"
   | "hackathon_start"
+  | "hackathon_week_before"
+  | "hackathon_day_before"
   | "check_in"
   | "submission_deadline"
   | "follow_up"
   | "add_to_profile"
   | "attendance_check";
 
-export type ReminderPlanEntry = {
-  type: ReminderType;
+export const selectableReminderTypes = [
+  "application_open",
+  "hackathon_week_before",
+  "hackathon_day_before",
+] as const satisfies readonly ReminderType[];
+
+export type SelectableReminderType = (typeof selectableReminderTypes)[number];
+
+export type SelectableReminderPlanEntry = {
+  type: SelectableReminderType;
   scheduledFor: Date;
 };
 
@@ -30,61 +38,26 @@ function daysBefore(date: Date, days: number) {
   return new Date(date.getTime() - days * DAY_MS);
 }
 
-function daysAfter(date: Date, days: number) {
-  return new Date(date.getTime() + days * DAY_MS);
-}
-
-/**
- * The reminders a hacker should get for a hackathon, derived from where they
- * are in the pipeline. Users manage status, never individual reminders.
- * Only future-dated entries are returned.
- */
-export function computeReminderPlan(
-  status: ApplicationStatus,
+export function computeSelectableReminderPlan(
   dates: HackathonDatesInput | null,
   now = new Date()
-): ReminderPlanEntry[] {
+): SelectableReminderPlanEntry[] {
   if (!dates) {
     return [];
   }
 
-  const plan: ReminderPlanEntry[] = [];
-  const push = (type: ReminderType, scheduledFor: Date | null) => {
+  const plan: SelectableReminderPlanEntry[] = [];
+  const push = (type: SelectableReminderType, scheduledFor: Date | null) => {
     if (scheduledFor && scheduledFor > now) {
       plan.push({ type, scheduledFor });
     }
   };
 
-  switch (status) {
-    case "interested":
-      push("application_open", dates.applicationOpensAt);
-      if (dates.applicationClosesAt) {
-        const headsUp = daysBefore(dates.applicationClosesAt, 2);
-        push("application_close", headsUp > now ? headsUp : dates.applicationClosesAt);
-      }
-      break;
-    case "applied":
-      push("acceptance_date", dates.acceptanceAt);
-      if (dates.startsAt) {
-        push("hackathon_start", daysBefore(dates.startsAt, 7));
-      }
-      break;
-    case "accepted":
-    case "attending":
-      if (dates.startsAt) {
-        push("hackathon_start", daysBefore(dates.startsAt, 3));
-        push("check_in", dates.startsAt);
-      }
-      if (status === "attending") {
-        push("attendance_check", dates.endsAt);
-      }
-      break;
-    case "attended":
-    case "won":
-      if (dates.endsAt) {
-        push("add_to_profile", daysAfter(dates.endsAt, 1));
-      }
-      break;
+  push("application_open", dates.applicationOpensAt);
+
+  if (dates.startsAt) {
+    push("hackathon_week_before", daysBefore(dates.startsAt, 7));
+    push("hackathon_day_before", daysBefore(dates.startsAt, 1));
   }
 
   return plan;

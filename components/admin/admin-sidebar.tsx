@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { AlertTriangle, CalendarDays, ShieldAlert, Upload } from "lucide-react";
+import { AlertTriangle, CalendarDays, Mail, ShieldAlert, Upload } from "lucide-react";
 
 const items = [
   { href: "/admin/hackathons", icon: CalendarDays, label: "Hackathons" },
   { href: "/admin/import", icon: Upload, label: "Import" },
   { href: "/admin/broken", icon: AlertTriangle, label: "Broken" },
   { href: "/admin/attendance-anomalies", icon: ShieldAlert, label: "Anomalies" },
+  { href: "/admin/email-test", icon: Mail, label: "Email test" },
 ];
 
 export function AdminSidebar() {

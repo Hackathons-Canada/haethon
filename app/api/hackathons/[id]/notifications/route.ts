@@ -4,8 +4,11 @@ import { NextResponse } from "next/server";
 import { getCurrentUserContext } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { hackathons, userHackathons } from "@/lib/db/schema";
-import { syncRemindersForUserHackathon } from "@/lib/hackathons/reminders";
-import { hackathonSaveSchema } from "@/lib/validations/hackathon";
+import {
+  setUserHackathonNotificationPreferences,
+  syncRemindersForUserHackathon,
+} from "@/lib/hackathons/reminders";
+import { hackathonNotificationPreferencesSchema } from "@/lib/validations/hackathon";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -18,7 +21,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
   }
 
-  const parsed = hackathonSaveSchema.safeParse(await request.json());
+  const parsed = hackathonNotificationPreferencesSchema.safeParse(await request.json());
 
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
@@ -31,33 +34,35 @@ export async function PATCH(request: Request, context: RouteContext) {
     return NextResponse.json({ error: "Hackathon not found." }, { status: 404 });
   }
 
-  const [savedHackathon] = await db
+  const [tracked] = await db
     .insert(userHackathons)
     .values({
       userId: userContext.user.id,
       hackathonId: id,
-      isSaved: parsed.data.isSaved,
+      isSaved: true,
     })
     .onConflictDoUpdate({
       target: [userHackathons.userId, userHackathons.hackathonId],
       set: {
-        isSaved: parsed.data.isSaved,
+        isSaved: true,
         updatedAt: new Date(),
       },
     })
     .returning({
-      id: userHackathons.id,
       isSaved: userHackathons.isSaved,
-      applicationStatus: userHackathons.applicationStatus,
     });
 
-  if (savedHackathon) {
-    await syncRemindersForUserHackathon({
-      userId: userContext.user.id,
-      hackathonId: id,
-      isSaved: savedHackathon.isSaved,
-    });
-  }
+  await setUserHackathonNotificationPreferences({
+    userId: userContext.user.id,
+    hackathonId: id,
+    preferences: parsed.data.preferences,
+  });
 
-  return NextResponse.json({ data: savedHackathon });
+  await syncRemindersForUserHackathon({
+    userId: userContext.user.id,
+    hackathonId: id,
+    isSaved: tracked.isSaved,
+  });
+
+  return NextResponse.json({ data: { preferences: parsed.data.preferences } });
 }

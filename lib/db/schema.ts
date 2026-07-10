@@ -35,6 +35,8 @@ export const reminderTypeEnum = pgEnum("reminder_type", [
   "application_close",
   "acceptance_date",
   "hackathon_start",
+  "hackathon_week_before",
+  "hackathon_day_before",
   "check_in",
   "submission_deadline",
   "follow_up",
@@ -330,7 +332,40 @@ export const reminders = pgTable(
     sentAt: timestamp("sent_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => [index("reminders_due_idx").on(table.scheduledFor)]
+  (table) => [
+    index("reminders_due_idx").on(table.scheduledFor),
+    uniqueIndex("reminders_pending_delivery_unique_idx")
+      .on(table.userId, table.hackathonId, table.type, table.channel, table.scheduledFor)
+      .where(sql`${table.sentAt} is null`),
+  ]
+);
+
+export const userHackathonNotificationPreferences = pgTable(
+  "user_hackathon_notification_preferences",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    hackathonId: uuid("hackathon_id")
+      .notNull()
+      .references(() => hackathons.id, { onDelete: "cascade" }),
+    type: reminderTypeEnum("type").notNull(),
+    channel: notificationChannelEnum("channel").notNull().default("email"),
+    enabled: boolean("enabled").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("user_hackathon_notification_preferences_unique_idx").on(
+      table.userId,
+      table.hackathonId,
+      table.type,
+      table.channel
+    ),
+    index("user_hackathon_notification_preferences_user_idx").on(table.userId),
+    index("user_hackathon_notification_preferences_hackathon_idx").on(table.hackathonId),
+  ]
 );
 
 export const notifications = pgTable(
@@ -520,6 +555,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
     references: [userProfiles.userId],
   }),
   userHackathons: many(userHackathons),
+  notificationPreferences: many(userHackathonNotificationPreferences),
   reminders: many(reminders),
   notifications: many(notifications),
   projects: many(projects),
@@ -550,6 +586,7 @@ export const hackathonsRelations = relations(hackathons, ({ one, many }) => ({
   sources: many(sources),
   tags: many(hackathonTags),
   attendanceDays: many(userHackathonAttendanceDays),
+  notificationPreferences: many(userHackathonNotificationPreferences),
   votes: many(userHackathonVotes),
 }));
 

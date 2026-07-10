@@ -23,6 +23,8 @@
     "@discordjs/rest": "2.6.1",
     "@hookform/resolvers": "^5.4.0",
     "@neondatabase/serverless": "^1.1.0",
+    "@react-email/components": "^1.0.12",
+    "@react-email/render": "^2.0.10",
     "@sentry/nextjs": "^10.62.0",
     "@tanstack/react-query": "^5.101.2",
     "@tanstack/react-query-devtools": "^5.101.2",

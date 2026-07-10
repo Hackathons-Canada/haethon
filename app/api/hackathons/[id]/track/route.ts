@@ -56,7 +56,6 @@ export async function PATCH(request: Request, context: RouteContext) {
   await syncRemindersForUserHackathon({
     userId: userContext.user.id,
     hackathonId: id,
-    applicationStatus: parsed.data.applicationStatus,
     isSaved: true,
   });
 

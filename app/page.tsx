@@ -149,7 +149,7 @@ export default function Home() {
         </div>
       </nav>
 
-      <section className="relative isolate overflow-hidden bg-white px-8 pb-[4.5rem] pt-12 sm:px-14 sm:pb-[5.5rem] sm:pt-16 md:pb-28 md:pt-[5.5rem] lg:px-20">
+      <section className="relative isolate overflow-hidden bg-white px-8 pb-10 pt-12 sm:px-14 sm:pb-12 sm:pt-16 md:pt-[5.5rem] lg:px-20">
         <div className="mx-auto w-full max-w-[520px] sm:max-w-[520px] md:max-w-[680px] lg:max-w-[840px] xl:max-w-[980px] 2xl:max-w-[1120px]">
           <h1
             aria-label="Search hundreds of upcoming hackathons, build your profile, and never miss another application deadline."
@@ -160,7 +160,7 @@ export default function Home() {
           </h1>
         </div>
 
-        <div className="mx-auto mt-14 w-full max-w-[1120px] sm:mt-16">
+        <div className="mx-auto w-full max-w-[1120px]">
           <MacbookHero />
         </div>
       </section>
