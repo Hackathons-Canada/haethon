@@ -24,17 +24,30 @@ describe("computeSelectableReminderPlan", () => {
     ]);
   });
 
+  it("offers interested hackers the two application-open reminders", () => {
+    expect(getSelectableReminderTypesForStatus("interested")).toEqual([
+      "application_week_before",
+      "application_day_before",
+    ]);
+  });
+
   it("returns nothing without dates", () => {
     expect(computeSelectableReminderPlan(null, now)).toEqual([]);
   });
 
-  it("schedules the three selectable email reminders", () => {
+  it("schedules the four selectable email reminders", () => {
     const plan = computeSelectableReminderPlan(dates, now);
 
-    expect(types(plan)).toEqual(["application_open", "hackathon_week_before", "hackathon_day_before"]);
-    expect(plan[0].scheduledFor).toEqual(dates.applicationOpensAt);
-    expect(plan[1].scheduledFor).toEqual(new Date("2026-09-05T15:00:00Z"));
-    expect(plan[2].scheduledFor).toEqual(new Date("2026-09-11T15:00:00Z"));
+    expect(types(plan)).toEqual([
+      "application_week_before",
+      "application_day_before",
+      "hackathon_week_before",
+      "hackathon_day_before",
+    ]);
+    expect(plan[0].scheduledFor).toEqual(new Date("2026-07-08T00:00:00Z"));
+    expect(plan[1].scheduledFor).toEqual(new Date("2026-07-14T00:00:00Z"));
+    expect(plan[2].scheduledFor).toEqual(new Date("2026-09-05T15:00:00Z"));
+    expect(plan[3].scheduledFor).toEqual(new Date("2026-09-11T15:00:00Z"));
   });
 
   it("bases the event reminders on the event start, not an application date", () => {
@@ -57,7 +70,7 @@ describe("computeSelectableReminderPlan", () => {
   it("omits the start-relative reminders when there is no start date", () => {
     const plan = computeSelectableReminderPlan({ ...dates, startsAt: null }, now);
 
-    expect(types(plan)).toEqual(["application_open"]);
+    expect(types(plan)).toEqual(["application_week_before", "application_day_before"]);
   });
 
   it("drops reminders that are already in the past", () => {

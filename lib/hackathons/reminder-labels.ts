@@ -1,5 +1,7 @@
 export const reminderTypeLabels: Record<string, string> = {
   application_open: "Applications open",
+  application_week_before: "1 week before applications open",
+  application_day_before: "1 day before applications open",
   application_close: "Applications close",
   acceptance_date: "Acceptance decisions",
   hackathon_start: "Hackathon starts",

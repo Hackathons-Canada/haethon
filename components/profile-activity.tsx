@@ -75,13 +75,13 @@ export function ProfileActivity({
       </div>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        <div className="rounded-lg bg-white px-4 py-3">
+        <div className="rounded-lg bg-[#F7F7F4] px-4 py-3">
           <p className="text-2xl font-semibold text-black">{active.hackathonsAttended}</p>
           <p className="text-sm text-[#706F6B]">
             Hackathon{active.hackathonsAttended === 1 ? "" : "s"} attended in {active.year}
           </p>
         </div>
-        <div className="rounded-lg bg-white px-4 py-3">
+        <div className="rounded-lg bg-[#F7F7F4] px-4 py-3">
           <p className="flex items-center gap-1.5 text-2xl font-semibold text-black">
             <Trophy aria-hidden="true" className="size-5 text-[#D4A72C]" />
             {active.wins}
@@ -95,7 +95,7 @@ export function ProfileActivity({
       <p className="mt-4 text-sm font-semibold text-black">
         {active.totalDays} hackathon attendance {active.totalDays === 1 ? "entry" : "entries"} in {active.year}
       </p>
-      <div className={`mt-3 overflow-x-auto ${hasActivity ? "rounded-lg bg-white p-4" : ""}`}>
+      <div className={`mt-3 overflow-x-auto ${hasActivity ? "rounded-lg bg-[#F7F7F4] p-4" : ""}`}>
         <div
           className="grid gap-1"
           style={{ minWidth: `${minWidth}px`, gridTemplateColumns: `repeat(${weeks.length}, minmax(0, 1fr))` }}

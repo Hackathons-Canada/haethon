@@ -9,17 +9,18 @@ export type ReminderType =
   | "submission_deadline"
   | "follow_up"
   | "add_to_profile"
-  | "attendance_check";
+  | "attendance_check"
+  | "application_week_before"
+  | "application_day_before";
 
 export const selectableReminderTypes = [
-  "application_open",
+  "application_week_before",
+  "application_day_before",
   "hackathon_week_before",
   "hackathon_day_before",
 ] as const satisfies readonly ReminderType[];
 
 export type SelectableReminderType = (typeof selectableReminderTypes)[number];
-
-export type ReminderApplicationStatus = "interested" | "applied" | "accepted" | "attending" | "attended" | "won";
 
 export type SelectableReminderPlanEntry = {
   type: SelectableReminderType;
@@ -35,18 +36,18 @@ export type HackathonDatesInput = {
 };
 
 /**
- * Notification choices follow the hacker's current stage. Application
- * reminders are useful while they are interested; once accepted, only the
- * event-start reminders are relevant.
+ * Notification choices follow the hacker's current stage. While they are only
+ * interested, reminders count down to the application opening so they don't
+ * miss it; once accepted, only the event-start reminders are relevant.
  */
 export function getSelectableReminderTypesForStatus(
-  applicationStatus: ReminderApplicationStatus | null
+  applicationStatus: string | null
 ): SelectableReminderType[] {
   if (applicationStatus === "accepted" || applicationStatus === "attending") {
     return ["hackathon_week_before", "hackathon_day_before"];
   }
 
-  return applicationStatus === "interested" ? ["application_open"] : [];
+  return applicationStatus === "interested" ? ["application_week_before", "application_day_before"] : [];
 }
 
 const DAY_MS = 86_400_000;
@@ -70,7 +71,10 @@ export function computeSelectableReminderPlan(
     }
   };
 
-  push("application_open", dates.applicationOpensAt);
+  if (dates.applicationOpensAt) {
+    push("application_week_before", daysBefore(dates.applicationOpensAt, 7));
+    push("application_day_before", daysBefore(dates.applicationOpensAt, 1));
+  }
 
   if (dates.startsAt) {
     push("hackathon_week_before", daysBefore(dates.startsAt, 7));

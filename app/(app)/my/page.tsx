@@ -19,7 +19,10 @@ import {
 } from "@/lib/db/schema";
 import { formatDateRange, formatLocation } from "@/lib/hackathons/card-format";
 import { formatReminderDate } from "@/lib/hackathons/reminder-labels";
-import { computeSelectableReminderPlan } from "@/lib/hackathons/reminder-plan";
+import {
+  computeSelectableReminderPlan,
+  getSelectableReminderTypesForStatus,
+} from "@/lib/hackathons/reminder-plan";
 
 export const metadata: Metadata = {
   title: "My Hackathons | Hackathons North America",
@@ -191,6 +194,13 @@ export default async function MyHackathonsPage() {
                 {stageRows.map((row) => {
                   const deadline = nextDeadline(row, now);
                   const enabledByType = preferencesByHackathon.get(row.hackathonId);
+                  // The reminders offered depend on where the hacker stands: those
+                  // still interested get application-open reminders, while accepted
+                  // hackers get the event-start ones. Keep this in step with the
+                  // detail page and the reminder sync.
+                  const availableReminderTypes = new Set(
+                    getSelectableReminderTypesForStatus(row.applicationStatus)
+                  );
                   const notificationPreferences = computeSelectableReminderPlan(
                     {
                       startsAt: row.startsAt,
@@ -200,11 +210,13 @@ export default async function MyHackathonsPage() {
                       acceptanceAt: row.acceptanceAt,
                     },
                     now
-                  ).map(({ type, scheduledFor }) => ({
-                    type,
-                    enabled: enabledByType?.get(type) ?? true,
-                    scheduledFor: scheduledFor.toISOString(),
-                  }));
+                  )
+                    .filter(({ type }) => availableReminderTypes.has(type))
+                    .map(({ type, scheduledFor }) => ({
+                      type,
+                      enabled: enabledByType?.get(type) ?? true,
+                      scheduledFor: scheduledFor.toISOString(),
+                    }));
 
                   return (
                     <article className="rounded-lg border border-black/10 bg-[#F7F7F4] p-5" key={row.id}>

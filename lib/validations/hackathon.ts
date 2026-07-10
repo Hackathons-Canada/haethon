@@ -235,18 +235,28 @@ export const hackathonNotificationPreferencesSchema = z.object({
   preferences: z
     .array(
       z.object({
-        type: z.enum(["application_open", "hackathon_week_before", "hackathon_day_before"]),
+        type: z.enum([
+          "application_week_before",
+          "application_day_before",
+          "hackathon_week_before",
+          "hackathon_day_before",
+        ]),
         enabled: z.boolean(),
       })
     )
     .min(1)
-    .max(3),
+    .max(4),
 });
 
 export const reminderEmailTestSchema = z.object({
   email: z.string().trim().email(),
   hackathonId: z.string().uuid(),
-  type: z.enum(["application_open", "hackathon_week_before", "hackathon_day_before"]),
+  type: z.enum([
+    "application_week_before",
+    "application_day_before",
+    "hackathon_week_before",
+    "hackathon_day_before",
+  ]),
 });
 
 export const hackathonCheckinRedeemSchema = z.object({

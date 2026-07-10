@@ -276,7 +276,7 @@ export default async function AccountPage() {
                 {pinnedItems.length ? (
                   pinnedItems.map((item) => (
                     <article
-                      className={`min-h-28 rounded-lg bg-white p-4 ${
+                      className={`min-h-28 rounded-lg bg-[#F7F7F4] p-4 ${
                         item.isWin
                           ? "border-2 border-[#D4A72C] shadow-[0_0_0_3px_rgba(212,167,44,0.18)]"
                           : "border-2 border-transparent"
@@ -285,7 +285,7 @@ export default async function AccountPage() {
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex min-w-0 items-start gap-3">
-                          <div className="relative grid size-12 shrink-0 place-items-center overflow-hidden rounded-lg bg-[#F7F7F4]">
+                          <div className="relative grid size-12 shrink-0 place-items-center overflow-hidden rounded-lg bg-white">
                             {item.imageUrl ? (
                               <Image
                                 alt={`${item.hackathonName} logo`}
@@ -346,7 +346,7 @@ export default async function AccountPage() {
                   const tier = deriveAttendanceTrustTier(hackathon.sources ?? []);
 
                   return (
-                    <article className="rounded-lg bg-white p-4" key={hackathon.id}>
+                    <article className="rounded-lg bg-[#F7F7F4] p-4" key={hackathon.id}>
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex min-w-0 items-start gap-2">
                           <CalendarDays aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-[#660000]" />

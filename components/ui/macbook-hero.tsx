@@ -208,21 +208,28 @@ export function MacbookHero({ children }: { children?: ReactNode }) {
         </motion.div>
       </div>
 
-      {/* Gradient shadow falling away below the cutoff line */}
-      <motion.div
+      {/* Gradient shadow falling away below the cutoff line. It overlays
+          whatever section follows instead of reserving layout height, so the
+          page background can switch color exactly at the cut line and the
+          shadow reads as cast onto that surface. */}
+      <div
         aria-hidden="true"
-        style={
-          prefersReducedMotion
-            ? undefined
-            : { y: shadowY, opacity: shadowOpacity }
-        }
-        className="pointer-events-none relative left-1/2 -mt-[1.5%] aspect-[1000/190] w-[112%] -translate-x-1/2"
+        className="pointer-events-none absolute inset-x-0 top-full"
       >
-        {/* tight contact shadow hugging the cut line */}
-        <div className="absolute inset-x-[3%] top-0 h-[38%] bg-gradient-to-b from-black/90 via-black/50 to-transparent blur-[5px] [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)]" />
-        {/* long falloff */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/30 to-transparent blur-[8px] [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]" />
-      </motion.div>
+        <motion.div
+          style={
+            prefersReducedMotion
+              ? undefined
+              : { y: shadowY, opacity: shadowOpacity }
+          }
+          className="relative left-1/2 -mt-[1.5%] aspect-[1000/190] w-[112%] -translate-x-1/2"
+        >
+          {/* tight contact shadow hugging the cut line */}
+          <div className="absolute inset-x-[3%] top-0 h-[38%] bg-gradient-to-b from-black/90 via-black/50 to-transparent blur-[5px] [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)]" />
+          {/* long falloff */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/30 to-transparent blur-[8px] [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]" />
+        </motion.div>
+      </div>
     </div>
   );
 }

@@ -119,7 +119,7 @@ function HackathonNameStrip({ hidden = false }: { hidden?: boolean }) {
 
 export default function Home() {
   return (
-    <main className="min-h-screen overflow-hidden bg-white text-black">
+    <main className="min-h-screen overflow-hidden bg-[#F8F8F4] text-black">
       <nav
         aria-label="Primary navigation"
         className="border-b border-black/10 bg-white px-8 font-mono text-xs font-medium uppercase tracking-[0.14em] text-[#706F6B] sm:px-14 lg:px-20"
@@ -149,7 +149,9 @@ export default function Home() {
         </div>
       </nav>
 
-      <section className="relative isolate overflow-hidden bg-white px-8 pb-10 pt-12 sm:px-14 sm:pb-12 sm:pt-16 md:pt-[5.5rem] lg:px-20">
+      {/* The white hero ends exactly at the keyboard cutoff; the cast shadow
+          from the MacBook overflows onto the tinted section below. */}
+      <section className="relative isolate bg-white px-8 pt-12 sm:px-14 sm:pt-16 md:pt-[5.5rem] lg:px-20">
         <div className="mx-auto w-full max-w-[520px] sm:max-w-[520px] md:max-w-[680px] lg:max-w-[840px] xl:max-w-[980px] 2xl:max-w-[1120px]">
           <h1
             aria-label="Search hundreds of upcoming hackathons, build your profile, and never miss another application deadline."
@@ -167,7 +169,7 @@ export default function Home() {
 
       <section
         aria-labelledby="platform-audience-heading"
-        className="bg-white px-8 pb-16 pt-20 text-left sm:px-14 sm:pb-20 sm:pt-24 lg:px-20"
+        className="relative z-10 -mt-[3%] bg-[#F8F8F4] px-8 pb-16 pt-16 text-left sm:px-14 sm:pb-20 sm:pt-20 lg:px-20"
       >
         <div className="mx-auto max-w-[1120px]">
           <div>
@@ -340,7 +342,7 @@ export default function Home() {
 
       <section
         aria-labelledby="company-network-heading"
-        className="bg-white px-8 pb-16 pt-4 text-left sm:px-14 sm:pb-20 lg:px-20"
+        className="bg-[#F8F8F4] px-8 pb-16 pt-4 text-left sm:px-14 sm:pb-20 lg:px-20"
       >
         <div className="mx-auto max-w-[1120px]">
           <h2

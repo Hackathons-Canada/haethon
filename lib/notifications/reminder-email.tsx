@@ -9,6 +9,8 @@ import { formatReminderDate, reminderTypeLabels } from "@/lib/hackathons/reminde
  */
 export const reminderBodies: Record<string, string> = {
   application_open: "Applications are open. Grab a spot before the rush.",
+  application_week_before: "Applications open in a week. Line up your team and idea so you're ready to apply.",
+  application_day_before: "Applications open tomorrow. Have your details ready and apply before the rush.",
   hackathon_week_before: "The event starts in a week. Time to sort travel, teammates, and ideas.",
   hackathon_day_before: "The event starts tomorrow. Do a final check on travel, check-in, and gear.",
 };

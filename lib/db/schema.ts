@@ -42,6 +42,8 @@ export const reminderTypeEnum = pgEnum("reminder_type", [
   "follow_up",
   "add_to_profile",
   "attendance_check",
+  "application_week_before",
+  "application_day_before",
 ]);
 export const notificationChannelEnum = pgEnum("notification_channel", ["email", "discord", "in_app"]);
 export const importStatusEnum = pgEnum("import_status", ["pending", "approved", "rejected", "merged"]);
