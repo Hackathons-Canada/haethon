@@ -81,9 +81,9 @@ export function HackathonNotificationPreferences({
   );
 
   return (
-    <div className="mt-5 border-t border-black/10 pt-4">
-      <div className="flex items-center gap-2 text-sm font-semibold text-black">
-        <BellRing aria-hidden="true" className="size-4 text-[#660000]" />
+    <div className="mt-5 border-t border-navy/10 dark:border-white/10 pt-4">
+      <div className="flex items-center gap-2 text-sm font-semibold text-navy dark:text-wheat">
+        <BellRing aria-hidden="true" className="size-4 text-cabernet dark:text-[#e4a3ab]" />
         Email notifications
       </div>
       {upcomingPreferences.length ? (
@@ -94,24 +94,24 @@ export function HackathonNotificationPreferences({
 
             return (
               <label
-                className={`flex min-h-20 cursor-pointer flex-col justify-between rounded-md border bg-white p-3 text-sm transition-colors ${
+                className={`flex min-h-20 cursor-pointer flex-col justify-between rounded-md border bg-white dark:bg-white/[0.06] p-3 text-sm transition-colors ${
                   preference.enabled
-                    ? "border-[#660000]/40 text-black"
-                    : "border-black/10 text-[#706F6B]"
-                } hover:border-[#660000]/40`}
+                    ? "border-cabernet/40 text-navy dark:text-wheat"
+                    : "border-navy/10 dark:border-white/10 text-navy/55 dark:text-wheat/55"
+                } hover:border-cabernet/40 dark:hover:border-[#e4a3ab]/40`}
                 key={preference.type}
               >
                 <span className="flex items-start justify-between gap-3">
                   <span className="font-medium">{reminderTypeLabels[preference.type] ?? preference.type}</span>
                   <input
                     checked={preference.enabled}
-                    className="mt-0.5 size-4 accent-[#660000]"
+                    className="mt-0.5 size-4 accent-cabernet"
                     disabled={pendingType !== null}
                     onChange={(event) => updatePreference(preference.type, event.target.checked)}
                     type="checkbox"
                   />
                 </span>
-                <span className="mt-2 text-xs text-[#706F6B]">
+                <span className="mt-2 text-xs text-navy/55 dark:text-wheat/55">
                   {scheduledFor ? formatReminderDate(scheduledFor) : "No upcoming reminder"}
                   {pending ? " - saving" : ""}
                 </span>

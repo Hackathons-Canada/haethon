@@ -4,7 +4,7 @@ import { SignOutButton } from "@clerk/nextjs";
 import { LogOut } from "lucide-react";
 
 const buttonClassName =
-  "inline-flex min-h-9 items-center justify-center gap-2 rounded-lg border border-black/15 bg-white px-3 text-sm font-semibold text-black transition hover:border-[#660000] hover:bg-[#660000] hover:text-white focus-visible:bg-[#660000] focus-visible:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#660000]";
+  "inline-flex min-h-9 items-center justify-center gap-2 rounded-full border border-navy/15 dark:border-white/15 bg-white dark:bg-white/[0.06] px-3 text-sm font-semibold text-navy dark:text-wheat transition hover:border-cabernet dark:hover:border-[#e4a3ab]/60 hover:bg-cabernet hover:text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white dark:hover:bg-white/15 focus-visible:bg-cabernet focus-visible:text-wheat focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cabernet dark:focus-visible:outline-wheat";
 
 export function AccountSignOutButton() {
   return (

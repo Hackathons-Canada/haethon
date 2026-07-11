@@ -87,7 +87,7 @@ export function AddToCalendarButton(props: Props) {
       <button
         aria-expanded={open}
         aria-haspopup="menu"
-        className="inline-flex min-h-11 items-center justify-center gap-1.5 border border-[#660000] px-6 text-sm font-semibold text-[#660000] transition-colors hover:bg-[#660000] hover:text-white"
+        className="inline-flex rounded-full min-h-11 items-center justify-center gap-1.5 border border-cabernet dark:border-[#e4a3ab]/50 px-6 text-sm font-semibold text-cabernet dark:text-[#e4a3ab] transition-colors hover:bg-cabernet hover:text-wheat"
         onClick={() => setOpen((value) => !value)}
         type="button"
       >
@@ -96,12 +96,12 @@ export function AddToCalendarButton(props: Props) {
       </button>
       {open ? (
         <div
-          className="absolute left-0 top-full z-10 mt-2 min-w-52 border border-black/10 bg-white py-1 shadow-lg"
+          className="absolute left-0 top-full z-10 mt-2 min-w-52 border border-navy/10 dark:border-white/10 bg-white dark:bg-[#1b1b1b] py-1 shadow-lg"
           role="menu"
         >
           {options.map((option) => (
             <a
-              className="flex items-center justify-between gap-3 px-4 py-2 text-sm text-[#3F3E3B] transition-colors hover:bg-[#F5F1EC] hover:text-[#660000]"
+              className="flex items-center justify-between gap-3 px-4 py-2 text-sm text-navy/70 dark:text-wheat/70 transition-colors hover:bg-[#F5F1EC] hover:text-cabernet dark:hover:text-[#e4a3ab]"
               href={option.href}
               key={option.label}
               onClick={() => setOpen(false)}

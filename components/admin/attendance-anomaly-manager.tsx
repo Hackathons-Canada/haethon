@@ -30,10 +30,10 @@ function FindingRow({
   resolutions: Map<string, ResolutionState>;
 }) {
   return (
-    <article className="rounded-lg border border-black/10 bg-white p-5">
+    <article className="rounded-xl border border-navy/10 dark:border-white/10 bg-white dark:bg-white/[0.06] p-5">
       <div className="flex flex-wrap items-center gap-3">
-        <p className="text-sm font-semibold text-black">{finding.userName}</p>
-        <p className="text-sm text-[#706F6B]">{finding.userEmail}</p>
+        <p className="text-sm font-semibold text-navy dark:text-wheat">{finding.userName}</p>
+        <p className="text-sm text-navy/55 dark:text-wheat/55">{finding.userEmail}</p>
         <span
           className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
             finding.severity === "high" ? "bg-[#B42318]/10 text-[#B42318]" : "bg-[#B54708]/10 text-[#B54708]"
@@ -42,7 +42,7 @@ function FindingRow({
           {finding.severity}
         </span>
       </div>
-      <p className="mt-2 text-sm leading-6 text-[#3F3E3B]">{finding.summary}</p>
+      <p className="mt-2 text-sm leading-6 text-navy/70 dark:text-wheat/70">{finding.summary}</p>
       <ul className="mt-3 space-y-2">
         {finding.hackathons.map((hackathon) => {
           const resolution = resolutions.get(pairKey(finding.userId, hackathon.id));
@@ -51,10 +51,10 @@ function FindingRow({
 
           return (
             <li
-              className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-black/10 bg-[#F7F7F4] px-3 py-2"
+              className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-navy/10 dark:border-white/10 bg-ivory dark:bg-white/5 px-3 py-2"
               key={hackathon.id}
             >
-              <span className="text-sm font-semibold text-black">{hackathon.name}</span>
+              <span className="text-sm font-semibold text-navy dark:text-wheat">{hackathon.name}</span>
               <span className="flex flex-wrap items-center gap-2">
                 {resolution?.message ? (
                   <span
@@ -66,7 +66,7 @@ function FindingRow({
                 {settled ? null : (
                   <>
                     <button
-                      className="inline-flex min-h-9 items-center gap-2 rounded-lg bg-[#027A48] px-3 text-sm font-semibold text-white disabled:opacity-50"
+                      className="inline-flex min-h-9 items-center gap-2 rounded-full bg-[#027A48] px-3 text-sm font-semibold text-white disabled:opacity-50"
                       disabled={busy}
                       onClick={() => onResolve(finding.userId, hackathon.id, "verify")}
                       type="button"
@@ -75,7 +75,7 @@ function FindingRow({
                       {resolution?.status === "verifying" ? "Verifying..." : "Verify"}
                     </button>
                     <button
-                      className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-[#B42318] px-3 text-sm font-semibold text-[#B42318] disabled:opacity-50"
+                      className="inline-flex min-h-9 items-center gap-2 rounded-full border border-[#B42318] px-3 text-sm font-semibold text-[#B42318] disabled:opacity-50"
                       disabled={busy}
                       onClick={() => onResolve(finding.userId, hackathon.id, "revoke")}
                       type="button"
@@ -131,7 +131,7 @@ export function AttendanceAnomalyManager({ findings }: { findings: AttendanceAno
 
   if (!findings.length) {
     return (
-      <p className="rounded-lg border border-black/10 bg-white p-6 text-sm text-[#706F6B]">
+      <p className="rounded-xl border border-navy/10 dark:border-white/10 bg-white dark:bg-white/[0.06] p-6 text-sm text-navy/55 dark:text-wheat/55">
         No attendance anomalies detected. Self-reported claims currently look statistically normal.
       </p>
     );
@@ -147,9 +147,9 @@ export function AttendanceAnomalyManager({ findings }: { findings: AttendanceAno
     <div className="space-y-8">
       {groups.map((group) => (
         <section key={group.type}>
-          <h2 className="text-lg font-semibold text-black">
+          <h2 className="text-lg font-semibold text-navy dark:text-wheat">
             {group.label}{" "}
-            <span className="ml-1 rounded-full bg-[#F7F7F4] px-2.5 py-0.5 text-sm font-semibold text-[#3F3E3B]">
+            <span className="ml-1 rounded-full bg-ivory dark:bg-white/5 px-2.5 py-0.5 text-sm font-semibold text-navy/70 dark:text-wheat/70">
               {group.findings.length}
             </span>
           </h2>

@@ -8,7 +8,7 @@ import {
 } from "@/components/organizer/organizer-hackathon-manager";
 
 const inputClassName =
-  "w-full rounded-lg border border-black/15 bg-white px-3 py-2 text-sm text-black outline-none focus:border-[#660000] focus:ring-2 focus:ring-[#660000]/15";
+  "w-full rounded-xl border border-navy/15 dark:border-white/15 bg-white dark:bg-white/[0.06] px-3 py-2 text-sm text-navy dark:text-wheat outline-none focus:border-cabernet focus:ring-2 focus:ring-cabernet/15";
 
 /**
  * Admin-only tool: pick any hackathon and see exactly what its organizer sees
@@ -21,7 +21,7 @@ export function OrganizerPreview({ hackathons }: { hackathons: OrganizerHackatho
 
   if (!hackathons.length) {
     return (
-      <p className="rounded-lg border border-black/10 bg-white p-6 text-sm leading-6 text-[#706F6B]">
+      <p className="rounded-xl border border-navy/10 dark:border-white/10 bg-white dark:bg-white/[0.06] p-6 text-sm leading-6 text-navy/55 dark:text-wheat/55">
         There are no published hackathons to preview yet.
       </p>
     );
@@ -29,8 +29,8 @@ export function OrganizerPreview({ hackathons }: { hackathons: OrganizerHackatho
 
   return (
     <div className="space-y-6">
-      <div className="rounded-lg border border-black/10 bg-white p-5">
-        <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.14em] text-[#706F6B]" htmlFor="preview-hackathon">
+      <div className="rounded-xl border border-navy/10 dark:border-white/10 bg-white dark:bg-white/[0.06] p-5">
+        <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.14em] text-navy/55 dark:text-wheat/55" htmlFor="preview-hackathon">
           Example hackathon
         </label>
         <select
@@ -45,7 +45,7 @@ export function OrganizerPreview({ hackathons }: { hackathons: OrganizerHackatho
             </option>
           ))}
         </select>
-        <p className="mt-2 text-sm leading-6 text-[#706F6B]">
+        <p className="mt-2 text-sm leading-6 text-navy/55 dark:text-wheat/55">
           This is the live organizer console for the selected hackathon. Changes you save here are real.
         </p>
       </div>

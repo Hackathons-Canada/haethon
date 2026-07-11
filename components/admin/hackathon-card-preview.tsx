@@ -183,15 +183,15 @@ export function HackathonPayloadDetails({ payload }: { payload: PreviewPayload }
   }
 
   return (
-    <div className="rounded-lg border border-black/10 bg-white p-4">
-      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#706F6B]">Collected data</p>
+    <div className="rounded-xl border border-navy/10 dark:border-white/10 bg-white dark:bg-white/[0.06] p-4">
+      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-navy/55 dark:text-wheat/55">Collected data</p>
       <dl className="mt-3 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-[auto_minmax(0,1fr)]">
         {entries.map(([key, value]) => (
           <div className="contents" key={key}>
-            <dt className="font-semibold text-black">{labelForField(key)}</dt>
-            <dd className="break-words text-[#3F3E3A]">
+            <dt className="font-semibold text-navy dark:text-wheat">{labelForField(key)}</dt>
+            <dd className="break-words text-navy/70 dark:text-wheat/70">
               {isUrl(value) ? (
-                <a className="text-[#660000] underline underline-offset-2 hover:no-underline" href={value} rel="noreferrer" target="_blank">
+                <a className="text-cabernet dark:text-[#e4a3ab] underline underline-offset-2 hover:no-underline" href={value} rel="noreferrer" target="_blank">
                   {value}
                 </a>
               ) : (

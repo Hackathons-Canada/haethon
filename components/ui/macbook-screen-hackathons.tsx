@@ -117,7 +117,7 @@ function FilterCellLabel({
   icon?: typeof Globe2;
 }) {
   return (
-    <span className="flex items-center gap-1.5 text-xs font-semibold leading-5 text-black">
+    <span className="flex items-center gap-1.5 text-xs font-semibold leading-5 text-navy">
       {Icon ? <Icon aria-hidden="true" className="size-3.5" /> : null}
       {children}
     </span>
@@ -126,10 +126,10 @@ function FilterCellLabel({
 
 function AppFrame() {
   return (
-    <div className="flex h-full w-full overflow-hidden bg-white text-left text-black">
-      <aside className="w-64 shrink-0 border-r border-black/10 bg-white">
+    <div className="flex h-full w-full overflow-hidden bg-white text-left text-navy">
+      <aside className="w-64 shrink-0 border-r border-navy/10 bg-white">
         <div className="px-5 pt-5">
-          <span className="font-serif text-2xl font-semibold leading-none text-black">
+          <span className="font-serif text-2xl font-semibold leading-none text-navy">
             HNA
           </span>
         </div>
@@ -137,7 +137,7 @@ function AppFrame() {
           {sidebarItems.map(({ active, icon: Icon, label }) => (
             <span
               className={`inline-flex min-h-10 shrink-0 items-center gap-3 rounded-lg px-3 text-sm font-semibold ${
-                active ? "bg-[#660000] text-white" : "text-[#3F3E3B]"
+                active ? "bg-cabernet text-wheat" : "text-navy/70"
               }`}
               key={label}
             >
@@ -161,48 +161,48 @@ function AppFrame() {
                     <span aria-hidden="true" className="text-2xl leading-none">
                       {preset.emoji}
                     </span>
-                    <span className="text-sm text-[#706F6B]">{preset.label}</span>
+                    <span className="text-sm text-navy/55">{preset.label}</span>
                     <span className="h-0.5 w-full rounded-full bg-transparent" />
                   </span>
                 ))}
               </div>
-              <span className="absolute right-0 inline-flex min-h-10 items-center gap-2 rounded-full border border-black/15 px-4 text-sm font-semibold text-black">
+              <span className="absolute right-0 inline-flex min-h-10 items-center gap-2 rounded-full border border-navy/15 px-4 text-sm font-semibold text-navy">
                 <PlusSquare aria-hidden="true" className="size-4" />
                 New entry
               </span>
             </div>
 
-            <div className="relative z-30 flex flex-row items-stretch rounded-[2.35rem] border border-black/10 bg-white p-2 shadow-[0_10px_36px_rgba(0,0,0,0.14)]">
+            <div className="relative z-30 flex flex-row items-stretch rounded-[2.35rem] border border-navy/10 bg-white p-2 shadow-[0_10px_36px_rgba(0,0,0,0.14)]">
               <div className={`${filterCellClassName} flex-1`}>
-                <span className="text-xs font-semibold leading-5 text-black">Name</span>
-                <span className="text-sm leading-5 text-[#706F6B]">Hackathon name</span>
+                <span className="text-xs font-semibold leading-5 text-navy">Name</span>
+                <span className="text-sm leading-5 text-navy/55">Hackathon name</span>
               </div>
               <div className={`${filterCellClassName} flex-[1.25]`}>
                 <FilterCellLabel icon={Globe2}>Countries</FilterCellLabel>
-                <span className="mt-1 text-sm leading-5 text-[#706F6B]">
+                <span className="mt-1 text-sm leading-5 text-navy/55">
                   Search countries
                 </span>
               </div>
               <div className={`${filterCellClassName} flex-1`}>
                 <FilterCellLabel icon={CalendarDays}>Date</FilterCellLabel>
-                <span className="mt-1 block truncate text-sm leading-5 text-[#706F6B]">
+                <span className="mt-1 block truncate text-sm leading-5 text-navy/55">
                   Any date
                 </span>
               </div>
-              <div className={`${filterCellClassName} flex-1 bg-[#F7F7F4]`}>
+              <div className={`${filterCellClassName} flex-1 bg-ivory`}>
                 <FilterCellLabel icon={MapPin}>Format</FilterCellLabel>
-                <span className="mt-1 block truncate text-sm leading-5 text-[#706F6B]">
+                <span className="mt-1 block truncate text-sm leading-5 text-navy/55">
                   Any format
                 </span>
               </div>
               <div className={`${filterCellClassName} flex-[1.5]`}>
                 <FilterCellLabel icon={Settings2}>Features</FilterCellLabel>
-                <span className="mt-1 block truncate text-sm leading-5 text-[#706F6B]">
+                <span className="mt-1 block truncate text-sm leading-5 text-navy/55">
                   Add features
                 </span>
               </div>
               <div className="flex items-center gap-2 px-3 py-2">
-                <span className="grid size-12 place-items-center rounded-full bg-[#D9043D] text-white">
+                <span className="grid size-12 place-items-center rounded-full bg-cabernet text-wheat">
                   <Search aria-hidden="true" className="size-5" strokeWidth={2.5} />
                 </span>
               </div>
@@ -213,7 +213,7 @@ function AppFrame() {
         <section className="px-12 pt-6">
           <div className="mx-auto max-w-[1120px]">
             <div className="mb-4">
-              <h1 className="text-4xl font-semibold tracking-normal text-black">
+              <h1 className="text-4xl font-semibold tracking-normal text-navy">
                 Upcoming hackathons
               </h1>
             </div>

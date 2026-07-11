@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 
+import { AppAtmosphere } from "@/components/app-atmosphere";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import { requireAdminUser } from "@/lib/auth";
 
@@ -12,9 +13,10 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   }
 
   return (
-    <main className="min-h-screen bg-[#EFEDEA] text-black lg:flex">
+    <main className="relative min-h-screen text-ink lg:flex">
+      <AppAtmosphere />
       <AdminSidebar />
-      <div className="min-w-0 flex-1 px-5 py-8 sm:px-8 lg:px-12">
+      <div className="relative z-10 min-w-0 flex-1 px-5 py-8 sm:px-8 lg:px-12">
         <div className="mx-auto w-full max-w-6xl">{children}</div>
       </div>
     </main>

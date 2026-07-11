@@ -32,9 +32,9 @@ export type AdminHackathonListItem = {
 };
 
 const inputClassName =
-  "w-full rounded-lg border border-black/15 bg-white px-3 py-2 text-sm text-black outline-none focus:border-[#660000] focus:ring-2 focus:ring-[#660000]/15";
-const checkboxClassName = "size-4 rounded border-black/20 text-[#660000] focus:ring-[#660000]/20";
-const labelClassName = "mb-1 block text-xs font-semibold uppercase tracking-[0.14em] text-[#706F6B]";
+  "w-full rounded-xl border border-navy/15 dark:border-white/15 bg-white dark:bg-white/[0.06] px-3 py-2 text-sm text-navy dark:text-wheat outline-none focus:border-cabernet focus:ring-2 focus:ring-cabernet/15";
+const checkboxClassName = "size-4 rounded border-navy/20 dark:border-white/20 text-cabernet dark:text-[#e4a3ab] focus:ring-cabernet/20";
+const labelClassName = "mb-1 block text-xs font-semibold uppercase tracking-[0.14em] text-navy/55 dark:text-wheat/55";
 
 function itemToPreviewPayload(item: AdminHackathonListItem): Record<string, unknown> {
   return {
@@ -148,7 +148,7 @@ function AdminHackathonRow({
   }
 
   return (
-    <article className="rounded-lg border border-black/10 bg-white p-5">
+    <article className="rounded-xl border border-navy/10 dark:border-white/10 bg-white dark:bg-white/[0.06] p-5">
       <div className="grid gap-5 xl:grid-cols-[minmax(18rem,0.9fr)_minmax(0,1.1fr)]">
         <div className="xl:sticky xl:top-6 xl:self-start">
           <HackathonCard
@@ -158,7 +158,7 @@ function AdminHackathonRow({
           />
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <button
-              className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-black px-4 text-sm font-semibold text-white disabled:opacity-50"
+              className="inline-flex min-h-10 items-center gap-2 rounded-full bg-cabernet hover:bg-[#5c151c] px-4 text-sm font-semibold text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white dark:hover:bg-white/15 disabled:opacity-50"
               disabled={busy}
               onClick={() => (editing ? closeEditor() : setEditing(true))}
               type="button"
@@ -167,7 +167,7 @@ function AdminHackathonRow({
               {editing ? "Cancel" : "Edit"}
             </button>
             <button
-              className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-[#B42318] px-4 text-sm font-semibold text-[#B42318] disabled:opacity-50"
+              className="inline-flex min-h-10 items-center gap-2 rounded-full border border-[#B42318] px-4 text-sm font-semibold text-[#B42318] disabled:opacity-50"
               disabled={busy}
               onClick={deleteHackathon}
               type="button"
@@ -320,11 +320,11 @@ function AdminHackathonRow({
                   className={inputClassName}
                 />
               </div>
-              <label className="flex items-center gap-2 rounded-lg border border-black/10 bg-[#F7F7F4] px-3 py-2 text-sm font-semibold text-black">
+              <label className="flex items-center gap-2 rounded-xl border border-navy/10 dark:border-white/10 bg-ivory dark:bg-white/5 px-3 py-2 text-sm font-semibold text-navy dark:text-wheat">
                 <input className={checkboxClassName} defaultChecked={item.beginnerFriendly} name="beginnerFriendly" type="checkbox" />
                 Beginner friendly
               </label>
-              <label className="flex items-center gap-2 rounded-lg border border-black/10 bg-[#F7F7F4] px-3 py-2 text-sm font-semibold text-black">
+              <label className="flex items-center gap-2 rounded-xl border border-navy/10 dark:border-white/10 bg-ivory dark:bg-white/5 px-3 py-2 text-sm font-semibold text-navy dark:text-wheat">
                 <input className={checkboxClassName} defaultChecked={item.travelReimbursement} name="travelReimbursement" type="checkbox" />
                 Travel support
               </label>
@@ -332,14 +332,14 @@ function AdminHackathonRow({
 
             <div className="mt-5 flex flex-wrap items-center gap-3">
               <button
-                className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-[#027A48] px-4 text-sm font-semibold text-white disabled:opacity-50"
+                className="inline-flex min-h-10 items-center gap-2 rounded-full bg-[#027A48] px-4 text-sm font-semibold text-white disabled:opacity-50"
                 disabled={busy}
                 type="submit"
               >
                 {status === "saving" ? "Saving..." : "Save changes"}
               </button>
               <button
-                className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-black/15 px-4 text-sm font-semibold text-black disabled:opacity-50"
+                className="inline-flex min-h-10 items-center gap-2 rounded-full border border-navy/15 dark:border-white/15 px-4 text-sm font-semibold text-navy dark:text-wheat disabled:opacity-50"
                 disabled={busy}
                 onClick={closeEditor}
                 type="button"
@@ -349,18 +349,18 @@ function AdminHackathonRow({
             </div>
           </form>
         ) : (
-          <div className="rounded-lg border border-black/10 bg-[#F7F7F4] p-4 text-sm leading-6 text-[#3F3E3B]">
+          <div className="rounded-xl border border-navy/10 dark:border-white/10 bg-ivory dark:bg-white/5 p-4 text-sm leading-6 text-navy/70 dark:text-wheat/70">
             <p>
-              <span className="font-semibold text-black">Status:</span> <span className="capitalize">{item.status}</span>
+              <span className="font-semibold text-navy dark:text-wheat">Status:</span> <span className="capitalize">{item.status}</span>
             </p>
             <p className="mt-1">
-              <span className="font-semibold text-black">Website:</span> {item.websiteUrl ?? "None"}
+              <span className="font-semibold text-navy dark:text-wheat">Website:</span> {item.websiteUrl ?? "None"}
             </p>
             <p className="mt-1">
-              <span className="font-semibold text-black">Venue:</span> {item.venue ?? "None"}
+              <span className="font-semibold text-navy dark:text-wheat">Venue:</span> {item.venue ?? "None"}
             </p>
             <p className="mt-1">
-              <span className="font-semibold text-black">Prize pool:</span>{" "}
+              <span className="font-semibold text-navy dark:text-wheat">Prize pool:</span>{" "}
               {item.prizeAmountUsd ? `$${item.prizeAmountUsd.toLocaleString()}` : "None"}
             </p>
           </div>
@@ -375,7 +375,7 @@ export function PublishedHackathonManager({ hackathons }: { hackathons: AdminHac
 
   if (!items.length) {
     return (
-      <p className="rounded-lg border border-black/10 bg-white p-6 text-sm text-[#706F6B]">
+      <p className="rounded-xl border border-navy/10 dark:border-white/10 bg-white dark:bg-white/[0.06] p-6 text-sm text-navy/55 dark:text-wheat/55">
         No hackathons are currently displayed on the hackathons page.
       </p>
     );

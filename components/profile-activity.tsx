@@ -15,7 +15,7 @@ export type YearActivity = {
 
 export type LatestAttended = { name: string; dateLabel: string } | null;
 
-const sectionHeadingClassName = "text-sm font-semibold uppercase tracking-[0.2em] text-[#660000]";
+const sectionHeadingClassName = "text-sm font-semibold uppercase tracking-[0.2em] text-rust";
 
 function formatChartDate(value: string | undefined) {
   if (!value) {
@@ -53,16 +53,16 @@ export function ProfileActivity({
   const minWidth = Math.max(weeks.length * 12, 320);
 
   return (
-    <section id="activity" className="rounded-lg bg-[#F7F7F4] p-5">
+    <section id="activity" className="rounded-xl bg-ivory dark:bg-white/5 p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <h2 className={sectionHeadingClassName}>Activity</h2>
         <div className="flex flex-wrap gap-2">
           {years.map((year) => (
             <button
-              className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors ${
+              className={`rounded-xl px-3 py-1.5 text-sm font-semibold transition-colors ${
                 year.year === active.year
-                  ? "bg-[#660000] text-white"
-                  : "bg-white text-[#706F6B] hover:text-black"
+                  ? "bg-cabernet text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white dark:hover:bg-white/15"
+                  : "bg-white dark:bg-white/[0.06] text-navy/55 dark:text-wheat/55 hover:text-navy dark:hover:text-wheat"
               }`}
               key={year.year}
               onClick={() => setSelectedYear(year.year)}
@@ -75,27 +75,27 @@ export function ProfileActivity({
       </div>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        <div className="rounded-lg bg-[#F7F7F4] px-4 py-3">
-          <p className="text-2xl font-semibold text-black">{active.hackathonsAttended}</p>
-          <p className="text-sm text-[#706F6B]">
+        <div className="rounded-xl bg-ivory dark:bg-white/5 px-4 py-3">
+          <p className="text-2xl font-semibold text-navy dark:text-wheat">{active.hackathonsAttended}</p>
+          <p className="text-sm text-navy/55 dark:text-wheat/55">
             Hackathon{active.hackathonsAttended === 1 ? "" : "s"} attended in {active.year}
           </p>
         </div>
-        <div className="rounded-lg bg-[#F7F7F4] px-4 py-3">
-          <p className="flex items-center gap-1.5 text-2xl font-semibold text-black">
+        <div className="rounded-xl bg-ivory dark:bg-white/5 px-4 py-3">
+          <p className="flex items-center gap-1.5 text-2xl font-semibold text-navy dark:text-wheat">
             <Trophy aria-hidden="true" className="size-5 text-[#D4A72C]" />
             {active.wins}
           </p>
-          <p className="text-sm text-[#706F6B]">
+          <p className="text-sm text-navy/55 dark:text-wheat/55">
             Win{active.wins === 1 ? "" : "s"} in {active.year}
           </p>
         </div>
       </div>
 
-      <p className="mt-4 text-sm font-semibold text-black">
+      <p className="mt-4 text-sm font-semibold text-navy dark:text-wheat">
         {active.totalDays} hackathon attendance {active.totalDays === 1 ? "entry" : "entries"} in {active.year}
       </p>
-      <div className={`mt-3 overflow-x-auto ${hasActivity ? "rounded-lg bg-[#F7F7F4] p-4" : ""}`}>
+      <div className={`mt-3 overflow-x-auto ${hasActivity ? "rounded-xl bg-ivory dark:bg-white/5 p-4" : ""}`}>
         <div
           className="grid gap-1"
           style={{ minWidth: `${minWidth}px`, gridTemplateColumns: `repeat(${weeks.length}, minmax(0, 1fr))` }}
@@ -103,35 +103,35 @@ export function ProfileActivity({
           {weeks.map((week) => (
             <div
               className={`h-8 rounded-[4px] ${
-                week.count > 2 ? "bg-[#660000]" : week.count > 0 ? "bg-[#B55A5A]" : "bg-black/10"
+                week.count > 2 ? "bg-cabernet dark:bg-[#e4a3ab]" : week.count > 0 ? "bg-cabernet/60 dark:bg-[#e4a3ab]/60" : "bg-navy/10 dark:bg-white/10"
               }`}
               key={week.key}
               title={`Week of ${week.key}: ${week.count} attended hackathon day${week.count === 1 ? "" : "s"}`}
             />
           ))}
         </div>
-        <div className="mt-2 grid grid-cols-3 text-xs text-[#706F6B]" style={{ minWidth: `${minWidth}px` }}>
+        <div className="mt-2 grid grid-cols-3 text-xs text-navy/55 dark:text-wheat/55" style={{ minWidth: `${minWidth}px` }}>
           {chartLabels.map((label) => (
             <span className={label.className} key={label.className}>
               {label.text}
             </span>
           ))}
         </div>
-        <div className="mt-3 flex items-center justify-end gap-2 text-xs text-[#706F6B]">
+        <div className="mt-3 flex items-center justify-end gap-2 text-xs text-navy/55 dark:text-wheat/55">
           <span>Less</span>
-          <span className="size-3 rounded-[3px] bg-black/10" />
-          <span className="size-3 rounded-[3px] bg-[#B55A5A]" />
-          <span className="size-3 rounded-[3px] bg-[#660000]" />
+          <span className="size-3 rounded-[3px] bg-navy/10 dark:bg-white/10" />
+          <span className="size-3 rounded-[3px] bg-cabernet/60 dark:bg-[#e4a3ab]/60" />
+          <span className="size-3 rounded-[3px] bg-cabernet dark:bg-[#e4a3ab]" />
           <span>More</span>
         </div>
       </div>
 
       {latestAttended ? (
-        <div className="mt-4 flex items-center gap-2 pt-4 text-sm text-[#706F6B]">
-          <CalendarDays aria-hidden="true" className="size-4 shrink-0 text-[#660000]" />
+        <div className="mt-4 flex items-center gap-2 pt-4 text-sm text-navy/55 dark:text-wheat/55">
+          <CalendarDays aria-hidden="true" className="size-4 shrink-0 text-cabernet dark:text-[#e4a3ab]" />
           <span>
             Latest attended:{" "}
-            <span className="font-semibold text-black">{latestAttended.name}</span>
+            <span className="font-semibold text-navy dark:text-wheat">{latestAttended.name}</span>
             {latestAttended.dateLabel ? ` · ${latestAttended.dateLabel}` : ""}
           </span>
         </div>

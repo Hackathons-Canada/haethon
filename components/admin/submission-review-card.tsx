@@ -43,9 +43,9 @@ function importReason(payload: Record<string, unknown>) {
 }
 
 const inputClassName =
-  "w-full rounded-lg border border-black/15 bg-white px-3 py-2 text-sm text-black outline-none focus:border-[#660000] focus:ring-2 focus:ring-[#660000]/15";
-const checkboxClassName = "size-4 rounded border-black/20 text-[#660000] focus:ring-[#660000]/20";
-const labelClassName = "mb-1 block text-xs font-semibold uppercase tracking-[0.14em] text-[#706F6B]";
+  "w-full rounded-xl border border-navy/15 dark:border-white/15 bg-white dark:bg-white/[0.06] px-3 py-2 text-sm text-navy dark:text-wheat outline-none focus:border-cabernet focus:ring-2 focus:ring-cabernet/15";
+const checkboxClassName = "size-4 rounded border-navy/20 dark:border-white/20 text-cabernet dark:text-[#e4a3ab] focus:ring-cabernet/20";
+const labelClassName = "mb-1 block text-xs font-semibold uppercase tracking-[0.14em] text-navy/55 dark:text-wheat/55";
 
 function initialPreviewPayload(submission: SubmissionReviewItem) {
   return {
@@ -150,31 +150,31 @@ export function SubmissionReviewCard({
   }
 
   return (
-    <article className="rounded-lg border border-black/10 bg-white p-5">
+    <article className="rounded-xl border border-navy/10 dark:border-white/10 bg-white dark:bg-white/[0.06] p-5">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-xl font-semibold text-black">{submission.normalizedName}</h3>
-            <span className="rounded-full bg-[#F7F7F4] px-2.5 py-1 text-xs font-semibold capitalize text-[#660000]">
+            <h3 className="text-xl font-semibold text-navy dark:text-wheat">{submission.normalizedName}</h3>
+            <span className="rounded-full bg-ivory dark:bg-white/5 px-2.5 py-1 text-xs font-semibold capitalize text-cabernet dark:text-[#e4a3ab]">
               {submission.submitterType}
             </span>
-            <span className="rounded-full bg-[#F7F7F4] px-2.5 py-1 text-xs font-semibold capitalize text-[#706F6B]">
+            <span className="rounded-full bg-ivory dark:bg-white/5 px-2.5 py-1 text-xs font-semibold capitalize text-navy/55 dark:text-wheat/55">
               {submission.status}
             </span>
           </div>
-          <p className="mt-1 text-sm text-[#706F6B]">
+          <p className="mt-1 text-sm text-navy/55 dark:text-wheat/55">
             {submission.submitterEmail ?? "Unknown submitter"} · {submission.organizationName ?? value(submission.payload, "organizationName", "No organization")}
           </p>
         </div>
-        <div className="text-right text-sm text-[#706F6B]">
+        <div className="text-right text-sm text-navy/55 dark:text-wheat/55">
           <p>Duplicate score</p>
-          <p className="text-lg font-semibold text-black">{submission.duplicateScore ?? "0.00"}</p>
+          <p className="text-lg font-semibold text-navy dark:text-wheat">{submission.duplicateScore ?? "0.00"}</p>
         </div>
       </div>
 
       <form onSubmit={submitReview} className="mt-5 space-y-5">
         {fixReason ? (
-          <div className="rounded-lg border border-[#B54708]/25 bg-[#FFFAEB] p-4 text-sm leading-6 text-[#704600]">
+          <div className="rounded-xl border border-[#B54708]/25 bg-[#FFFAEB] p-4 text-sm leading-6 text-[#704600]">
             <p className="font-semibold text-[#B54708]">Needs fix</p>
             <p className="mt-1">{fixReason}</p>
           </div>
@@ -362,7 +362,7 @@ export function SubmissionReviewCard({
               className={inputClassName}
             />
           </div>
-          <label className="flex items-center gap-2 rounded-lg border border-black/10 bg-[#F7F7F4] px-3 py-2 text-sm font-semibold text-black">
+          <label className="flex items-center gap-2 rounded-xl border border-navy/10 dark:border-white/10 bg-ivory dark:bg-white/5 px-3 py-2 text-sm font-semibold text-navy dark:text-wheat">
             <input
               className={checkboxClassName}
               defaultChecked={value(submission.payload, "beginnerFriendly") === "true" || submission.payload.beginnerFriendly === true}
@@ -371,7 +371,7 @@ export function SubmissionReviewCard({
             />
             Beginner friendly
           </label>
-          <label className="flex items-center gap-2 rounded-lg border border-black/10 bg-[#F7F7F4] px-3 py-2 text-sm font-semibold text-black">
+          <label className="flex items-center gap-2 rounded-xl border border-navy/10 dark:border-white/10 bg-ivory dark:bg-white/5 px-3 py-2 text-sm font-semibold text-navy dark:text-wheat">
             <input
               className={checkboxClassName}
               defaultChecked={value(submission.payload, "travelReimbursement") === "true" || submission.payload.travelReimbursement === true}
@@ -389,9 +389,9 @@ export function SubmissionReviewCard({
           </div>
         </div>
 
-        <details className="rounded-lg border border-black/10 bg-[#F7F7F4] p-4">
-          <summary className="cursor-pointer text-sm font-semibold text-black">Raw submission payload</summary>
-          <pre className="mt-3 overflow-x-auto whitespace-pre-wrap text-xs text-[#3F3E3B]">
+        <details className="rounded-xl border border-navy/10 dark:border-white/10 bg-ivory dark:bg-white/5 p-4">
+          <summary className="cursor-pointer text-sm font-semibold text-navy dark:text-wheat">Raw submission payload</summary>
+          <pre className="mt-3 overflow-x-auto whitespace-pre-wrap text-xs text-navy/70 dark:text-wheat/70">
             {JSON.stringify(submission.payload, null, 2)}
           </pre>
         </details>
@@ -411,7 +411,7 @@ export function SubmissionReviewCard({
 
         <div className="flex flex-wrap items-center gap-3">
           <button
-            className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-[#027A48] px-4 text-sm font-semibold text-white disabled:opacity-50"
+            className="inline-flex min-h-10 items-center gap-2 rounded-full bg-[#027A48] px-4 text-sm font-semibold text-white disabled:opacity-50"
             disabled={disabled}
             name="intent"
             type="submit"
@@ -421,7 +421,7 @@ export function SubmissionReviewCard({
             Approve new
           </button>
           <button
-            className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-black px-4 text-sm font-semibold text-white disabled:opacity-50"
+            className="inline-flex min-h-10 items-center gap-2 rounded-full bg-cabernet hover:bg-[#5c151c] px-4 text-sm font-semibold text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white dark:hover:bg-white/15 disabled:opacity-50"
             disabled={disabled}
             name="intent"
             type="submit"
@@ -431,7 +431,7 @@ export function SubmissionReviewCard({
             Merge
           </button>
           <button
-            className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-[#B42318] px-4 text-sm font-semibold text-[#B42318] disabled:opacity-50"
+            className="inline-flex min-h-10 items-center gap-2 rounded-full border border-[#B42318] px-4 text-sm font-semibold text-[#B42318] disabled:opacity-50"
             disabled={disabled}
             name="intent"
             type="submit"

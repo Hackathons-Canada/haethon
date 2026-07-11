@@ -81,12 +81,12 @@ function formatLatestDate(value: Date | null) {
   return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(value);
 }
 
-const sectionHeadingClassName = "text-sm font-semibold uppercase tracking-[0.2em] text-[#660000]";
+const sectionHeadingClassName = "text-sm font-semibold uppercase tracking-[0.2em] text-rust";
 
 function AttendanceTierBadge({ tier }: { tier: AttendanceTrustTier | null }) {
   if (tier === "verified") {
     return (
-      <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-[#660000]/25 bg-[#660000]/5 px-2 py-0.5 text-xs font-semibold text-[#660000]">
+      <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-cabernet/25 bg-cabernet/5 dark:bg-[#e4a3ab]/10 px-2 py-0.5 text-xs font-semibold text-cabernet dark:text-[#e4a3ab]">
         <BadgeCheck aria-hidden="true" className="size-3.5" />
         Verified
       </span>
@@ -95,7 +95,7 @@ function AttendanceTierBadge({ tier }: { tier: AttendanceTrustTier | null }) {
 
   if (tier === "self_reported") {
     return (
-      <span className="shrink-0 rounded-full border border-black/10 px-2 py-0.5 text-xs font-semibold text-[#706F6B]">
+      <span className="shrink-0 rounded-full border border-navy/10 dark:border-white/10 px-2 py-0.5 text-xs font-semibold text-navy/55 dark:text-wheat/55">
         Self-reported
       </span>
     );
@@ -256,7 +256,7 @@ export default async function AccountPage() {
   ].slice(0, 6);
 
   return (
-    <main className="relative min-h-[calc(100vh-80px)] bg-white px-5 py-8 text-black sm:px-8 lg:px-12">
+    <main className="relative min-h-[calc(100vh-80px)] bg-white dark:bg-white/[0.06] px-5 py-8 text-navy dark:text-wheat sm:px-8 lg:px-12">
       <div className="absolute right-5 top-8 sm:right-8 lg:right-12">
         <AccountSignOutButton />
       </div>
@@ -267,16 +267,16 @@ export default async function AccountPage() {
           </section>
 
           <div className="min-w-0 space-y-6">
-            <section className="rounded-lg bg-[#F7F7F4] px-5 py-8">
+            <section className="rounded-xl bg-ivory dark:bg-white/5 px-5 py-8">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h2 className={sectionHeadingClassName}>Pinned</h2>
-                <p className="text-sm text-[#706F6B]">Wins &amp; attended events you&apos;ve pinned</p>
+                <p className="text-sm text-navy/55 dark:text-wheat/55">Wins &amp; attended events you&apos;ve pinned</p>
               </div>
               <div className="mt-4 grid gap-4 md:grid-cols-2">
                 {pinnedItems.length ? (
                   pinnedItems.map((item) => (
                     <article
-                      className={`min-h-28 rounded-lg bg-[#F7F7F4] p-4 ${
+                      className={`min-h-28 rounded-xl bg-ivory dark:bg-white/5 p-4 ${
                         item.isWin
                           ? "border-2 border-[#D4A72C] shadow-[0_0_0_3px_rgba(212,167,44,0.18)]"
                           : "border-2 border-transparent"
@@ -285,7 +285,7 @@ export default async function AccountPage() {
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex min-w-0 items-start gap-3">
-                          <div className="relative grid size-12 shrink-0 place-items-center overflow-hidden rounded-lg bg-white">
+                          <div className="relative grid size-12 shrink-0 place-items-center overflow-hidden rounded-xl bg-white dark:bg-white/[0.06]">
                             {item.imageUrl ? (
                               <Image
                                 alt={`${item.hackathonName} logo`}
@@ -296,25 +296,25 @@ export default async function AccountPage() {
                                 unoptimized
                               />
                             ) : (
-                              <Trophy aria-hidden="true" className="size-5 text-[#660000]" />
+                              <Trophy aria-hidden="true" className="size-5 text-cabernet dark:text-[#e4a3ab]" />
                             )}
                           </div>
                           <div className="min-w-0">
-                            <p className="truncate font-semibold text-black">{item.hackathonName}</p>
-                            <p className="mt-1 flex items-center gap-1 text-sm text-[#706F6B]">
+                            <p className="truncate font-semibold text-navy dark:text-wheat">{item.hackathonName}</p>
+                            <p className="mt-1 flex items-center gap-1 text-sm text-navy/55 dark:text-wheat/55">
                               <CalendarDays aria-hidden="true" className="size-3.5 shrink-0" />
                               <span>{formatDateRange(item.startsAt, item.endsAt)}</span>
                             </p>
-                            <p className="mt-1 text-sm text-[#706F6B]">{item.detail}</p>
+                            <p className="mt-1 text-sm text-navy/55 dark:text-wheat/55">{item.detail}</p>
                           </div>
                         </div>
                         <AttendanceTierBadge tier={item.tier} />
                       </div>
                       {item.devpostUrl ? (
-                        <div className="mt-3 border-t border-black/10 pt-3">
-                          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#706F6B]">Devpost link</p>
+                        <div className="mt-3 border-t border-navy/10 dark:border-white/10 pt-3">
+                          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-navy/55 dark:text-wheat/55">Devpost link</p>
                           <a
-                            className="mt-1 block truncate text-sm font-semibold text-[#660000] underline decoration-1 underline-offset-4 hover:no-underline"
+                            className="mt-1 block truncate text-sm font-semibold text-cabernet dark:text-[#e4a3ab] underline decoration-1 underline-offset-4 hover:no-underline"
                             href={item.devpostUrl}
                             rel="noreferrer"
                             target="_blank"
@@ -326,10 +326,10 @@ export default async function AccountPage() {
                     </article>
                   ))
                 ) : (
-                  <p className="text-sm text-[#706F6B]">
+                  <p className="text-sm text-navy/55 dark:text-wheat/55">
                     Pin wins and attended events from{" "}
                     <Link
-                      className="font-semibold text-[#660000] underline decoration-1 underline-offset-4 hover:no-underline"
+                      className="font-semibold text-cabernet dark:text-[#e4a3ab] underline decoration-1 underline-offset-4 hover:no-underline"
                       href="/my"
                     >
                       My hackathons
@@ -346,17 +346,17 @@ export default async function AccountPage() {
                   const tier = deriveAttendanceTrustTier(hackathon.sources ?? []);
 
                   return (
-                    <article className="rounded-lg bg-[#F7F7F4] p-4" key={hackathon.id}>
+                    <article className="rounded-xl bg-ivory dark:bg-white/5 p-4" key={hackathon.id}>
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex min-w-0 items-start gap-2">
-                          <CalendarDays aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-[#660000]" />
+                          <CalendarDays aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-cabernet dark:text-[#e4a3ab]" />
                           <div className="min-w-0">
-                            <p className="font-semibold text-black">{hackathon.hackathonName}</p>
-                            <p className="mt-1 text-sm text-[#706F6B]">
+                            <p className="font-semibold text-navy dark:text-wheat">{hackathon.hackathonName}</p>
+                            <p className="mt-1 text-sm text-navy/55 dark:text-wheat/55">
                               {hackathon.attendedDays} attended day{hackathon.attendedDays === 1 ? "" : "s"}
                               {hackathon.startsAt ? ` · ${dateToInputValue(hackathon.startsAt)}` : ""}
                             </p>
-                            <p className="mt-1 flex items-center gap-1 text-sm text-[#706F6B]">
+                            <p className="mt-1 flex items-center gap-1 text-sm text-navy/55 dark:text-wheat/55">
                               <MapPin aria-hidden="true" className="size-3.5 shrink-0" />
                               <span>{[hackathon.city, hackathon.region, hackathon.country].filter(Boolean).join(", ") || "Location TBD"}</span>
                             </p>
@@ -369,7 +369,7 @@ export default async function AccountPage() {
                   );
                 })
               ) : (
-                <p className="text-sm text-[#706F6B]">Hackathons attended will appear here.</p>
+                <p className="text-sm text-navy/55 dark:text-wheat/55">Hackathons attended will appear here.</p>
               )}
             </ProfileActivity>
           </div>

@@ -50,10 +50,10 @@ export function RemovablePipelineCard({
   }
 
   return (
-    <article className="relative rounded-lg border border-black/10 bg-[#F7F7F4] p-5">
+    <article className="relative rounded-xl border border-navy/10 dark:border-white/10 bg-ivory dark:bg-white/5 p-5">
       <button
         aria-label="Remove from my hackathons"
-        className="absolute right-3 top-3 inline-flex size-7 items-center justify-center rounded-full text-[#706F6B] transition-colors hover:bg-[#660000]/10 hover:text-[#660000] disabled:cursor-wait disabled:opacity-60"
+        className="absolute right-3 top-3 inline-flex size-7 items-center justify-center rounded-full text-navy/55 dark:text-wheat/55 transition-colors hover:bg-cabernet/10 hover:text-cabernet dark:hover:text-[#e4a3ab] disabled:cursor-wait disabled:opacity-60"
         disabled={pending}
         onClick={remove}
         title="Remove from my hackathons"

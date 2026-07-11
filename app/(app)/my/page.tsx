@@ -160,17 +160,17 @@ export default async function MyHackathonsPage() {
   const activeCount = stageOrder.reduce((total, stage) => total + (byStage.get(stage)?.length ?? 0), 0);
 
   return (
-    <main className="min-h-screen bg-white px-5 pb-20 pt-14 text-black sm:px-8 sm:pt-16 lg:px-12">
+    <main className="min-h-screen px-5 pb-20 pt-14 text-navy dark:text-wheat sm:px-8 sm:pt-16 lg:px-12">
       <div className="mx-auto w-full max-w-[980px]">
         {activeCount === 0 ? (
-          <div className="mt-10 rounded-lg border border-black/10 bg-[#F7F7F4] p-8 text-center">
-            <p className="text-base font-semibold text-black">Nothing in your pipeline yet.</p>
-            <p className="mt-2 text-sm text-[#706F6B]">
+          <div className="mt-10 rounded-xl border border-navy/10 dark:border-white/10 bg-ivory dark:bg-white/5 p-8 text-center">
+            <p className="text-base font-semibold text-navy dark:text-wheat">Nothing in your pipeline yet.</p>
+            <p className="mt-2 text-sm text-navy/55 dark:text-wheat/55">
               Browse the database and mark hackathons you&apos;re interested in — deadlines and reminders will show up
               here.
             </p>
             <Link
-              className="mt-6 inline-flex min-h-10 items-center justify-center border border-[#660000] px-5 text-sm font-semibold text-[#660000] transition-colors hover:bg-[#660000] hover:text-white"
+              className="mt-6 inline-flex rounded-full min-h-10 items-center justify-center border border-cabernet dark:border-[#e4a3ab]/50 px-5 text-sm font-semibold text-cabernet dark:text-[#e4a3ab] transition-colors hover:bg-cabernet hover:text-wheat"
               href="/hackathons"
             >
               Browse the Hackathons DB
@@ -187,7 +187,7 @@ export default async function MyHackathonsPage() {
 
           return (
             <section className="mt-10" key={stage}>
-              <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-[#660000]">
+              <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-rust">
                 {stageTitles[stage]} · {stageRows.length}
               </h2>
 
@@ -224,12 +224,12 @@ export default async function MyHackathonsPage() {
                       <div className="flex flex-wrap items-start justify-between gap-4 pr-8">
                         <div className="min-w-0">
                           <Link
-                            className="text-lg font-semibold text-black underline-offset-4 hover:text-[#660000] hover:underline"
+                            className="text-lg font-semibold text-navy dark:text-wheat underline-offset-4 hover:text-cabernet dark:hover:text-[#e4a3ab] hover:underline"
                             href={`/hackathons/${row.slug}`}
                           >
                             {row.hackathonName}
                           </Link>
-                          <p className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-[#706F6B]">
+                          <p className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-navy/55 dark:text-wheat/55">
                             <span className="inline-flex items-center gap-1">
                               <CalendarDays aria-hidden="true" className="size-3.5 shrink-0" />
                               {formatDateRange(row.startsAt, row.endsAt)}
@@ -241,7 +241,7 @@ export default async function MyHackathonsPage() {
                           </p>
                         </div>
                         {deadline?.date ? (
-                          <span className="rounded-full border border-[#660000]/25 bg-white px-3 py-1 font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-[#660000]">
+                          <span className="rounded-full border border-cabernet/25 bg-white dark:bg-white/[0.06] px-3 py-1 font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-cabernet dark:text-[#e4a3ab]">
                             {deadline.label} · {formatReminderDate(deadline.date)}
                           </span>
                         ) : null}
@@ -270,24 +270,24 @@ export default async function MyHackathonsPage() {
         })}
 
         {pastRows.length ? (
-          <section className="mt-12 border-t border-black/10 pt-8">
-            <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-[#706F6B]">Past</h2>
+          <section className="mt-12 border-t border-navy/10 dark:border-white/10 pt-8">
+            <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-navy/55 dark:text-wheat/55">Past</h2>
             <div className="mt-4 space-y-3">
               {pastRows.map((row) => {
                 const won = row.applicationStatus === "won";
                 const attended = row.applicationStatus === "attended";
 
                 return (
-                  <article className="rounded-lg border border-black/10 bg-[#F7F7F4] p-5" key={row.id}>
+                  <article className="rounded-xl border border-navy/10 dark:border-white/10 bg-ivory dark:bg-white/5 p-5" key={row.id}>
                     <div className="flex flex-wrap items-start justify-between gap-4">
                       <div className="min-w-0">
                         <Link
-                          className="text-lg font-semibold text-black underline-offset-4 hover:text-[#660000] hover:underline"
+                          className="text-lg font-semibold text-navy dark:text-wheat underline-offset-4 hover:text-cabernet dark:hover:text-[#e4a3ab] hover:underline"
                           href={`/hackathons/${row.slug}`}
                         >
                           {row.hackathonName}
                         </Link>
-                        <p className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-[#706F6B]">
+                        <p className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-navy/55 dark:text-wheat/55">
                           <span className="inline-flex items-center gap-1">
                             <CalendarDays aria-hidden="true" className="size-3.5 shrink-0" />
                             {formatDateRange(row.startsAt, row.endsAt)}
@@ -300,17 +300,17 @@ export default async function MyHackathonsPage() {
                       </div>
                       <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
                         {won ? (
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#660000] px-3 py-1 font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-white">
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-cabernet px-3 py-1 font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white dark:hover:bg-white/15">
                             <Trophy aria-hidden="true" className="size-3.5" />
                             Winner
                           </span>
                         ) : (
-                          <span className="inline-flex items-center rounded-full border border-black/10 bg-white px-3 py-1 font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-[#706F6B]">
+                          <span className="inline-flex items-center rounded-full border border-navy/10 dark:border-white/10 bg-white dark:bg-white/[0.06] px-3 py-1 font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-navy/55 dark:text-wheat/55">
                             {attended ? "Attended" : "Ended"}
                           </span>
                         )}
                         {row.isPinned ? (
-                          <span className="inline-flex items-center gap-1.5 rounded-full border border-[#660000]/25 bg-white px-3 py-1 font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-[#660000]">
+                          <span className="inline-flex items-center gap-1.5 rounded-full border border-cabernet/25 bg-white dark:bg-white/[0.06] px-3 py-1 font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-cabernet dark:text-[#e4a3ab]">
                             <Pin aria-hidden="true" className="size-3.5 fill-current" />
                             Pinned
                           </span>
@@ -321,14 +321,14 @@ export default async function MyHackathonsPage() {
                     {(won && row.awardName) || row.devpostUrl ? (
                       <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5">
                         {won && row.awardName ? (
-                          <p className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#660000]">
+                          <p className="inline-flex items-center gap-1.5 text-sm font-semibold text-cabernet dark:text-[#e4a3ab]">
                             <Trophy aria-hidden="true" className="size-3.5 shrink-0" />
                             {row.awardName}
                           </p>
                         ) : null}
                         {row.devpostUrl ? (
                           <a
-                            className="inline-flex items-center gap-1.5 text-sm font-medium text-black underline-offset-4 hover:text-[#660000] hover:underline"
+                            className="inline-flex items-center gap-1.5 text-sm font-medium text-navy dark:text-wheat underline-offset-4 hover:text-cabernet dark:hover:text-[#e4a3ab] hover:underline"
                             href={row.devpostUrl}
                             rel="noreferrer"
                             target="_blank"
@@ -340,7 +340,7 @@ export default async function MyHackathonsPage() {
                       </div>
                     ) : null}
 
-                    <div className="mt-4 border-t border-black/10 pt-4">
+                    <div className="mt-4 border-t border-navy/10 dark:border-white/10 pt-4">
                       {won || attended ? (
                         <HackathonResultActions
                           awardName={row.awardName}

@@ -8,16 +8,16 @@ export default async function AdminOrganizerPreviewPage() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-lg border border-black/10 bg-white p-6">
-        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#660000]">Organizer preview</p>
+      <section className="rounded-xl border border-navy/10 dark:border-white/10 bg-white dark:bg-white/[0.06] p-6">
+        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-rust">Organizer preview</p>
         <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="text-4xl font-semibold text-black">See the organizer view</h1>
-            <p className="mt-2 max-w-3xl text-base leading-7 text-[#706F6B]">
+            <h1 className="font-serif text-4xl font-semibold tracking-[-0.02em] text-navy dark:text-wheat">See the organizer view</h1>
+            <p className="mt-2 max-w-3xl text-base leading-7 text-navy/55 dark:text-wheat/55">
               Select an example hackathon to see exactly what its organizer sees and can edit in the organizer console.
             </p>
           </div>
-          <div className="rounded-lg border border-black/10 bg-[#F7F7F4] px-4 py-3 text-sm font-semibold text-black">
+          <div className="rounded-xl border border-navy/10 dark:border-white/10 bg-ivory dark:bg-white/5 px-4 py-3 text-sm font-semibold text-navy dark:text-wheat">
             {hackathons.length} examples
           </div>
         </div>

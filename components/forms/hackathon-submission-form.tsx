@@ -9,9 +9,9 @@ type SubmitterType = "organizer" | "community";
 const FORM_SUBMISSION_SOURCE_URL = "https://haethon.local/submissions/community-form";
 
 const inputClassName =
-  "w-full rounded-none border-0 border-b border-black/15 bg-transparent px-0 py-2 text-[15px] text-black outline-none transition-colors placeholder:text-[#9C9A94] focus:border-[#660000]";
+  "w-full rounded-none border-0 border-b border-navy/15 dark:border-white/15 bg-transparent px-0 py-2 text-[15px] text-navy dark:text-wheat outline-none transition-colors placeholder:text-navy/45 focus:border-cabernet";
 const labelClassName =
-  "mb-2 block font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-[#706F6B]";
+  "mb-2 block font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-navy/55 dark:text-wheat/55";
 
 function fieldValue(formData: FormData, name: string) {
   return formData.get(name)?.toString() ?? "";
@@ -118,8 +118,8 @@ export function HackathonSubmissionForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="border border-black/10 bg-white text-black">
-      <div className="flex border-b border-black/10" role="tablist" aria-label="Submission type">
+    <form onSubmit={onSubmit} className="border border-navy/10 dark:border-white/10 bg-white dark:bg-white/[0.06] text-navy dark:text-wheat">
+      <div className="flex border-b border-navy/10 dark:border-white/10" role="tablist" aria-label="Submission type">
         {[
           {
             value: "community" as const,
@@ -136,8 +136,8 @@ export function HackathonSubmissionForm() {
             aria-selected={submitterType === value}
             className={`flex flex-1 flex-col items-center justify-center gap-1.5 border-b-2 px-4 py-4 outline-none transition-colors ${
               submitterType === value
-                ? "border-[#660000] text-black"
-                : "border-transparent text-[#706F6B] hover:text-black focus-visible:text-black"
+                ? "border-cabernet dark:border-[#e4a3ab]/50 text-navy dark:text-wheat"
+                : "border-transparent text-navy/55 dark:text-wheat/55 hover:text-navy dark:hover:text-wheat focus-visible:text-navy"
             }`}
             key={value}
             onClick={() => setSubmitterType(value)}
@@ -145,7 +145,7 @@ export function HackathonSubmissionForm() {
             type="button"
           >
             <span className="font-mono text-xs font-medium uppercase tracking-[0.14em]">{label}</span>
-            <span className="text-xs text-[#706F6B]">{note}</span>
+            <span className="text-xs text-navy/55 dark:text-wheat/55">{note}</span>
           </button>
         ))}
       </div>
@@ -251,7 +251,7 @@ export function HackathonSubmissionForm() {
         </div>
 
         {submitterType === "organizer" ? (
-          <div className="grid gap-x-8 gap-y-7 border-t border-black/10 pt-10 md:grid-cols-2">
+          <div className="grid gap-x-8 gap-y-7 border-t border-navy/10 dark:border-white/10 pt-10 md:grid-cols-2">
             <div>
               <label className={labelClassName} htmlFor="applicationOpensAt">
                 Application opens
@@ -271,12 +271,12 @@ export function HackathonSubmissionForm() {
               <input id="prizeAmountUsd" name="prizeAmountUsd" min="0" type="number" className={inputClassName} />
             </div>
             <div className="flex items-end gap-6 pb-2">
-              <label className="inline-flex items-center gap-2.5 text-sm text-black">
-                <input name="beginnerFriendly" type="checkbox" className="size-4 accent-[#660000]" />
+              <label className="inline-flex items-center gap-2.5 text-sm text-navy dark:text-wheat">
+                <input name="beginnerFriendly" type="checkbox" className="size-4 accent-cabernet" />
                 Beginner friendly
               </label>
-              <label className="inline-flex items-center gap-2.5 text-sm text-black">
-                <input name="travelReimbursement" type="checkbox" className="size-4 accent-[#660000]" />
+              <label className="inline-flex items-center gap-2.5 text-sm text-navy dark:text-wheat">
+                <input name="travelReimbursement" type="checkbox" className="size-4 accent-cabernet" />
                 Travel reimbursement
               </label>
             </div>
@@ -296,16 +296,16 @@ export function HackathonSubmissionForm() {
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-4 border-t border-black/10 pt-8">
+        <div className="flex flex-wrap items-center gap-4 border-t border-navy/10 dark:border-white/10 pt-8">
           <button
             disabled={status === "submitting"}
             type="submit"
-            className="inline-flex min-h-11 items-center justify-center border border-[#660000] px-6 font-mono text-xs font-medium uppercase tracking-[0.14em] text-[#660000] transition-colors hover:bg-[#660000] hover:text-white focus-visible:bg-[#660000] focus-visible:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#660000] disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex rounded-full min-h-11 items-center justify-center border border-cabernet dark:border-[#e4a3ab]/50 px-6 font-mono text-xs font-medium uppercase tracking-[0.14em] text-cabernet dark:text-[#e4a3ab] transition-colors hover:bg-cabernet hover:text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white dark:hover:bg-white/15 focus-visible:bg-cabernet focus-visible:text-wheat focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cabernet dark:focus-visible:outline-wheat disabled:cursor-not-allowed disabled:opacity-50"
           >
             {status === "submitting" ? "Submitting" : "Submit for review"}
           </button>
           {message ? (
-            <p aria-live="polite" className={`text-sm ${status === "error" ? "text-[#660000]" : "text-[#3F3E3B]"}`}>
+            <p aria-live="polite" className={`text-sm ${status === "error" ? "text-cabernet dark:text-[#e4a3ab]" : "text-navy/70 dark:text-wheat/70"}`}>
               {message}
             </p>
           ) : null}

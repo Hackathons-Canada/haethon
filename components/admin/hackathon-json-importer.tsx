@@ -237,16 +237,16 @@ export function HackathonJsonImporter() {
       <div className="space-y-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#660000]">Bulk import</p>
-            <h2 className="mt-2 text-2xl font-semibold text-black">{complete ? "Import review complete" : "Approve imported card"}</h2>
-            <p className="mt-2 text-sm text-[#706F6B]">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-rust">Bulk import</p>
+            <h2 className="mt-2 text-2xl font-semibold text-navy dark:text-wheat">{complete ? "Import review complete" : "Approve imported card"}</h2>
+            <p className="mt-2 text-sm text-navy/55 dark:text-wheat/55">
               {complete
                 ? `${results.length} approved, ${skippedCount} skipped.`
                 : `${remainingCount} remaining · ${results.length} approved · ${skippedCount} skipped`}
             </p>
           </div>
           <button
-            className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-black/15 px-4 text-sm font-semibold text-black hover:bg-[#F7F7F4]"
+            className="inline-flex min-h-10 items-center gap-2 rounded-full border border-navy/15 dark:border-white/15 px-4 text-sm font-semibold text-navy dark:text-wheat hover:bg-ivory dark:hover:bg-white/10"
             onClick={resetImport}
             type="button"
           >
@@ -262,21 +262,21 @@ export function HackathonJsonImporter() {
               <HackathonPayloadDetails payload={activePayload} />
             </div>
             {pendingDiscord && pendingDiscord.discord.action !== "create" ? (
-              <div className="flex flex-col justify-between rounded-lg border border-[#660000]/20 bg-[#FBF5F5] p-4">
+              <div className="flex flex-col justify-between rounded-xl border border-cabernet/20 dark:border-[#e4a3ab]/40 bg-cabernet/5 dark:bg-[#e4a3ab]/10 p-4">
                 <div>
-                  <p className="text-sm font-semibold text-black">Create a Discord channel?</p>
-                  <p className="mt-2 text-sm leading-6 text-[#706F6B]">
+                  <p className="text-sm font-semibold text-navy dark:text-wheat">Create a Discord channel?</p>
+                  <p className="mt-2 text-sm leading-6 text-navy/55 dark:text-wheat/55">
                     Imported. This qualifies for the{" "}
-                    <span className="font-semibold text-black">{pendingDiscord.discord.categoryName}</span> category.
+                    <span className="font-semibold text-navy dark:text-wheat">{pendingDiscord.discord.categoryName}</span> category.
                     Approving will recycle the existing{" "}
-                    <span className="font-semibold text-black">#{pendingDiscord.discord.existingChannelName}</span>{" "}
-                    channel named <span className="font-semibold text-black">#{pendingDiscord.discord.name}</span> and
+                    <span className="font-semibold text-navy dark:text-wheat">#{pendingDiscord.discord.existingChannelName}</span>{" "}
+                    channel named <span className="font-semibold text-navy dark:text-wheat">#{pendingDiscord.discord.name}</span> and
                     place it there. Deny keeps the hackathon published without a channel.
                   </p>
                 </div>
                 <div className="mt-5 grid gap-3">
                   <button
-                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#027A48] px-4 text-sm font-semibold text-white disabled:opacity-50"
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#027A48] px-4 text-sm font-semibold text-white disabled:opacity-50"
                     disabled={discordBusy}
                     onClick={() => decideDiscord("approve")}
                     type="button"
@@ -285,7 +285,7 @@ export function HackathonJsonImporter() {
                     Approve channel
                   </button>
                   <button
-                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[#B42318] px-4 text-sm font-semibold text-[#B42318] disabled:opacity-50"
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-[#B42318] px-4 text-sm font-semibold text-[#B42318] disabled:opacity-50"
                     disabled={discordBusy}
                     onClick={() => decideDiscord("deny")}
                     type="button"
@@ -296,16 +296,16 @@ export function HackathonJsonImporter() {
                 </div>
               </div>
             ) : pendingDiscord ? null : (
-              <div className="flex flex-col justify-between rounded-lg border border-black/10 bg-[#F7F7F4] p-4">
+              <div className="flex flex-col justify-between rounded-xl border border-navy/10 dark:border-white/10 bg-ivory dark:bg-white/5 p-4">
                 <div>
-                  <p className="text-sm font-semibold text-black">Does this card look right?</p>
-                  <p className="mt-2 text-sm leading-6 text-[#706F6B]">
+                  <p className="text-sm font-semibold text-navy dark:text-wheat">Does this card look right?</p>
+                  <p className="mt-2 text-sm leading-6 text-navy/55 dark:text-wheat/55">
                     Yes imports this record. No skips it and shows the next card.
                   </p>
                 </div>
                 <div className="mt-5 grid gap-3">
                   <button
-                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#027A48] px-4 text-sm font-semibold text-white disabled:opacity-50"
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#027A48] px-4 text-sm font-semibold text-white disabled:opacity-50"
                     disabled={status === "submitting"}
                     onClick={approveActive}
                     type="button"
@@ -314,7 +314,7 @@ export function HackathonJsonImporter() {
                     Yes
                   </button>
                   <button
-                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[#B42318] px-4 text-sm font-semibold text-[#B42318] disabled:opacity-50"
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-[#B42318] px-4 text-sm font-semibold text-[#B42318] disabled:opacity-50"
                     disabled={status === "submitting"}
                     onClick={skipActive}
                     type="button"
@@ -330,19 +330,19 @@ export function HackathonJsonImporter() {
 
         {pendingDiscord && pendingDiscord.discord.action === "create" ? (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6">
-            <div className="w-full max-w-2xl rounded-2xl border border-[#660000]/20 bg-white p-8 shadow-2xl sm:p-12">
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#660000]">New Discord channel</p>
-              <h2 className="mt-3 text-3xl font-semibold text-black">Create a Discord channel?</h2>
-              <p className="mt-4 text-base leading-7 text-[#706F6B]">
+            <div className="w-full max-w-2xl rounded-2xl border border-cabernet/20 dark:border-[#e4a3ab]/40 bg-white dark:bg-white/[0.06] p-8 shadow-2xl sm:p-12">
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-rust">New Discord channel</p>
+              <h2 className="mt-3 text-3xl font-semibold text-navy dark:text-wheat">Create a Discord channel?</h2>
+              <p className="mt-4 text-base leading-7 text-navy/55 dark:text-wheat/55">
                 Imported. This qualifies for the{" "}
-                <span className="font-semibold text-black">{pendingDiscord.discord.categoryName}</span> category.
+                <span className="font-semibold text-navy dark:text-wheat">{pendingDiscord.discord.categoryName}</span> category.
                 Approving will create a new channel named{" "}
-                <span className="font-semibold text-black">#{pendingDiscord.discord.name}</span> and place it there.
+                <span className="font-semibold text-navy dark:text-wheat">#{pendingDiscord.discord.name}</span> and place it there.
                 Deny keeps the hackathon published without a channel.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <button
-                  className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-lg bg-[#027A48] px-4 text-base font-semibold text-white disabled:opacity-50"
+                  className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full bg-[#027A48] px-4 text-base font-semibold text-white disabled:opacity-50"
                   disabled={discordBusy}
                   onClick={() => decideDiscord("approve")}
                   type="button"
@@ -351,7 +351,7 @@ export function HackathonJsonImporter() {
                   Approve channel
                 </button>
                 <button
-                  className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-lg border border-[#B42318] px-4 text-base font-semibold text-[#B42318] disabled:opacity-50"
+                  className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full border border-[#B42318] px-4 text-base font-semibold text-[#B42318] disabled:opacity-50"
                   disabled={discordBusy}
                   onClick={() => decideDiscord("deny")}
                   type="button"
@@ -366,7 +366,7 @@ export function HackathonJsonImporter() {
 
         {message ? (
           <div
-            className={`flex items-start gap-2 rounded-lg border px-4 py-3 text-sm font-semibold ${
+            className={`flex items-start gap-2 rounded-xl border px-4 py-3 text-sm font-semibold ${
               status === "error"
                 ? "border-[#B42318]/30 bg-[#FEF3F2] text-[#B42318]"
                 : "border-[#027A48]/25 bg-[#ECFDF3] text-[#027A48]"
@@ -388,11 +388,11 @@ export function HackathonJsonImporter() {
     <form onSubmit={onSubmit} className="space-y-5">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#660000]">Bulk import</p>
-          <h2 className="mt-2 text-2xl font-semibold text-black">Scraped hackathons JSON</h2>
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-rust">Bulk import</p>
+          <h2 className="mt-2 text-2xl font-semibold text-navy dark:text-wheat">Scraped hackathons JSON</h2>
         </div>
         <button
-          className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-black px-4 text-sm font-semibold text-white disabled:opacity-50"
+          className="inline-flex min-h-10 items-center gap-2 rounded-full bg-cabernet hover:bg-[#5c151c] px-4 text-sm font-semibold text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white dark:hover:bg-white/15 disabled:opacity-50"
           disabled={status === "submitting" || !jsonText.trim()}
           type="submit"
         >
@@ -403,7 +403,7 @@ export function HackathonJsonImporter() {
 
       <textarea
         aria-label="Hackathon import JSON"
-        className="min-h-72 w-full rounded-lg border border-black/15 bg-[#F7F7F4] p-4 font-mono text-xs leading-5 text-black outline-none focus:border-[#660000] focus:ring-2 focus:ring-[#660000]/15"
+        className="min-h-72 w-full rounded-xl border border-navy/15 dark:border-white/15 bg-ivory dark:bg-white/5 p-4 font-mono text-xs leading-5 text-navy dark:text-wheat outline-none focus:border-cabernet focus:ring-2 focus:ring-cabernet/15"
         onChange={(event) => setJsonText(event.target.value)}
         placeholder={sampleJson}
         spellCheck={false}
@@ -412,7 +412,7 @@ export function HackathonJsonImporter() {
 
       {message ? (
         <div
-          className={`flex items-start gap-2 rounded-lg border px-4 py-3 text-sm font-semibold ${
+          className={`flex items-start gap-2 rounded-xl border px-4 py-3 text-sm font-semibold ${
             status === "error"
               ? "border-[#B42318]/30 bg-[#FEF3F2] text-[#B42318]"
               : "border-[#027A48]/25 bg-[#ECFDF3] text-[#027A48]"
@@ -428,20 +428,20 @@ export function HackathonJsonImporter() {
       ) : null}
 
       {results.length ? (
-        <div className="overflow-hidden rounded-lg border border-black/10">
-          <div className="grid grid-cols-[1fr_auto_auto] gap-3 border-b border-black/10 bg-[#F7F7F4] px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#706F6B]">
+        <div className="overflow-hidden rounded-xl border border-navy/10 dark:border-white/10">
+          <div className="grid grid-cols-[1fr_auto_auto] gap-3 border-b border-navy/10 dark:border-white/10 bg-ivory dark:bg-white/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-navy/55 dark:text-wheat/55">
             <span>Name</span>
             <span>Status</span>
             <span>Duplicate</span>
           </div>
-          <div className="divide-y divide-black/10 bg-white">
+          <div className="divide-y divide-navy/10 dark:divide-white/10 bg-white dark:bg-white/[0.06]">
             {results.map((result) => (
               <div className="grid grid-cols-[1fr_auto_auto] gap-3 px-4 py-3 text-sm" key={`${result.status}-${result.submissionId}`}>
-                <span className="font-semibold text-black">{result.name}</span>
+                <span className="font-semibold text-navy dark:text-wheat">{result.name}</span>
                 <span className={result.status === "imported" ? "text-[#027A48]" : "text-[#B54708]"}>
                   {result.status === "imported" ? "Imported" : "Queued"}
                 </span>
-                <span className="text-[#706F6B]">{result.duplicateScore.toFixed(2)}</span>
+                <span className="text-navy/55 dark:text-wheat/55">{result.duplicateScore.toFixed(2)}</span>
               </div>
             ))}
           </div>

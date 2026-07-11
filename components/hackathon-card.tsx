@@ -64,7 +64,7 @@ function getGradientStyle(rgb: Rgb) {
     "--hackathon-accent-rgb": `${r} ${g} ${b}`,
     background: [
       `radial-gradient(circle at 14% 8%, rgba(${r}, ${g}, ${b}, 0.18), transparent 36%)`,
-      `linear-gradient(135deg, rgba(${r}, ${g}, ${b}, 0.14), #ffffff 52%, #f7f7f4 100%)`,
+      `linear-gradient(135deg, rgba(${r}, ${g}, ${b}, 0.14), #ffffff 52%, #f7f3ea 100%)`,
     ].join(", "),
   } as CSSProperties & { "--hackathon-accent-rgb": string };
 }
@@ -228,8 +228,8 @@ function BookmarkButton({
       aria-disabled={preview || undefined}
       aria-pressed={saved}
       disabled={saving}
-      className={`relative z-10 grid size-10 shrink-0 place-items-center transition-colors hover:text-[#660000] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#660000]/35 ${
-        saved ? "text-[#660000]" : "text-black"
+      className={`relative z-10 grid size-10 shrink-0 place-items-center transition-colors hover:text-cabernet dark:hover:text-[#e4a3ab] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40 ${
+        saved ? "text-cabernet dark:text-[#e4a3ab]" : "text-navy dark:text-wheat"
       } disabled:cursor-wait disabled:opacity-70`}
       onClick={toggleSaved}
       type="button"
@@ -303,15 +303,15 @@ function VoteControl({
   return (
     <div
       aria-label={`${name} community score`}
-      className="relative z-10 flex h-9 shrink-0 items-center gap-1 text-black"
+      className="relative z-10 flex h-9 shrink-0 items-center gap-1 text-navy dark:text-wheat"
     >
       <button
         aria-label={`Upvote ${name}`}
         aria-disabled={preview || undefined}
         aria-pressed={vote === 1}
         disabled={savingVote}
-        className={`grid size-8 place-items-center rounded-full transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#660000]/35 ${
-          vote === 1 ? "text-[#D9043D]" : "text-[#706F6B]"
+        className={`grid size-8 place-items-center rounded-full transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40 ${
+          vote === 1 ? "text-cabernet dark:text-[#e4a3ab]" : "text-navy/55 dark:text-wheat/55"
         } disabled:cursor-wait disabled:opacity-70`}
         onClick={() => toggleVote(1)}
         type="button"
@@ -330,8 +330,8 @@ function VoteControl({
         aria-disabled={preview || undefined}
         aria-pressed={vote === -1}
         disabled={savingVote}
-        className={`grid size-8 place-items-center rounded-full transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#660000]/35 ${
-          vote === -1 ? "text-[#5A6CFF]" : "text-[#706F6B]"
+        className={`grid size-8 place-items-center rounded-full transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40 ${
+          vote === -1 ? "text-[#5A6CFF]" : "text-navy/55 dark:text-wheat/55"
         } disabled:cursor-wait disabled:opacity-70`}
         onClick={() => toggleVote(-1)}
         type="button"
@@ -373,11 +373,11 @@ function CardAccentEdges() {
     <>
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute right-2 top-2 h-7 w-7 border-r border-t border-black/25"
+        className="pointer-events-none absolute right-2 top-2 h-7 w-7 border-r border-t border-navy/25 dark:border-white/25"
       />
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute bottom-4 left-4 h-6 w-6 border-b border-l border-black/10"
+        className="pointer-events-none absolute bottom-4 left-4 h-6 w-6 border-b border-l border-navy/10 dark:border-white/10"
       />
     </>
   );
@@ -397,7 +397,7 @@ export function HackathonCard({
 
   return (
     <article
-      className="group relative flex min-w-0 flex-col overflow-hidden border border-black/10 p-5 shadow-[0_18px_45px_rgb(0_0_0/0.06)] transition-transform duration-200 ease-out hover:z-10 hover:scale-110 sm:p-6"
+      className="group relative flex min-w-0 flex-col overflow-hidden border border-navy/10 dark:border-white/10 p-5 shadow-[0_18px_45px_rgb(0_0_0/0.06)] transition-transform duration-200 ease-out hover:z-10 hover:scale-110 sm:p-6"
       style={gradientStyle}
     >
       {hackathon.slug && !preview ? (
@@ -420,18 +420,18 @@ export function HackathonCard({
       <div className="flex items-start gap-4">
         <HackathonLogoMark hackathon={hackathon} />
         <div className="min-w-0 pt-1">
-          <h2 className="line-clamp-3 text-xl font-semibold leading-6 text-black sm:text-[1.35rem]">
+          <h2 className="line-clamp-3 text-xl font-semibold leading-6 text-navy dark:text-wheat sm:text-[1.35rem]">
             {hackathon.name}
           </h2>
-          <p className="mt-2 text-[15px] font-semibold leading-5 text-[#706F6B]">
+          <p className="mt-2 text-[15px] font-semibold leading-5 text-navy/55 dark:text-wheat/55">
             {hackathon.date}
           </p>
           {hackathon.country ? (
-            <p className="mt-1 text-[15px] font-semibold leading-5 text-[#706F6B]">
+            <p className="mt-1 text-[15px] font-semibold leading-5 text-navy/55 dark:text-wheat/55">
               {hackathon.country}
             </p>
           ) : null}
-          <p className="mt-1 text-[15px] font-semibold leading-5 text-[#706F6B]">
+          <p className="mt-1 text-[15px] font-semibold leading-5 text-navy/55 dark:text-wheat/55">
             {hackathon.location}
           </p>
           {hackathon.hasDiscord ? (

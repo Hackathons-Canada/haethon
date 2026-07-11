@@ -29,14 +29,14 @@ export function SubmissionReviewQueue({
   }
 
   if (!activeSubmission) {
-    return <div className="rounded-lg border border-black/10 bg-white p-5 text-sm text-[#706F6B]">{emptyMessage}</div>;
+    return <div className="rounded-xl border border-navy/10 dark:border-white/10 bg-white dark:bg-white/[0.06] p-5 text-sm text-navy/55 dark:text-wheat/55">{emptyMessage}</div>;
   }
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between gap-3 rounded-lg border border-black/10 bg-white px-4 py-3 text-sm">
-        <span className="font-semibold text-black">{remainingSubmissions.length} pending</span>
-        <span className="text-[#706F6B]">Showing next submission</span>
+      <div className="flex items-center justify-between gap-3 rounded-xl border border-navy/10 dark:border-white/10 bg-white dark:bg-white/[0.06] px-4 py-3 text-sm">
+        <span className="font-semibold text-navy dark:text-wheat">{remainingSubmissions.length} pending</span>
+        <span className="text-navy/55 dark:text-wheat/55">Showing next submission</span>
       </div>
       <SubmissionReviewCard key={activeSubmission.id} endpointBase={endpointBase} onReviewed={onReviewed} submission={activeSubmission} />
     </div>

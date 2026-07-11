@@ -34,10 +34,10 @@ type ProfileLink = {
 };
 
 const inputClassName =
-  "w-full rounded-lg border border-black/15 bg-white px-3 py-2.5 text-sm text-black outline-none transition placeholder:text-[#706F6B] focus:border-[#660000] focus:bg-white focus:ring-2 focus:ring-[#660000]/15";
-const labelClassName = "mb-1.5 block text-sm font-semibold text-black";
-const headingClassName = "text-sm font-semibold uppercase tracking-[0.2em] text-[#660000]";
-const detailLabelClassName = "text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-[#706F6B]";
+  "w-full rounded-xl border border-navy/15 dark:border-white/15 bg-white dark:bg-white/[0.06] px-3 py-2.5 text-sm text-navy dark:text-wheat outline-none transition placeholder:text-navy/55 dark:placeholder:text-wheat/40 focus:border-cabernet focus:bg-white focus:ring-2 focus:ring-cabernet/15";
+const labelClassName = "mb-1.5 block text-sm font-semibold text-navy dark:text-wheat";
+const headingClassName = "text-sm font-semibold uppercase tracking-[0.2em] text-rust";
+const detailLabelClassName = "text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-navy/55 dark:text-wheat/55";
 
 function formValue(formData: FormData, name: keyof ProfileValues) {
   return formData.get(name)?.toString() ?? "";
@@ -163,11 +163,11 @@ export function AccountProfileForm({ displayEmail, displayName, profile }: Profi
   return (
     <section>
       {/* Profile header: identity and labeled details, followed by socials */}
-      <div className="rounded-2xl border border-black/10 bg-[#F7F7F4] p-6 sm:p-8">
+      <div className="rounded-2xl border border-navy/10 dark:border-white/10 bg-ivory dark:bg-white/5 p-6 sm:p-8">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
           <div
             aria-hidden="true"
-            className="flex size-16 shrink-0 items-center justify-center rounded-full bg-[#660000] text-2xl font-semibold text-[#EFEDEA]"
+            className="flex size-16 shrink-0 items-center justify-center rounded-full bg-cabernet text-2xl font-semibold text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white dark:hover:bg-white/15"
           >
             {initials}
           </div>
@@ -176,7 +176,7 @@ export function AccountProfileForm({ displayEmail, displayName, profile }: Profi
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="min-w-0">
                 <p className={headingClassName}>My account</p>
-                <h1 className="mt-2 text-3xl font-semibold leading-tight text-black">{displayName}</h1>
+                <h1 className="mt-2 font-serif text-3xl font-semibold tracking-[-0.02em] leading-tight text-navy dark:text-wheat">{displayName}</h1>
               </div>
               <button
                 type="button"
@@ -184,7 +184,7 @@ export function AccountProfileForm({ displayEmail, displayName, profile }: Profi
                   setStatus("idle");
                   setIsEditing(true);
                 }}
-                className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-lg border border-[#660000] bg-white px-4 text-sm font-semibold text-[#660000] transition hover:bg-[#660000] hover:text-white focus-visible:bg-[#660000] focus-visible:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#660000]"
+                className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-full border border-cabernet dark:border-[#e4a3ab]/50 bg-white dark:bg-white/[0.06] px-4 text-sm font-semibold text-cabernet dark:text-[#e4a3ab] transition hover:bg-cabernet hover:text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white dark:hover:bg-white/15 focus-visible:bg-cabernet focus-visible:text-wheat focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cabernet dark:focus-visible:outline-wheat"
               >
                 <Pencil aria-hidden="true" className="size-4" />
                 Edit profile
@@ -195,18 +195,18 @@ export function AccountProfileForm({ displayEmail, displayName, profile }: Profi
               {profileDetails.map(({ label, value, breakAll }) => (
                 <div key={label} className={label === "Bio" ? "sm:col-span-2" : undefined}>
                   <dt className={detailLabelClassName}>{label}</dt>
-                  <dd className={`mt-1 text-sm leading-6 text-black${breakAll ? " break-all" : ""}`}>{value}</dd>
+                  <dd className={`mt-1 text-sm leading-6 text-navy dark:text-wheat${breakAll ? " break-all" : ""}`}>{value}</dd>
                 </div>
               ))}
             </dl>
 
             {links.length > 0 ? (
-              <div className="mt-5 border-t border-black/10 pt-5">
+              <div className="mt-5 border-t border-navy/10 dark:border-white/10 pt-5">
                 <p className={detailLabelClassName}>Socials</p>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   {links.map(({ href, icon: Icon, label }) => (
                     <a
-                      className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-3 py-1.5 text-sm text-[#706F6B] transition hover:border-[#660000] hover:text-[#660000]"
+                      className="inline-flex items-center gap-2 rounded-full border border-navy/10 dark:border-white/10 bg-white dark:bg-white/[0.06] px-3 py-1.5 text-sm text-navy/55 dark:text-wheat/55 transition hover:border-cabernet dark:hover:border-[#e4a3ab]/60 hover:text-cabernet dark:hover:text-[#e4a3ab]"
                       href={href}
                       key={href}
                       rel="noreferrer"
@@ -242,7 +242,7 @@ export function AccountProfileForm({ displayEmail, displayName, profile }: Profi
           >
           <form
             onSubmit={onSubmit}
-            className="flex max-h-full w-full max-w-3xl flex-col rounded-xl border border-black/10 bg-white text-left shadow-2xl"
+            className="flex max-h-full w-full max-w-3xl flex-col rounded-xl border border-navy/10 dark:border-white/10 bg-white dark:bg-white/[0.06] text-left shadow-2xl"
           >
             <div className="flex shrink-0 items-center justify-between gap-3 px-6 pt-6 pb-4">
               <h2 className={headingClassName}>Edit profile</h2>
@@ -250,7 +250,7 @@ export function AccountProfileForm({ displayEmail, displayName, profile }: Profi
                 type="button"
                 onClick={() => setIsEditing(false)}
                 aria-label="Close"
-                className="inline-flex size-8 items-center justify-center rounded-lg text-[#706F6B] transition hover:bg-black/5 hover:text-black"
+                className="inline-flex size-8 items-center justify-center rounded-xl text-navy/55 dark:text-wheat/55 transition hover:bg-navy/5 dark:hover:bg-white/10 hover:text-navy dark:hover:text-wheat"
               >
                 <X aria-hidden="true" className="size-4" />
               </button>
@@ -310,11 +310,11 @@ export function AccountProfileForm({ displayEmail, displayName, profile }: Profi
             ))}
           </div>
 
-          <div className="flex shrink-0 flex-wrap items-center gap-3 border-t border-black/10 px-6 py-4">
+          <div className="flex shrink-0 flex-wrap items-center gap-3 border-t border-navy/10 dark:border-white/10 px-6 py-4">
             <button
               disabled={status === "saving"}
               type="submit"
-              className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-[#660000] px-4 text-sm font-semibold text-[#EFEDEA] transition hover:bg-[#4d0000] disabled:opacity-60"
+              className="inline-flex min-h-10 items-center gap-2 rounded-full bg-cabernet px-4 text-sm font-semibold text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white dark:hover:bg-white/15 transition hover:bg-[#5c151c] disabled:opacity-60"
             >
               <Save aria-hidden="true" className="size-4" />
               {status === "saving" ? "Saving" : "Save profile"}
@@ -322,7 +322,7 @@ export function AccountProfileForm({ displayEmail, displayName, profile }: Profi
             <button
               type="button"
               onClick={() => setIsEditing(false)}
-              className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-black/15 px-4 text-sm font-semibold text-black transition hover:bg-black/5"
+              className="inline-flex min-h-10 items-center gap-2 rounded-full border border-navy/15 dark:border-white/15 px-4 text-sm font-semibold text-navy dark:text-wheat transition hover:bg-navy/5 dark:hover:bg-white/10"
             >
               Cancel
             </button>

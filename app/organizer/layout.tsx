@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 
+import { AppAtmosphere } from "@/components/app-atmosphere";
 import { OrganizerSidebar } from "@/components/organizer/organizer-sidebar";
 import { getCurrentUserContext, isOrganizerRole } from "@/lib/auth";
 
@@ -16,9 +17,10 @@ export default async function OrganizerLayout({ children }: { children: ReactNod
   }
 
   return (
-    <main className="min-h-screen bg-[#EFEDEA] text-black lg:flex">
+    <main className="relative min-h-screen text-ink lg:flex">
+      <AppAtmosphere />
       <OrganizerSidebar />
-      <div className="min-w-0 flex-1 px-5 py-8 sm:px-8 lg:px-12">
+      <div className="relative z-10 min-w-0 flex-1 px-5 py-8 sm:px-8 lg:px-12">
         <div className="mx-auto w-full max-w-6xl">{children}</div>
       </div>
     </main>

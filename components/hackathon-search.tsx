@@ -325,7 +325,7 @@ export function HackathonSearch({
 
   return (
     <>
-      <section aria-label="Hackathon filters" className="bg-white px-5 pb-7 pt-14 sm:pt-16">
+      <section aria-label="Hackathon filters" className="bg-white dark:bg-white/[0.06] px-5 pb-7 pt-14 sm:pt-16">
         <div className="mx-auto max-w-[1120px]">
           <div className="relative mb-8 flex items-center justify-center">
             <div aria-label="Region filters" className="flex items-end gap-8 sm:gap-12" role="group">
@@ -335,7 +335,7 @@ export function HackathonSearch({
                 return (
                   <button
                     aria-pressed={active}
-                    className="group flex flex-col items-center gap-1.5 pb-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#660000]/35"
+                    className="group flex flex-col items-center gap-1.5 pb-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40"
                     key={preset.id}
                     onClick={() => applyRegionPreset(preset.id)}
                     type="button"
@@ -345,14 +345,14 @@ export function HackathonSearch({
                     </span>
                     <span
                       className={`text-sm transition-colors ${
-                        active ? "font-semibold text-black" : "text-[#706F6B] group-hover:text-black"
+                        active ? "font-semibold text-navy dark:text-wheat" : "text-navy/55 dark:text-wheat/55 group-hover:text-navy dark:group-hover:text-wheat"
                       }`}
                     >
                       {preset.label}
                     </span>
                     <span
                       className={`h-0.5 w-full rounded-full transition-colors ${
-                        active ? "bg-black" : "bg-transparent group-hover:bg-black/20"
+                        active ? "bg-cabernet dark:bg-[#e4a3ab]" : "bg-transparent group-hover:bg-navy/20 dark:group-hover:bg-white/25"
                       }`}
                     />
                   </button>
@@ -360,7 +360,7 @@ export function HackathonSearch({
               })}
             </div>
             <Link
-              className="absolute right-0 inline-flex min-h-10 items-center gap-2 rounded-full border border-black/15 px-4 text-sm font-semibold text-black transition-colors hover:border-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#660000]/35"
+              className="absolute right-0 inline-flex min-h-10 items-center gap-2 rounded-full border border-navy/15 dark:border-white/15 px-4 text-sm font-semibold text-navy dark:text-wheat transition-colors hover:border-navy dark:hover:border-white/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40"
               href="/submit"
             >
               <PlusSquare aria-hidden="true" className="size-4" />
@@ -369,7 +369,7 @@ export function HackathonSearch({
           </div>
 
           <form
-            className="relative z-30 flex flex-col rounded-[2.35rem] border border-black/10 bg-white p-2 shadow-[0_10px_36px_rgba(0,0,0,0.14)] md:flex-row md:items-stretch"
+            className="relative z-30 flex flex-col rounded-[2.35rem] border border-navy/10 dark:border-white/10 bg-white dark:bg-[#1b1b1b] p-2 shadow-[0_10px_36px_rgba(0,0,0,0.14)] md:flex-row md:items-stretch"
             method="get"
             ref={filterFormRef}
             onSubmit={(event) => {
@@ -377,10 +377,10 @@ export function HackathonSearch({
               void runSearch();
             }}
           >
-            <label className="flex min-h-[4.2rem] min-w-0 flex-1 flex-col justify-start rounded-[2rem] px-6 py-3 text-left focus-within:bg-[#F7F7F4] hover:bg-[#F7F7F4]">
-              <span className="text-xs font-semibold leading-5 text-black">Name</span>
+            <label className="flex min-h-[4.2rem] min-w-0 flex-1 flex-col justify-start rounded-[2rem] px-6 py-3 text-left focus-within:bg-ivory dark:focus-within:bg-white/10 hover:bg-ivory dark:hover:bg-white/10">
+              <span className="text-xs font-semibold leading-5 text-navy dark:text-wheat">Name</span>
               <input
-                className="min-w-0 bg-transparent text-sm leading-5 text-[#706F6B] outline-none placeholder:text-[#706F6B]"
+                className="min-w-0 bg-transparent text-sm leading-5 text-navy/55 dark:text-wheat/55 outline-none placeholder:text-navy/55 dark:placeholder:text-wheat/40"
                 name="q"
                 onChange={(event) => setName(event.target.value)}
                 placeholder="Hackathon name"
@@ -397,13 +397,13 @@ export function HackathonSearch({
                 aria-controls={countryPopoverId}
                 aria-expanded={openPopover === "countries"}
                 aria-label="Countries"
-                className={`flex min-h-[4.2rem] w-full min-w-0 flex-col justify-start rounded-[2rem] px-6 py-3 text-left hover:bg-[#F7F7F4] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#660000]/35 ${
-                  openPopover === "countries" ? "bg-[#F7F7F4] shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)]" : ""
+                className={`flex min-h-[4.2rem] w-full min-w-0 flex-col justify-start rounded-[2rem] px-6 py-3 text-left hover:bg-ivory dark:hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40 ${
+                  openPopover === "countries" ? "bg-ivory dark:bg-white/5 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)]" : ""
                 }`}
                 onClick={() => setOpenPopover((current) => (current === "countries" ? null : "countries"))}
                 type="button"
               >
-                <span className="flex items-center gap-1.5 text-xs font-semibold leading-5 text-black">
+                <span className="flex items-center gap-1.5 text-xs font-semibold leading-5 text-navy dark:text-wheat">
                   <Globe2 aria-hidden="true" className="size-3.5" />
                   Countries
                 </span>
@@ -412,7 +412,7 @@ export function HackathonSearch({
                     <span className="flex min-w-0 flex-nowrap gap-1.5 overflow-hidden" ref={countryRowRef}>
                       {countries.map((country) => (
                         <span
-                          className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-black/10 bg-white px-2.5 py-1 text-xs font-semibold text-black"
+                          className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-navy/10 dark:border-white/10 bg-white dark:bg-white/[0.06] px-2.5 py-1 text-xs font-semibold text-navy dark:text-wheat"
                           key={country}
                         >
                           <span>{country}</span>
@@ -422,29 +422,29 @@ export function HackathonSearch({
                     {countriesOverflow ? (
                       <span
                         aria-hidden="true"
-                        className="pointer-events-none absolute inset-y-0 right-0 flex items-center bg-gradient-to-l from-[#F7F7F4] via-[#F7F7F4] pl-6 pr-1 text-xs font-semibold text-[#706F6B]"
+                        className="pointer-events-none absolute inset-y-0 right-0 flex items-center bg-gradient-to-l from-ivory via-ivory dark:from-[#1f1f1f] dark:via-[#1f1f1f] pl-6 pr-1 text-xs font-semibold text-navy/55 dark:text-wheat/55"
                       >
                         ...
                       </span>
                     ) : null}
                   </span>
                 ) : (
-                  <span className="mt-1 text-sm leading-5 text-[#706F6B]">Search countries</span>
+                  <span className="mt-1 text-sm leading-5 text-navy/55 dark:text-wheat/55">Search countries</span>
                 )}
               </button>
               {openPopover === "countries" ? (
                 <div
-                  className="absolute left-0 right-0 top-[calc(100%+0.9rem)] z-50 overflow-hidden rounded-[1.75rem] border border-black/10 bg-white p-4 shadow-[0_22px_55px_rgba(0,0,0,0.2)] md:left-[-1rem] md:right-auto md:w-[34rem]"
+                  className="absolute left-0 right-0 top-[calc(100%+0.9rem)] z-50 overflow-hidden rounded-[1.75rem] border border-navy/10 dark:border-white/10 bg-white dark:bg-[#1b1b1b] p-4 shadow-[0_22px_55px_rgba(0,0,0,0.2)] md:left-[-1rem] md:right-auto md:w-[34rem]"
                   id={countryPopoverId}
                 >
-                  <div className="flex items-center gap-2 rounded-full border border-black/10 bg-[#F7F7F4] px-4 py-3">
-                    <Search aria-hidden="true" className="size-4 text-[#706F6B]" />
+                  <div className="flex items-center gap-2 rounded-full border border-navy/10 dark:border-white/10 bg-ivory dark:bg-white/5 px-4 py-3">
+                    <Search aria-hidden="true" className="size-4 text-navy/55 dark:text-wheat/55" />
                     <input
                       aria-autocomplete="list"
                       aria-controls={countryListboxId}
                       aria-expanded="true"
                       aria-label="Search countries"
-                      className="min-w-0 flex-1 bg-transparent text-sm leading-5 text-black outline-none placeholder:text-[#706F6B]"
+                      className="min-w-0 flex-1 bg-transparent text-sm leading-5 text-navy dark:text-wheat outline-none placeholder:text-navy/55 dark:placeholder:text-wheat/40"
                       onChange={(event) => setCountryQuery(event.target.value)}
                       onKeyDown={(event) => {
                         if (event.key === "Enter" && filteredCountries[0]) {
@@ -464,7 +464,7 @@ export function HackathonSearch({
                       {countries.map((country) => (
                         <button
                           aria-label={`Remove ${country}`}
-                          className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs font-semibold text-black hover:border-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#660000]/35"
+                          className="inline-flex items-center gap-1.5 rounded-full border border-navy/10 dark:border-white/10 bg-white dark:bg-white/[0.06] px-3 py-1.5 text-xs font-semibold text-navy dark:text-wheat hover:border-navy dark:hover:border-white/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40"
                           key={country}
                           onClick={() => removeCountry(country)}
                           type="button"
@@ -486,10 +486,10 @@ export function HackathonSearch({
                       return (
                         <button
                           aria-selected={selected}
-                          className={`flex min-h-[4.25rem] items-center justify-between gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#660000]/35 ${
+                          className={`flex min-h-[4.25rem] items-center justify-between gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40 ${
                             selected
-                              ? "border-[#D9043D]/35 bg-[#FFF3F6]"
-                              : "border-black/10 bg-white hover:border-black/20 hover:bg-[#F7F7F4]"
+                              ? "border-cabernet/35 dark:border-[#e4a3ab]/40 bg-cabernet/5 dark:bg-[#e4a3ab]/10"
+                              : "border-navy/10 dark:border-white/10 bg-white dark:bg-white/[0.06] hover:border-navy/20 hover:bg-ivory dark:hover:bg-white/10"
                           }`}
                           key={country}
                           onClick={() => toggleCountry(country)}
@@ -497,12 +497,12 @@ export function HackathonSearch({
                           type="button"
                         >
                           <span className="min-w-0">
-                            <span className="block truncate text-sm font-semibold text-black">{country}</span>
-                            <span className="mt-0.5 block truncate text-xs text-[#706F6B]">{countryDetail(country)}</span>
+                            <span className="block truncate text-sm font-semibold text-navy dark:text-wheat">{country}</span>
+                            <span className="mt-0.5 block truncate text-xs text-navy/55 dark:text-wheat/55">{countryDetail(country)}</span>
                           </span>
                           <span
                             className={`grid size-6 shrink-0 place-items-center rounded-full border ${
-                              selected ? "border-[#D9043D] bg-[#D9043D] text-white" : "border-black/15 text-transparent"
+                              selected ? "border-cabernet dark:border-[#e4a3ab]/50 bg-cabernet text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white dark:hover:bg-white/15" : "border-navy/15 dark:border-white/15 text-transparent"
                             }`}
                           >
                             <Check aria-hidden="true" className="size-3.5" strokeWidth={3} />
@@ -511,7 +511,7 @@ export function HackathonSearch({
                       );
                     })}
                     {!filteredCountries.length ? (
-                      <div className="col-span-full rounded-xl border border-black/10 bg-[#F7F7F4] px-4 py-5 text-sm font-semibold text-[#706F6B]">
+                      <div className="col-span-full rounded-xl border border-navy/10 dark:border-white/10 bg-ivory dark:bg-white/5 px-4 py-5 text-sm font-semibold text-navy/55 dark:text-wheat/55">
                         No countries match that search.
                       </div>
                     ) : null}
@@ -526,21 +526,21 @@ export function HackathonSearch({
                 aria-controls={datePopoverId}
                 aria-expanded={openPopover === "date"}
                 aria-label="Date"
-                className={`flex min-h-[4.2rem] w-full min-w-0 flex-col justify-start rounded-[2rem] px-6 py-3 text-left hover:bg-[#F7F7F4] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#660000]/35 ${
-                  openPopover === "date" ? "bg-[#F7F7F4] shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)]" : ""
+                className={`flex min-h-[4.2rem] w-full min-w-0 flex-col justify-start rounded-[2rem] px-6 py-3 text-left hover:bg-ivory dark:hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40 ${
+                  openPopover === "date" ? "bg-ivory dark:bg-white/5 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)]" : ""
                 }`}
                 onClick={() => setOpenPopover((current) => (current === "date" ? null : "date"))}
                 type="button"
               >
-                <span className="flex items-center gap-1.5 text-xs font-semibold leading-5 text-black">
+                <span className="flex items-center gap-1.5 text-xs font-semibold leading-5 text-navy dark:text-wheat">
                   <CalendarDays aria-hidden="true" className="size-3.5" />
                   Date
                 </span>
-                <span className="mt-1 block truncate text-sm leading-5 text-[#706F6B]">{selectedDateLabel}</span>
+                <span className="mt-1 block truncate text-sm leading-5 text-navy/55 dark:text-wheat/55">{selectedDateLabel}</span>
               </button>
               {openPopover === "date" ? (
                 <div
-                  className="absolute left-0 top-[calc(100%+0.9rem)] z-50 w-full min-w-[18rem] rounded-[1.75rem] border border-black/10 bg-white p-4 shadow-[0_22px_55px_rgba(0,0,0,0.2)] md:w-[24rem]"
+                  className="absolute left-0 top-[calc(100%+0.9rem)] z-50 w-full min-w-[18rem] rounded-[1.75rem] border border-navy/10 dark:border-white/10 bg-white dark:bg-[#1b1b1b] p-4 shadow-[0_22px_55px_rgba(0,0,0,0.2)] md:w-[24rem]"
                   id={datePopoverId}
                 >
                   <div className="grid gap-2">
@@ -550,10 +550,10 @@ export function HackathonSearch({
                       return (
                         <button
                           aria-pressed={selected}
-                          className={`flex min-h-[3.5rem] items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#660000]/35 ${
+                          className={`flex min-h-[3.5rem] items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40 ${
                             selected
-                              ? "border-[#D9043D]/35 bg-[#FFF3F6]"
-                              : "border-black/10 bg-white hover:border-black/20 hover:bg-[#F7F7F4]"
+                              ? "border-cabernet/35 dark:border-[#e4a3ab]/40 bg-cabernet/5 dark:bg-[#e4a3ab]/10"
+                              : "border-navy/10 dark:border-white/10 bg-white dark:bg-white/[0.06] hover:border-navy/20 hover:bg-ivory dark:hover:bg-white/10"
                           }`}
                           key={option.value}
                           onClick={() => {
@@ -562,10 +562,10 @@ export function HackathonSearch({
                           }}
                           type="button"
                         >
-                          <span className="text-sm font-semibold text-black">{option.label}</span>
+                          <span className="text-sm font-semibold text-navy dark:text-wheat">{option.label}</span>
                           <span
                             className={`grid size-6 shrink-0 place-items-center rounded-full border ${
-                              selected ? "border-[#D9043D] bg-[#D9043D] text-white" : "border-black/15 text-transparent"
+                              selected ? "border-cabernet dark:border-[#e4a3ab]/50 bg-cabernet text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white dark:hover:bg-white/15" : "border-navy/15 dark:border-white/15 text-transparent"
                             }`}
                           >
                             <Check aria-hidden="true" className="size-3.5" strokeWidth={3} />
@@ -584,21 +584,21 @@ export function HackathonSearch({
                 aria-controls={formatPopoverId}
                 aria-expanded={openPopover === "format"}
                 aria-label="Format"
-                className={`flex min-h-[4.2rem] w-full min-w-0 flex-col justify-start rounded-[2rem] px-6 py-3 text-left hover:bg-[#F7F7F4] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#660000]/35 ${
-                  openPopover === "format" ? "bg-[#F7F7F4] shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)]" : ""
+                className={`flex min-h-[4.2rem] w-full min-w-0 flex-col justify-start rounded-[2rem] px-6 py-3 text-left hover:bg-ivory dark:hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40 ${
+                  openPopover === "format" ? "bg-ivory dark:bg-white/5 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)]" : ""
                 }`}
                 onClick={() => setOpenPopover((current) => (current === "format" ? null : "format"))}
                 type="button"
               >
-                <span className="flex items-center gap-1.5 text-xs font-semibold leading-5 text-black">
+                <span className="flex items-center gap-1.5 text-xs font-semibold leading-5 text-navy dark:text-wheat">
                   <MapPin aria-hidden="true" className="size-3.5" />
                   Format
                 </span>
-                <span className="mt-1 block truncate text-sm leading-5 text-[#706F6B]">{selectedFormatLabel}</span>
+                <span className="mt-1 block truncate text-sm leading-5 text-navy/55 dark:text-wheat/55">{selectedFormatLabel}</span>
               </button>
               {openPopover === "format" ? (
                 <div
-                  className="absolute left-0 top-[calc(100%+0.9rem)] z-50 w-full min-w-[19rem] rounded-[1.75rem] border border-black/10 bg-white p-4 shadow-[0_22px_55px_rgba(0,0,0,0.2)] md:w-[24rem]"
+                  className="absolute left-0 top-[calc(100%+0.9rem)] z-50 w-full min-w-[19rem] rounded-[1.75rem] border border-navy/10 dark:border-white/10 bg-white dark:bg-[#1b1b1b] p-4 shadow-[0_22px_55px_rgba(0,0,0,0.2)] md:w-[24rem]"
                   id={formatPopoverId}
                 >
                   <div className="grid gap-2">
@@ -608,10 +608,10 @@ export function HackathonSearch({
                       return (
                         <button
                           aria-pressed={selected}
-                          className={`flex min-h-[4.25rem] items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#660000]/35 ${
+                          className={`flex min-h-[4.25rem] items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40 ${
                             selected
-                              ? "border-[#D9043D]/35 bg-[#FFF3F6]"
-                              : "border-black/10 bg-white hover:border-black/20 hover:bg-[#F7F7F4]"
+                              ? "border-cabernet/35 dark:border-[#e4a3ab]/40 bg-cabernet/5 dark:bg-[#e4a3ab]/10"
+                              : "border-navy/10 dark:border-white/10 bg-white dark:bg-white/[0.06] hover:border-navy/20 hover:bg-ivory dark:hover:bg-white/10"
                           }`}
                           key={option.value}
                           onClick={() => {
@@ -621,12 +621,12 @@ export function HackathonSearch({
                           type="button"
                         >
                           <span className="min-w-0">
-                            <span className="block truncate text-sm font-semibold text-black">{option.label}</span>
-                            <span className="mt-0.5 block truncate text-xs text-[#706F6B]">{option.detail}</span>
+                            <span className="block truncate text-sm font-semibold text-navy dark:text-wheat">{option.label}</span>
+                            <span className="mt-0.5 block truncate text-xs text-navy/55 dark:text-wheat/55">{option.detail}</span>
                           </span>
                           <span
                             className={`grid size-6 shrink-0 place-items-center rounded-full border ${
-                              selected ? "border-[#D9043D] bg-[#D9043D] text-white" : "border-black/15 text-transparent"
+                              selected ? "border-cabernet dark:border-[#e4a3ab]/50 bg-cabernet text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white dark:hover:bg-white/15" : "border-navy/15 dark:border-white/15 text-transparent"
                             }`}
                           >
                             <Check aria-hidden="true" className="size-3.5" strokeWidth={3} />
@@ -647,26 +647,26 @@ export function HackathonSearch({
                 aria-controls={featurePopoverId}
                 aria-expanded={openPopover === "features"}
                 aria-labelledby="hackathon-feature-filters-label"
-                className={`flex min-h-[4.2rem] w-full min-w-0 flex-col justify-start rounded-[2rem] px-6 py-3 text-left hover:bg-[#F7F7F4] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#660000]/35 ${
-                  openPopover === "features" ? "bg-[#F7F7F4] shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)]" : ""
+                className={`flex min-h-[4.2rem] w-full min-w-0 flex-col justify-start rounded-[2rem] px-6 py-3 text-left hover:bg-ivory dark:hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40 ${
+                  openPopover === "features" ? "bg-ivory dark:bg-white/5 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)]" : ""
                 }`}
                 onClick={() => setOpenPopover((current) => (current === "features" ? null : "features"))}
                 type="button"
               >
                 <span
-                  className="flex items-center gap-1.5 text-xs font-semibold leading-5 text-black"
+                  className="flex items-center gap-1.5 text-xs font-semibold leading-5 text-navy dark:text-wheat"
                   id="hackathon-feature-filters-label"
                 >
                   <Settings2 aria-hidden="true" className="size-3.5" />
                   Features
                 </span>
-                <span className="mt-1 block truncate text-sm leading-5 text-[#706F6B]">
+                <span className="mt-1 block truncate text-sm leading-5 text-navy/55 dark:text-wheat/55">
                   {selectedFeatureLabels.length ? selectedFeatureLabels.join(", ") : "Add features"}
                 </span>
               </button>
               {openPopover === "features" ? (
                 <div
-                  className="absolute right-0 top-[calc(100%+0.9rem)] z-50 w-full min-w-[20rem] rounded-[1.75rem] border border-black/10 bg-white p-5 shadow-[0_22px_55px_rgba(0,0,0,0.2)] md:w-[27rem]"
+                  className="absolute right-0 top-[calc(100%+0.9rem)] z-50 w-full min-w-[20rem] rounded-[1.75rem] border border-navy/10 dark:border-white/10 bg-white dark:bg-[#1b1b1b] p-5 shadow-[0_22px_55px_rgba(0,0,0,0.2)] md:w-[27rem]"
                   id={featurePopoverId}
                 >
                   <div className="flex flex-wrap gap-3">
@@ -676,10 +676,10 @@ export function HackathonSearch({
                       return (
                         <button
                           aria-pressed={active}
-                          className={`inline-flex min-h-12 items-center gap-2 rounded-full border px-4 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#660000]/35 ${
+                          className={`inline-flex min-h-12 items-center gap-2 rounded-full border px-4 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40 ${
                             active
-                              ? "border-[#D9043D] bg-[#D9043D] text-white hover:bg-[#B80033]"
-                              : "border-black/15 bg-white text-black hover:border-black"
+                              ? "border-cabernet dark:border-[#e4a3ab]/50 bg-cabernet text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white dark:hover:bg-white/15 hover:bg-[#5c151c]"
+                              : "border-navy/15 dark:border-white/15 bg-white dark:bg-white/[0.06] text-navy dark:text-wheat hover:border-navy dark:hover:border-white/60"
                           }`}
                           key={tag.key}
                           onClick={() => tag.setValue(active ? "any" : "on")}
@@ -687,7 +687,7 @@ export function HackathonSearch({
                         >
                           <span
                             className={`grid size-5 place-items-center rounded-full border ${
-                              active ? "border-white text-white" : "border-black/15 text-transparent"
+                              active ? "border-wheat text-wheat" : "border-navy/15 dark:border-white/15 text-transparent"
                             }`}
                           >
                             <Check aria-hidden="true" className="size-3" strokeWidth={3} />
@@ -705,7 +705,7 @@ export function HackathonSearch({
               {activeFilters ? (
                 <button
                   aria-label="Clear hackathon search"
-                  className="grid min-h-12 place-items-center rounded-full border border-black/15 px-4 text-sm font-semibold text-black hover:border-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#660000]/35 md:size-12 md:min-h-0 md:px-0"
+                  className="grid min-h-12 place-items-center rounded-full border border-navy/15 dark:border-white/15 px-4 text-sm font-semibold text-navy dark:text-wheat hover:border-navy dark:hover:border-white/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40 md:size-12 md:min-h-0 md:px-0"
                   onClick={clearSearch}
                   type="button"
                 >
@@ -714,7 +714,7 @@ export function HackathonSearch({
               ) : null}
               <button
                 aria-label="Search hackathons"
-                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[#D9043D] px-5 text-sm font-semibold text-white hover:bg-[#B80033] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#660000]/35 disabled:cursor-wait disabled:bg-[#D9043D]/70 md:size-12 md:min-h-0 md:px-0"
+                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-cabernet px-5 text-sm font-semibold text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white dark:hover:bg-white/15 hover:bg-[#5c151c] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40 disabled:cursor-wait disabled:bg-cabernet/70 md:size-12 md:min-h-0 md:px-0"
                 disabled={isSearching}
                 type="submit"
               >
@@ -724,9 +724,9 @@ export function HackathonSearch({
             </div>
           </form>
 
-          <div className="mt-4 min-h-6 px-2 text-sm text-[#706F6B]" role="status">
+          <div className="mt-4 min-h-6 px-2 text-sm text-navy/55 dark:text-wheat/55" role="status">
             {error ? (
-              <span className="font-semibold text-[#660000]">{error}</span>
+              <span className="font-semibold text-cabernet dark:text-[#e4a3ab]">{error}</span>
             ) : hasSearched ? (
               <span>
                 Showing {hackathons.length} {hackathons.length === 1 ? "hackathon" : "hackathons"} matching your search.
@@ -739,7 +739,7 @@ export function HackathonSearch({
       <section className="px-5 pb-16 pt-10 sm:px-8 sm:pb-20 lg:px-12">
         <div className="mx-auto max-w-[1120px]">
           <div className="mb-7">
-            <h1 className="text-3xl font-semibold tracking-normal text-black sm:text-4xl">Upcoming hackathons</h1>
+            <h1 className="font-serif text-3xl font-semibold tracking-[-0.02em] text-navy dark:text-wheat sm:text-4xl">Upcoming hackathons</h1>
           </div>
 
           {hackathons.length ? (
@@ -749,9 +749,9 @@ export function HackathonSearch({
               ))}
             </div>
           ) : (
-            <div className="rounded-lg border border-black/10 bg-[#F7F7F4] p-8 text-center">
-              <h2 className="text-xl font-semibold text-black">No hackathons match your search</h2>
-              <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-[#706F6B]">
+            <div className="rounded-xl border border-navy/10 dark:border-white/10 bg-ivory dark:bg-white/5 p-8 text-center">
+              <h2 className="text-xl font-semibold text-navy dark:text-wheat">No hackathons match your search</h2>
+              <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-navy/55 dark:text-wheat/55">
                 Try a different name, country selection, date, or feature filter.
               </p>
             </div>

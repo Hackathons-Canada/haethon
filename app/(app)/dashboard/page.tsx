@@ -168,18 +168,18 @@ export default async function DashboardPage() {
   const actionCount = closingSoon.length + decisionsOut.length + unloggedAttendance.length;
 
   return (
-    <main className="min-h-screen bg-white px-5 pb-20 pt-14 text-black sm:px-8 sm:pt-16 lg:px-12">
+    <main className="min-h-screen px-5 pb-20 pt-14 text-navy dark:text-wheat sm:px-8 sm:pt-16 lg:px-12">
       <div className="mx-auto w-full max-w-[980px]">
-        <p className="font-mono text-xs font-medium uppercase tracking-[0.14em] text-[#660000]">Up next</p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-normal text-black sm:text-4xl">
+        <p className="font-mono text-xs font-medium uppercase tracking-[0.14em] text-rust">Up next</p>
+        <h1 className="mt-3 font-serif text-3xl font-semibold tracking-[-0.02em] text-navy dark:text-wheat sm:text-4xl">
           Welcome back, {firstName}.
         </h1>
 
-        <section className="mt-8 rounded-lg border border-black/10 bg-[#F7F7F4] p-6">
+        <section className="mt-8 rounded-xl border border-navy/10 dark:border-white/10 bg-ivory dark:bg-white/5 p-6">
           {nextEvent ? (
             <div className="flex flex-wrap items-start justify-between gap-5">
               <div className="min-w-0">
-                <p className="inline-flex items-center gap-2 font-mono text-xs font-medium uppercase tracking-[0.14em] text-[#660000]">
+                <p className="inline-flex items-center gap-2 font-mono text-xs font-medium uppercase tracking-[0.14em] text-rust">
                   {liveEvent ? (
                     <>
                       <Radio aria-hidden="true" className="size-3.5" />
@@ -190,12 +190,12 @@ export default async function DashboardPage() {
                   )}
                 </p>
                 <Link
-                  className="mt-2 block text-2xl font-semibold text-black underline-offset-4 hover:text-[#660000] hover:underline"
+                  className="mt-2 block text-2xl font-semibold text-navy dark:text-wheat underline-offset-4 hover:text-cabernet dark:hover:text-[#e4a3ab] hover:underline"
                   href={`/hackathons/${nextEvent.slug}`}
                 >
                   {nextEvent.hackathonName}
                 </Link>
-                <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-[#706F6B]">
+                <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-navy/55 dark:text-wheat/55">
                   <span className="inline-flex items-center gap-1">
                     <CalendarDays aria-hidden="true" className="size-3.5 shrink-0" />
                     {formatDateRange(nextEvent.startsAt, nextEvent.endsAt)}
@@ -212,7 +212,7 @@ export default async function DashboardPage() {
                 ) : null}
               </div>
               <Link
-                className="inline-flex min-h-10 items-center gap-1.5 border border-[#660000] px-5 text-sm font-semibold text-[#660000] transition-colors hover:bg-[#660000] hover:text-white"
+                className="inline-flex rounded-full min-h-10 items-center gap-1.5 border border-cabernet dark:border-[#e4a3ab]/50 px-5 text-sm font-semibold text-cabernet dark:text-[#e4a3ab] transition-colors hover:bg-cabernet hover:text-wheat"
                 href="/my"
               >
                 My hackathons
@@ -222,13 +222,13 @@ export default async function DashboardPage() {
           ) : (
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
-                <p className="text-base font-semibold text-black">No confirmed events on your calendar.</p>
-                <p className="mt-1 text-sm text-[#706F6B]">
+                <p className="text-base font-semibold text-navy dark:text-wheat">No confirmed events on your calendar.</p>
+                <p className="mt-1 text-sm text-navy/55 dark:text-wheat/55">
                   Find your next hackathon and we&apos;ll keep track of every deadline from there.
                 </p>
               </div>
               <Link
-                className="inline-flex min-h-10 items-center gap-1.5 border border-[#660000] px-5 text-sm font-semibold text-[#660000] transition-colors hover:bg-[#660000] hover:text-white"
+                className="inline-flex rounded-full min-h-10 items-center gap-1.5 border border-cabernet dark:border-[#e4a3ab]/50 px-5 text-sm font-semibold text-cabernet dark:text-[#e4a3ab] transition-colors hover:bg-cabernet hover:text-wheat"
                 href="/hackathons"
               >
                 Browse hackathons
@@ -240,19 +240,19 @@ export default async function DashboardPage() {
 
         {actionCount ? (
           <section className="mt-6">
-            <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-[#660000]">Needs your attention</h2>
+            <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-rust">Needs your attention</h2>
             <ul className="mt-4 space-y-2">
               {closingSoon.map((row) => (
                 <li key={`close-${row.id}`}>
                   <Link
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-black/10 p-4 transition-colors hover:border-[#660000]/40"
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-navy/10 dark:border-white/10 p-4 transition-colors hover:border-cabernet/40 dark:hover:border-[#e4a3ab]/40"
                     href={`/hackathons/${row.slug}`}
                   >
-                    <span className="inline-flex min-w-0 items-center gap-2 font-semibold text-black">
-                      <AlarmClock aria-hidden="true" className="size-4 shrink-0 text-[#660000]" />
+                    <span className="inline-flex min-w-0 items-center gap-2 font-semibold text-navy dark:text-wheat">
+                      <AlarmClock aria-hidden="true" className="size-4 shrink-0 text-cabernet dark:text-[#e4a3ab]" />
                       <span className="truncate">{row.hackathonName}</span>
                     </span>
-                    <span className="text-sm text-[#706F6B]">
+                    <span className="text-sm text-navy/55 dark:text-wheat/55">
                       Applications close {row.applicationClosesAt ? formatReminderDate(row.applicationClosesAt) : "soon"}
                     </span>
                   </Link>
@@ -261,28 +261,28 @@ export default async function DashboardPage() {
               {decisionsOut.map((row) => (
                 <li key={`decision-${row.id}`}>
                   <Link
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-black/10 p-4 transition-colors hover:border-[#660000]/40"
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-navy/10 dark:border-white/10 p-4 transition-colors hover:border-cabernet/40 dark:hover:border-[#e4a3ab]/40"
                     href={`/hackathons/${row.slug}`}
                   >
-                    <span className="inline-flex min-w-0 items-center gap-2 font-semibold text-black">
-                      <AlarmClock aria-hidden="true" className="size-4 shrink-0 text-[#660000]" />
+                    <span className="inline-flex min-w-0 items-center gap-2 font-semibold text-navy dark:text-wheat">
+                      <AlarmClock aria-hidden="true" className="size-4 shrink-0 text-cabernet dark:text-[#e4a3ab]" />
                       <span className="truncate">{row.hackathonName}</span>
                     </span>
-                    <span className="text-sm text-[#706F6B]">Decisions should be out — update your status</span>
+                    <span className="text-sm text-navy/55 dark:text-wheat/55">Decisions should be out — update your status</span>
                   </Link>
                 </li>
               ))}
               {unloggedAttendance.map((row) => (
                 <li key={`attend-${row.id}`}>
                   <Link
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-black/10 p-4 transition-colors hover:border-[#660000]/40"
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-navy/10 dark:border-white/10 p-4 transition-colors hover:border-cabernet/40 dark:hover:border-[#e4a3ab]/40"
                     href="/my"
                   >
-                    <span className="inline-flex min-w-0 items-center gap-2 font-semibold text-black">
-                      <AlarmClock aria-hidden="true" className="size-4 shrink-0 text-[#660000]" />
+                    <span className="inline-flex min-w-0 items-center gap-2 font-semibold text-navy dark:text-wheat">
+                      <AlarmClock aria-hidden="true" className="size-4 shrink-0 text-cabernet dark:text-[#e4a3ab]" />
                       <span className="truncate">{row.hackathonName}</span>
                     </span>
-                    <span className="text-sm text-[#706F6B]">Event ended — mark it attended for your profile</span>
+                    <span className="text-sm text-navy/55 dark:text-wheat/55">Event ended — mark it attended for your profile</span>
                   </Link>
                 </li>
               ))}
@@ -293,9 +293,9 @@ export default async function DashboardPage() {
         {suggestions.length ? (
           <section className="mt-10">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-[#660000]">Worth a look</h2>
+              <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-rust">Worth a look</h2>
               <Link
-                className="text-sm font-semibold text-[#660000] underline-offset-4 hover:underline"
+                className="text-sm font-semibold text-cabernet dark:text-[#e4a3ab] underline-offset-4 hover:underline"
                 href="/hackathons"
               >
                 Browse all

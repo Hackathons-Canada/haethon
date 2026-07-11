@@ -50,7 +50,7 @@ export function MarkAttendedButton({ userHackathonId }: { userHackathonId: strin
   return (
     <div>
       <button
-        className="inline-flex min-h-8 items-center border border-[#660000] px-3 font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-[#660000] transition-colors hover:bg-[#660000] hover:text-white disabled:cursor-wait disabled:opacity-60"
+        className="inline-flex rounded-full min-h-8 items-center border border-cabernet dark:border-[#e4a3ab]/50 px-3 font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-cabernet dark:text-[#e4a3ab] transition-colors hover:bg-cabernet hover:text-wheat disabled:cursor-wait disabled:opacity-60"
         disabled={pending}
         onClick={markAttended}
         type="button"

@@ -82,16 +82,16 @@ export function BulkIdApproval({ submissions }: { submissions: SubmissionReviewI
   const alreadyReviewed = matches.filter((submission) => submission.status !== "pending");
 
   return (
-    <section className="rounded-lg border border-black/10 bg-white p-6">
+    <section className="rounded-xl border border-navy/10 dark:border-white/10 bg-white dark:bg-white/[0.06] p-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#660000]">Bulk ID approval</p>
-          <h2 className="mt-2 text-2xl font-semibold text-black">HNA IDs</h2>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-[#706F6B]">
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-rust">Bulk ID approval</p>
+          <h2 className="mt-2 text-2xl font-semibold text-navy dark:text-wheat">HNA IDs</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-navy/55 dark:text-wheat/55">
             Paste submission or published hackathon IDs, then approve, merge, or reject the next matching pending record.
           </p>
         </div>
-        <div className="rounded-lg border border-black/10 bg-[#F7F7F4] px-4 py-3 text-sm font-semibold text-black">
+        <div className="rounded-xl border border-navy/10 dark:border-white/10 bg-ivory dark:bg-white/5 px-4 py-3 text-sm font-semibold text-navy dark:text-wheat">
           {pendingMatches.length} ready
         </div>
       </div>
@@ -99,13 +99,13 @@ export function BulkIdApproval({ submissions }: { submissions: SubmissionReviewI
       <form className="mt-5 grid gap-3 lg:grid-cols-[1fr_auto]" onSubmit={onSubmit}>
         <textarea
           aria-label="HNA IDs"
-          className="min-h-28 w-full rounded-lg border border-black/15 bg-[#F7F7F4] p-4 font-mono text-xs leading-5 text-black outline-none focus:border-[#660000] focus:ring-2 focus:ring-[#660000]/15"
+          className="min-h-28 w-full rounded-xl border border-navy/15 dark:border-white/15 bg-ivory dark:bg-white/5 p-4 font-mono text-xs leading-5 text-navy dark:text-wheat outline-none focus:border-cabernet focus:ring-2 focus:ring-cabernet/15"
           onChange={(event) => setIdsText(event.target.value)}
           placeholder="Paste IDs separated by spaces, commas, or new lines"
           spellCheck={false}
           value={idsText}
         />
-        <button className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-black px-4 text-sm font-semibold text-white" type="submit">
+        <button className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-cabernet hover:bg-[#5c151c] px-4 text-sm font-semibold text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white dark:hover:bg-white/15" type="submit">
           <Search aria-hidden="true" className="size-4" />
           Load IDs
         </button>
@@ -113,9 +113,9 @@ export function BulkIdApproval({ submissions }: { submissions: SubmissionReviewI
 
       {activeIds.length ? (
         <div className="mt-5 space-y-4">
-          <div className="flex flex-wrap items-center gap-3 text-sm text-[#706F6B]">
-            <span className="inline-flex items-center gap-2 font-semibold text-black">
-              <ClipboardCheck aria-hidden="true" className="size-4 text-[#660000]" />
+          <div className="flex flex-wrap items-center gap-3 text-sm text-navy/55 dark:text-wheat/55">
+            <span className="inline-flex items-center gap-2 font-semibold text-navy dark:text-wheat">
+              <ClipboardCheck aria-hidden="true" className="size-4 text-cabernet dark:text-[#e4a3ab]" />
               {matches.length} matched
             </span>
             {missingIds.length ? <span>{missingIds.length} not found in the loaded admin queue</span> : null}
@@ -123,7 +123,7 @@ export function BulkIdApproval({ submissions }: { submissions: SubmissionReviewI
           </div>
 
           {missingIds.length ? (
-            <details className="rounded-lg border border-[#B54708]/25 bg-[#FFFAEB] p-4">
+            <details className="rounded-xl border border-[#B54708]/25 bg-[#FFFAEB] p-4">
               <summary className="cursor-pointer text-sm font-semibold text-[#B54708]">Missing IDs</summary>
               <p className="mt-2 break-all font-mono text-xs text-[#704600]">{missingIds.join(", ")}</p>
             </details>

@@ -95,10 +95,10 @@ export function HackathonStatusTracker({
               compact ? "min-h-8" : "min-h-9"
             } ${
               active
-                ? "border-[#660000] bg-[#660000] text-white"
+                ? "border-cabernet dark:border-[#e4a3ab]/50 bg-cabernet text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white dark:hover:bg-white/15"
                 : reached
-                  ? "border-[#660000]/40 bg-[#660000]/5 text-[#660000] hover:bg-[#660000]/10"
-                  : "border-black/15 bg-white text-[#706F6B] hover:border-[#660000]/40 hover:text-[#660000]"
+                  ? "border-cabernet/40 bg-cabernet/5 dark:bg-[#e4a3ab]/10 text-cabernet dark:text-[#e4a3ab] hover:bg-cabernet/10"
+                  : "border-navy/15 dark:border-white/15 bg-white dark:bg-white/[0.06] text-navy/55 dark:text-wheat/55 hover:border-cabernet/40 dark:hover:border-[#e4a3ab]/40 hover:text-cabernet dark:hover:text-[#e4a3ab]"
             }`}
             disabled={pending || isPastPipeline}
             key={stage.value}
@@ -111,7 +111,7 @@ export function HackathonStatusTracker({
         );
       })}
       {isPastPipeline ? (
-        <span className="inline-flex min-h-8 items-center border border-black/10 bg-[#F7F7F4] px-3 font-medium text-black">
+        <span className="inline-flex rounded-full min-h-8 items-center border border-navy/10 dark:border-white/10 bg-ivory dark:bg-white/5 px-3 font-medium text-navy dark:text-wheat">
           {status === "won" ? "Won" : "Attended"}
         </span>
       ) : null}

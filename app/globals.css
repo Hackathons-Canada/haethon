@@ -345,6 +345,58 @@ select {
   }
 }
 
+/* ---------- App atmosphere ----------
+   Faint version of the hero's aurora for the app shell. Layers are static
+   (no animation) so the workspace stays calm; the .dark overrides deepen
+   the wash into the night-sky look from the landing hero. */
+
+.app-atmosphere-wash {
+  background: radial-gradient(
+    115% 75% at 50% 0%,
+    rgb(244 235 217 / 0.4) 0%,
+    transparent 65%
+  );
+}
+
+.dark .app-atmosphere-wash {
+  background: radial-gradient(
+    120% 85% at 50% 0%,
+    rgb(16 23 34 / 0.7) 0%,
+    transparent 70%
+  );
+}
+
+.app-atmosphere-aurora {
+  background:
+    radial-gradient(ellipse 60% 50% at 70% 35%, rgb(45 74 34 / 0.1), transparent 68%),
+    radial-gradient(ellipse 50% 45% at 88% 55%, rgb(70 120 110 / 0.08), transparent 65%),
+    radial-gradient(ellipse 45% 40% at 55% 25%, rgb(114 28 36 / 0.07), transparent 70%),
+    radial-gradient(ellipse 35% 30% at 40% 70%, rgb(29 42 68 / 0.06), transparent 60%);
+  filter: blur(48px);
+}
+
+.dark .app-atmosphere-aurora {
+  background:
+    radial-gradient(ellipse 60% 50% at 70% 35%, rgb(45 74 34 / 0.38), transparent 68%),
+    radial-gradient(ellipse 50% 45% at 88% 55%, rgb(70 120 110 / 0.26), transparent 65%),
+    radial-gradient(ellipse 45% 40% at 55% 25%, rgb(114 28 36 / 0.2), transparent 70%),
+    radial-gradient(ellipse 35% 30% at 40% 70%, rgb(29 42 68 / 0.28), transparent 60%);
+}
+
+.app-atmosphere-glow {
+  background:
+    radial-gradient(ellipse 55% 45% at 30% 35%, rgb(70 120 110 / 0.07), transparent 66%),
+    radial-gradient(ellipse 45% 40% at 15% 60%, rgb(45 74 34 / 0.06), transparent 68%);
+  filter: blur(52px);
+}
+
+.dark .app-atmosphere-glow {
+  background:
+    radial-gradient(ellipse 55% 45% at 30% 35%, rgb(70 120 110 / 0.2), transparent 66%),
+    radial-gradient(ellipse 45% 40% at 15% 60%, rgb(45 74 34 / 0.22), transparent 68%),
+    radial-gradient(ellipse 38% 32% at 42% 22%, rgb(29 42 68 / 0.26), transparent 62%);
+}
+
 /* ---------- Hero atmosphere ---------- */
 
 /* Film grain over the aurora — tactile, keeps the gradients from banding. */

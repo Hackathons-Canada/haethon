@@ -126,7 +126,7 @@ export default async function HackathonsPage({
   const hackathonCards = await getHackathonCards(filters);
 
   return (
-    <main className="min-h-screen bg-white text-black">
+    <main className="min-h-screen text-navy dark:text-wheat">
       <HackathonSearch initialFilters={filters} initialHackathons={hackathonCards} />
     </main>
   );

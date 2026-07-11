@@ -59,21 +59,21 @@ export function HackathonCheckinForm({ hackathonId }: { hackathonId: string }) {
           <input
             aria-label="Check-in code"
             autoFocus
-            className="h-9 w-36 rounded-lg border border-black/15 bg-white px-3 font-mono text-sm uppercase tracking-widest text-black outline-none focus:border-[#660000]"
+            className="h-9 w-36 rounded-xl border border-navy/15 dark:border-white/15 bg-white dark:bg-white/[0.06] px-3 font-mono text-sm uppercase tracking-widest text-navy dark:text-wheat outline-none focus:border-cabernet"
             maxLength={20}
             onChange={(event) => setCode(event.target.value.toUpperCase())}
             placeholder="CODE"
             value={code}
           />
           <button
-            className="h-9 rounded-lg bg-[#660000] px-3 text-sm font-semibold text-white transition hover:bg-[#4d0000] disabled:opacity-50"
+            className="h-9 rounded-xl bg-cabernet px-3 text-sm font-semibold text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white dark:hover:bg-white/15 transition hover:bg-[#5c151c] disabled:opacity-50"
             disabled={pending || !code.trim()}
             type="submit"
           >
             {pending ? "Checking…" : "Check in"}
           </button>
           <button
-            className="h-9 px-2 text-sm text-[#706F6B] hover:text-black"
+            className="h-9 px-2 text-sm text-navy/55 dark:text-wheat/55 hover:text-navy dark:hover:text-wheat"
             onClick={() => {
               setOpen(false);
               setFeedback(null);
@@ -85,7 +85,7 @@ export function HackathonCheckinForm({ hackathonId }: { hackathonId: string }) {
         </form>
       ) : (
         <button
-          className="text-sm font-semibold text-[#660000] underline-offset-2 hover:underline"
+          className="text-sm font-semibold text-cabernet dark:text-[#e4a3ab] underline-offset-2 hover:underline"
           onClick={() => setOpen(true)}
           type="button"
         >

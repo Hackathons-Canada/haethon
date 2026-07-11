@@ -147,14 +147,14 @@ export function HackathonFixJsonImporter() {
     <form className="space-y-5" onSubmit={onSubmit}>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#660000]">Fix queue import</p>
-          <h2 className="mt-2 text-2xl font-semibold text-black">Broken scraped JSON</h2>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-[#706F6B]">
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-rust">Fix queue import</p>
+          <h2 className="mt-2 text-2xl font-semibold text-navy dark:text-wheat">Broken scraped JSON</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-navy/55 dark:text-wheat/55">
             Import records with `source`, `reason`, `sourceUrl`, and `raw`. Each item becomes a pending review card with editable fields and the fix reason attached.
           </p>
         </div>
         <button
-          className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-black px-4 text-sm font-semibold text-white disabled:opacity-50"
+          className="inline-flex min-h-10 items-center gap-2 rounded-full bg-cabernet hover:bg-[#5c151c] px-4 text-sm font-semibold text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white dark:hover:bg-white/15 disabled:opacity-50"
           disabled={status === "submitting" || !jsonText.trim()}
           type="submit"
         >
@@ -165,7 +165,7 @@ export function HackathonFixJsonImporter() {
 
       <textarea
         aria-label="Broken hackathon JSON"
-        className="min-h-72 w-full rounded-lg border border-black/15 bg-[#F7F7F4] p-4 font-mono text-xs leading-5 text-black outline-none focus:border-[#660000] focus:ring-2 focus:ring-[#660000]/15"
+        className="min-h-72 w-full rounded-xl border border-navy/15 dark:border-white/15 bg-ivory dark:bg-white/5 p-4 font-mono text-xs leading-5 text-navy dark:text-wheat outline-none focus:border-cabernet focus:ring-2 focus:ring-cabernet/15"
         onChange={(event) => setJsonText(event.target.value)}
         placeholder={sampleFixJson}
         spellCheck={false}
@@ -173,17 +173,17 @@ export function HackathonFixJsonImporter() {
       />
 
       {preview.length ? (
-        <div className="overflow-hidden rounded-lg border border-black/10">
-          <div className="grid grid-cols-[1fr_0.75fr_0.9fr] gap-3 border-b border-black/10 bg-[#F7F7F4] px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#706F6B]">
+        <div className="overflow-hidden rounded-xl border border-navy/10 dark:border-white/10">
+          <div className="grid grid-cols-[1fr_0.75fr_0.9fr] gap-3 border-b border-navy/10 dark:border-white/10 bg-ivory dark:bg-white/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-navy/55 dark:text-wheat/55">
             <span>Pre-populated event</span>
             <span>Source</span>
             <span>Reason</span>
           </div>
-          <div className="divide-y divide-black/10 bg-white">
+          <div className="divide-y divide-navy/10 dark:divide-white/10 bg-white dark:bg-white/[0.06]">
             {preview.map((item, index) => (
               <div className="grid grid-cols-[1fr_0.75fr_0.9fr] gap-3 px-4 py-3 text-sm" key={`${item.sourceUrl}-${index}`}>
-                <span className="font-semibold text-black">{item.name}</span>
-                <span className="truncate text-[#706F6B]">{item.source}</span>
+                <span className="font-semibold text-navy dark:text-wheat">{item.name}</span>
+                <span className="truncate text-navy/55 dark:text-wheat/55">{item.source}</span>
                 <span className="text-[#B54708]">{item.reason}</span>
               </div>
             ))}
@@ -193,7 +193,7 @@ export function HackathonFixJsonImporter() {
 
       {message ? (
         <div
-          className={`flex items-start gap-2 rounded-lg border px-4 py-3 text-sm font-semibold ${
+          className={`flex items-start gap-2 rounded-xl border px-4 py-3 text-sm font-semibold ${
             status === "error"
               ? "border-[#B42318]/30 bg-[#FEF3F2] text-[#B42318]"
               : "border-[#027A48]/25 bg-[#ECFDF3] text-[#027A48]"
@@ -209,17 +209,17 @@ export function HackathonFixJsonImporter() {
       ) : null}
 
       {results.length ? (
-        <div className="overflow-hidden rounded-lg border border-black/10">
-          <div className="grid grid-cols-[1fr_auto_1fr] gap-3 border-b border-black/10 bg-[#F7F7F4] px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#706F6B]">
+        <div className="overflow-hidden rounded-xl border border-navy/10 dark:border-white/10">
+          <div className="grid grid-cols-[1fr_auto_1fr] gap-3 border-b border-navy/10 dark:border-white/10 bg-ivory dark:bg-white/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-navy/55 dark:text-wheat/55">
             <span>Queued item</span>
             <span>Duplicate</span>
             <span>Reason</span>
           </div>
-          <div className="divide-y divide-black/10 bg-white">
+          <div className="divide-y divide-navy/10 dark:divide-white/10 bg-white dark:bg-white/[0.06]">
             {results.map((result) => (
               <div className="grid grid-cols-[1fr_auto_1fr] gap-3 px-4 py-3 text-sm" key={result.submissionId}>
-                <span className="font-semibold text-black">{result.name}</span>
-                <span className="text-[#706F6B]">{result.duplicateScore.toFixed(2)}</span>
+                <span className="font-semibold text-navy dark:text-wheat">{result.name}</span>
+                <span className="text-navy/55 dark:text-wheat/55">{result.duplicateScore.toFixed(2)}</span>
                 <span className="inline-flex items-start gap-2 text-[#B54708]">
                   <FileWarning aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
                   {result.reason}
