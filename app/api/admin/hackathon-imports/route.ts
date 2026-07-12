@@ -29,6 +29,7 @@ export async function POST(request: Request) {
     const result = await importAdminHackathons({
       payloads: parsed.data.hackathons,
       reviewerUserId: gate.user.id,
+      ignoreDuplicates: parsed.data.ignoreDuplicates ?? false,
     });
 
     return NextResponse.json({ data: result }, { status: 201 });

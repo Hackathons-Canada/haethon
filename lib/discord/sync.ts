@@ -1,4 +1,4 @@
-import { and, eq, inArray, isNotNull } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, ne } from "drizzle-orm";
 import { REST } from "@discordjs/rest";
 import * as Sentry from "@sentry/nextjs";
 import { ChannelType, Routes } from "discord-api-types/v10";
@@ -56,6 +56,10 @@ type SyncContext = {
 const SYNC_CONCURRENCY = 4;
 
 const INELIGIBLE_REASON = "Only Canadian and US hackathons are synced to Discord.";
+
+// Holding category for channels whose hackathon was deleted. Never a sync
+// target — it just parks the channel so an admin can remove it on Discord later.
+const DELETED_CATEGORY_NAME = "deleted";
 
 const categoryNames: Record<DiscordCategoryKey, string> = {
   canada: "Canadian Hackathons",
@@ -396,6 +400,128 @@ export async function syncHackathonDiscordChannel(hackathonId: string) {
     },
     { ...row, seriesId }
   );
+}
+
+/**
+ * Finds (or creates) the "deleted" holding category in the guild. Like the
+ * canada/us/past categories it honours an explicit `DISCORD_DELETED_CATEGORY_ID`
+ * override; without one it falls back to a case-insensitive name match (reusing
+ * an existing "Deleted" category) and only creates the category as a last resort.
+ * Unlike the others it is never a sync target — it just parks retired channels.
+ */
+async function resolveDeletedCategoryId(rest: REST, guildSnowflake: string) {
+  const channels = await listGuildChannels(rest, guildSnowflake);
+
+  if (env.DISCORD_DELETED_CATEGORY_ID) {
+    const configured = channels.find((channel) => channel.id === env.DISCORD_DELETED_CATEGORY_ID);
+
+    if (!configured || configured.type !== ChannelType.GuildCategory) {
+      throw new Error(
+        `The configured Discord category ID for "${DELETED_CATEGORY_NAME}" was not found in the configured guild.`
+      );
+    }
+
+    return configured.id;
+  }
+
+  const existing = channels.find(
+    (channel) =>
+      channel.type === ChannelType.GuildCategory && channel.name.toLowerCase() === DELETED_CATEGORY_NAME
+  );
+
+  if (existing) {
+    return existing.id;
+  }
+
+  const created = (await rest.post(Routes.guildChannels(guildSnowflake), {
+    body: {
+      name: DELETED_CATEGORY_NAME,
+      type: ChannelType.GuildCategory,
+    },
+  })) as DiscordChannel;
+
+  return created.id;
+}
+
+/**
+ * Parks the Discord channel currently occupied by a hackathon in the "deleted"
+ * category before that hackathon is removed. The channel is kept (so an admin can
+ * review and delete it on Discord later) but detached from its series and
+ * hackathon so the daily sync never pulls it back into an active category.
+ *
+ * The channel is only retired when no other hackathon in the same series still
+ * relies on it. Throws if the Discord move fails, so the caller can abort the
+ * hackathon deletion rather than leave an orphaned channel behind.
+ */
+export async function retireHackathonDiscordChannel(hackathonId: string) {
+  const rest = discordRest();
+
+  if (!rest || !env.DISCORD_GUILD_ID) {
+    return { reason: "Discord bot credentials are not configured.", status: "skipped" as const };
+  }
+
+  const [mapped] = await db
+    .select({
+      channelSnowflake: discordChannels.channelSnowflake,
+      recordId: discordChannels.id,
+      seriesId: discordChannels.seriesId,
+    })
+    .from(discordChannels)
+    .innerJoin(discordGuilds, eq(discordGuilds.id, discordChannels.guildId))
+    .where(
+      and(
+        eq(discordGuilds.guildSnowflake, env.DISCORD_GUILD_ID),
+        eq(discordChannels.hackathonId, hackathonId)
+      )
+    )
+    .limit(1);
+
+  if (!mapped) {
+    return { reason: "No Discord channel is attached to this hackathon.", status: "skipped" as const };
+  }
+
+  // Channels are shared across a series. If another hackathon still belongs to
+  // the series, that event continues to need this channel — leave it in place.
+  if (mapped.seriesId) {
+    const [sibling] = await db
+      .select({ id: hackathons.id })
+      .from(hackathons)
+      .where(and(eq(hackathons.seriesId, mapped.seriesId), ne(hackathons.id, hackathonId)))
+      .limit(1);
+
+    if (sibling) {
+      return { reason: "Channel is still used by another hackathon in the series.", status: "skipped" as const };
+    }
+  }
+
+  const parentId = await resolveDeletedCategoryId(rest, env.DISCORD_GUILD_ID);
+
+  try {
+    await rest.patch(Routes.channel(mapped.channelSnowflake), {
+      body: {
+        parent_id: parentId,
+      },
+    });
+  } catch (error) {
+    // The channel was already removed on Discord — nothing to move. Fall through
+    // to clean up the stale record instead of aborting the whole deletion.
+    if (!isUnknownChannelError(error)) {
+      throw error;
+    }
+  }
+
+  // Detach from series/hackathon so the daily sync never reclaims it, and record
+  // the holding category as a tombstone.
+  await db
+    .update(discordChannels)
+    .set({
+      category: DELETED_CATEGORY_NAME,
+      hackathonId: null,
+      seriesId: null,
+    })
+    .where(eq(discordChannels.id, mapped.recordId));
+
+  return { channelSnowflake: mapped.channelSnowflake, status: "retired" as const };
 }
 
 /**

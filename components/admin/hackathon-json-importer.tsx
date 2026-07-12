@@ -26,9 +26,10 @@ type ImportResult = {
   hackathonId?: string;
   index: number;
   matchedHackathonId?: string;
+  matchedName?: string | null;
   name: string;
-  status: "imported" | "duplicate_queued";
-  submissionId: string;
+  status: "imported" | "duplicate_flagged";
+  submissionId?: string;
 };
 
 type DiscordSyncResult =
@@ -79,6 +80,7 @@ export function HackathonJsonImporter() {
   const [results, setResults] = useState<ImportResult[]>([]);
   const [skippedCount, setSkippedCount] = useState(0);
   const [pendingDiscord, setPendingDiscord] = useState<{ discord: EligibleDiscordPreview; hackathonId: string } | null>(null);
+  const [pendingDuplicate, setPendingDuplicate] = useState<{ matchedName: string | null; duplicateScore: number } | null>(null);
   const [discordBusy, setDiscordBusy] = useState(false);
 
   const activePayload = queue[currentIndex];
@@ -104,6 +106,7 @@ export function HackathonJsonImporter() {
     setSkippedCount(0);
     setCurrentIndex(0);
     setPendingDiscord(null);
+    setPendingDuplicate(null);
 
     let parsed: unknown;
 
@@ -127,18 +130,23 @@ export function HackathonJsonImporter() {
     setMessage(`${payloads.length} cards ready to review.`);
   }
 
-  async function approveActive() {
+  async function runImport(options?: { ignoreDuplicates?: boolean }) {
     if (!activePayload) {
       return;
     }
 
     setStatus("submitting");
     setMessage(null);
+    setPendingDuplicate(null);
 
     const response = await fetch("/api/admin/hackathon-imports", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify([activePayload]),
+      // The bare array is the normal import; the wrapped form carries the override that
+      // republishes a flagged card as a brand-new hackathon.
+      body: JSON.stringify(
+        options?.ignoreDuplicates ? { hackathons: [activePayload], ignoreDuplicates: true } : [activePayload]
+      ),
     });
     const body = (await response.json()) as ImportResponse;
 
@@ -149,10 +157,21 @@ export function HackathonJsonImporter() {
     }
 
     const data = body.data;
-    setResults((current) => [...current, ...data.results]);
+    // Only genuinely imported cards count toward the approved tally; a flagged duplicate is
+    // resolved inline and never lands in the results list.
+    setResults((current) => [...current, ...data.results.filter((result) => result.status === "imported")]);
     router.refresh();
 
     const first = data.results[0];
+
+    // A likely duplicate pauses here so the admin can decide right away instead of hunting
+    // for it in the Submissions queue later.
+    if (first?.status === "duplicate_flagged") {
+      setStatus("idle");
+      setMessage(null);
+      setPendingDuplicate({ matchedName: first.matchedName ?? null, duplicateScore: first.duplicateScore });
+      return;
+    }
 
     // Canadian/US events pause here for a separate Discord channel decision. The
     // channel is not created until the admin approves it in decideDiscord.
@@ -164,12 +183,16 @@ export function HackathonJsonImporter() {
     }
 
     setStatus("success");
-    setMessage(
-      data.duplicateCount
-        ? "Queued as a duplicate for later review."
-        : "Imported. Not a Canada/US event, so no Discord channel is offered."
-    );
+    setMessage("Imported. Not a Canada/US event, so no Discord channel is offered.");
     setCurrentIndex((current) => current + 1);
+  }
+
+  function dismissDuplicate() {
+    setPendingDuplicate(null);
+    setSkippedCount((current) => current + 1);
+    setCurrentIndex((current) => current + 1);
+    setStatus("success");
+    setMessage("Skipped the duplicate. Nothing was queued.");
   }
 
   async function decideDiscord(action: "approve" | "deny") {
@@ -228,6 +251,7 @@ export function HackathonJsonImporter() {
     setStatus("idle");
     setMessage(null);
     setPendingDiscord(null);
+    setPendingDuplicate(null);
   }
 
   if (queue.length) {
@@ -261,7 +285,41 @@ export function HackathonJsonImporter() {
               <HackathonCardPreview payload={activePayload} previewId={`import-preview-${currentIndex}`} />
               <HackathonPayloadDetails payload={activePayload} />
             </div>
-            {pendingDiscord && pendingDiscord.discord.action !== "create" ? (
+            {pendingDuplicate ? (
+              <div className="flex flex-col justify-between rounded-xl border border-[#B54708]/30 bg-[#FFFAEB] dark:border-[#f5b678]/40 dark:bg-[#f5b678]/10 p-4">
+                <div>
+                  <p className="text-sm font-semibold text-navy dark:text-wheat">Possible duplicate</p>
+                  <p className="mt-2 text-sm leading-6 text-navy/55 dark:text-wheat/55">
+                    This matches{" "}
+                    <span className="font-semibold text-navy dark:text-wheat">
+                      {pendingDuplicate.matchedName ?? "an existing hackathon"}
+                    </span>{" "}
+                    on both name and start date (match {pendingDuplicate.duplicateScore.toFixed(2)}). Import it as a
+                    separate hackathon anyway, or skip it — nothing is queued either way.
+                  </p>
+                </div>
+                <div className="mt-5 grid gap-3">
+                  <button
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#027A48] px-4 text-sm font-semibold text-white disabled:opacity-50"
+                    disabled={status === "submitting"}
+                    onClick={() => runImport({ ignoreDuplicates: true })}
+                    type="button"
+                  >
+                    <Check aria-hidden="true" className="size-4" />
+                    Import as new anyway
+                  </button>
+                  <button
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-[#B42318] px-4 text-sm font-semibold text-[#B42318] disabled:opacity-50"
+                    disabled={status === "submitting"}
+                    onClick={dismissDuplicate}
+                    type="button"
+                  >
+                    <X aria-hidden="true" className="size-4" />
+                    Skip
+                  </button>
+                </div>
+              </div>
+            ) : pendingDiscord && pendingDiscord.discord.action !== "create" ? (
               <div className="flex flex-col justify-between rounded-xl border border-cabernet/20 dark:border-[#e4a3ab]/40 bg-cabernet/5 dark:bg-[#e4a3ab]/10 p-4">
                 <div>
                   <p className="text-sm font-semibold text-navy dark:text-wheat">Create a Discord channel?</p>
@@ -307,7 +365,7 @@ export function HackathonJsonImporter() {
                   <button
                     className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#027A48] px-4 text-sm font-semibold text-white disabled:opacity-50"
                     disabled={status === "submitting"}
-                    onClick={approveActive}
+                    onClick={() => runImport()}
                     type="button"
                   >
                     <Check aria-hidden="true" className="size-4" />
@@ -439,7 +497,7 @@ export function HackathonJsonImporter() {
               <div className="grid grid-cols-[1fr_auto_auto] gap-3 px-4 py-3 text-sm" key={`${result.status}-${result.submissionId}`}>
                 <span className="font-semibold text-navy dark:text-wheat">{result.name}</span>
                 <span className={result.status === "imported" ? "text-[#027A48]" : "text-[#B54708]"}>
-                  {result.status === "imported" ? "Imported" : "Queued"}
+                  {result.status === "imported" ? "Imported" : "Flagged"}
                 </span>
                 <span className="text-navy/55 dark:text-wheat/55">{result.duplicateScore.toFixed(2)}</span>
               </div>

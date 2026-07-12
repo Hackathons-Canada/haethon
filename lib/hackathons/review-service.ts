@@ -144,22 +144,27 @@ async function isVerifiedOrganizerForOrganization(userId: string, role: string, 
   return Boolean(membership);
 }
 
-type DuplicateCandidate = { id: string; name: string; websiteUrl: string | null };
+type DuplicateCandidate = { id: string; name: string; websiteUrl: string | null; startsAt: Date | null };
 
 async function listDuplicateCandidates(): Promise<DuplicateCandidate[]> {
+  // A single left-joined query (still capped at 100 rows) keeps this as cheap as the
+  // previous candidate lookup while making each hackathon's start date available for
+  // same-day duplicate matching.
   return db
     .select({
       id: hackathons.id,
       name: hackathons.name,
       websiteUrl: hackathons.websiteUrl,
+      startsAt: hackathonDates.startsAt,
     })
     .from(hackathons)
+    .leftJoin(hackathonDates, eq(hackathonDates.hackathonId, hackathons.id))
     .orderBy(desc(hackathons.createdAt))
     .limit(100);
 }
 
 function findBestDuplicateInCandidates(
-  payload: { name: string; websiteUrl?: string | null; sourceUrl?: string | null },
+  payload: { name: string; websiteUrl?: string | null; sourceUrl?: string | null; startDate?: Date | string | null },
   rows: DuplicateCandidate[]
 ) {
 
@@ -170,8 +175,10 @@ function findBestDuplicateInCandidates(
       candidateName: payload.name,
       candidateWebsiteUrl: payload.websiteUrl,
       candidateSourceUrl: payload.sourceUrl,
+      candidateStartDate: payload.startDate,
       existingName: row.name,
       existingWebsiteUrl: row.websiteUrl,
+      existingStartDate: row.startsAt,
     });
 
     if (!best || score > best.score) {
@@ -567,7 +574,11 @@ export async function importAdminHackathonFixItems(input: { items: AdminHackatho
   };
 }
 
-export async function importAdminHackathons(input: { payloads: AdminHackathonImportPayload[]; reviewerUserId: string }) {
+export async function importAdminHackathons(input: {
+  payloads: AdminHackathonImportPayload[];
+  reviewerUserId: string;
+  ignoreDuplicates?: boolean;
+}) {
   const results: Array<{
     discord?: DiscordChannelPreview;
     duplicateScore: number;
@@ -575,49 +586,40 @@ export async function importAdminHackathons(input: { payloads: AdminHackathonImp
     hackathonId?: string;
     index: number;
     matchedHackathonId?: string;
+    matchedName?: string | null;
     name: string;
-    status: "imported" | "duplicate_queued";
-    submissionId: string;
+    status: "imported" | "duplicate_flagged";
+    submissionId?: string;
   }> = [];
   const duplicateCandidates = await listDuplicateCandidates();
 
   for (const [index, rawPayload] of input.payloads.entries()) {
     const payload = payloadWithValidOrganizationId(rawPayload);
-    const duplicate = findBestDuplicateInCandidates(payload, duplicateCandidates);
+    // "Import as new anyway" re-submits the same card with ignoreDuplicates so it bypasses
+    // the check entirely and publishes (then flows into the normal Discord prompt).
+    const duplicate = input.ignoreDuplicates ? null : findBestDuplicateInCandidates(payload, duplicateCandidates);
     const duplicateScore = Number((duplicate?.score ?? 0).toFixed(2));
 
     if (duplicate) {
-      const [submission] = await db
-        .insert(hackathonSubmissions)
-        .values({
-          submittedByUserId: input.reviewerUserId,
-          submitterType: "community",
-          organizationId: payload.organizationId ?? null,
-          matchedHackathonId: duplicate.id,
-          status: "pending",
-          payload: payloadForJson({ ...payload, submitterType: "community" }),
-          normalizedName: payload.name,
-          websiteUrl: payload.websiteUrl,
-          sourceUrl: payload.sourceUrl ?? payload.websiteUrl,
-          duplicateScore: duplicateScore.toFixed(2),
-        })
-        .returning({ id: hackathonSubmissions.id });
+      // Surface the match to the importer immediately instead of parking a pending
+      // submission in the review queue — nothing is written until the admin decides.
+      const matchedName = duplicateCandidates.find((candidate) => candidate.id === duplicate.id)?.name ?? null;
 
       results.push({
         duplicateScore,
         externalId: rawPayload.externalId,
         index,
         matchedHackathonId: duplicate.id,
+        matchedName,
         name: payload.name,
-        status: "duplicate_queued",
-        submissionId: submission.id,
+        status: "duplicate_flagged",
       });
       continue;
     }
 
     // Do not create the Discord channel yet — the admin approves that separately.
     const hackathonId = await createPublishedHackathon(payload, { syncDiscord: false });
-    duplicateCandidates.unshift({ id: hackathonId, name: payload.name, websiteUrl: payload.websiteUrl });
+    duplicateCandidates.unshift({ id: hackathonId, name: payload.name, websiteUrl: payload.websiteUrl, startsAt: payload.startDate });
     const discord = await previewHackathonDiscordChannel(hackathonId);
     const [submission] = await db
       .insert(hackathonSubmissions)
@@ -650,7 +652,7 @@ export async function importAdminHackathons(input: { payloads: AdminHackathonImp
   }
 
   return {
-    duplicateCount: results.filter((result) => result.status === "duplicate_queued").length,
+    duplicateCount: results.filter((result) => result.status === "duplicate_flagged").length,
     importedCount: results.filter((result) => result.status === "imported").length,
     results,
     total: results.length,

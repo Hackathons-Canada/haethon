@@ -127,12 +127,25 @@ function jaccardSimilarity(left: string, right: string) {
   return intersection / union;
 }
 
+function sameCalendarDay(left: Date | string, right: Date | string) {
+  const leftDate = left instanceof Date ? left : new Date(left);
+  const rightDate = right instanceof Date ? right : new Date(right);
+
+  if (Number.isNaN(leftDate.getTime()) || Number.isNaN(rightDate.getTime())) {
+    return false;
+  }
+
+  return toDateOnly(leftDate).getTime() === toDateOnly(rightDate).getTime();
+}
+
 export function calculateDuplicateScore(input: {
   candidateName: string;
   candidateWebsiteUrl?: string | null;
   candidateSourceUrl?: string | null;
+  candidateStartDate?: Date | string | null;
   existingName: string;
   existingWebsiteUrl?: string | null;
+  existingStartDate?: Date | string | null;
 }) {
   const nameScore = jaccardSimilarity(input.candidateName, input.existingName);
   const candidateDomains = new Set(
@@ -143,5 +156,21 @@ export function calculateDuplicateScore(input: {
   );
   const domainMatch = [...candidateDomains].some((domain) => existingDomains.has(domain));
 
+  // When the incoming record carries a start date (bulk import, organizer submissions), a
+  // duplicate now requires BOTH a real name overlap AND the same start day. A shared domain
+  // is only a tie-breaker that reinforces a name match — it can no longer flag a duplicate on
+  // its own (which used to catch unrelated events that merely share a host like events.mlh.io).
+  if (input.candidateStartDate != null) {
+    const sameDay =
+      input.existingStartDate != null && sameCalendarDay(input.candidateStartDate, input.existingStartDate);
+
+    if (!sameDay || nameScore === 0) {
+      return 0;
+    }
+
+    return Math.min(1, domainMatch ? Math.max(nameScore, 0.95) : nameScore);
+  }
+
+  // Legacy path for name + link only community submissions that carry no date to compare.
   return Math.min(1, Math.max(nameScore, domainMatch ? 0.95 : 0));
 }

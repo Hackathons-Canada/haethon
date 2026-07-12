@@ -2,7 +2,7 @@ import { and, asc, eq, inArray, isNotNull } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@/lib/db";
-import { syncHackathonDiscordChannelSafely } from "@/lib/discord/sync";
+import { retireHackathonDiscordChannel, syncHackathonDiscordChannelSafely } from "@/lib/discord/sync";
 import { hackathonDates, hackathonLocations, hackathons } from "@/lib/db/schema";
 import { deriveHackathonStatus } from "@/lib/hackathons/utils";
 import { revalidateHackathonCaches } from "@/lib/hackathons/catalog";
@@ -133,6 +133,21 @@ export async function updatePublishedHackathon(hackathonId: string, payload: Adm
 }
 
 export async function deleteHackathon(hackathonId: string) {
+  const [existing] = await db
+    .select({ id: hackathons.id })
+    .from(hackathons)
+    .where(eq(hackathons.id, hackathonId))
+    .limit(1);
+
+  if (!existing) {
+    throw new Error("Hackathon not found.");
+  }
+
+  // Move any attached Discord channel into the "deleted" category before removing
+  // the row. This throws if the move fails, aborting the delete so we never leave
+  // an orphaned channel sitting in an active category.
+  await retireHackathonDiscordChannel(hackathonId);
+
   const [deleted] = await db.delete(hackathons).where(eq(hackathons.id, hackathonId)).returning({ id: hackathons.id });
 
   if (!deleted) {

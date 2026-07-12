@@ -200,6 +200,7 @@ export const adminHackathonImportSchema = z.preprocess(
   (value) => (Array.isArray(value) ? { hackathons: value } : value),
   z.object({
     hackathons: z.array(adminHackathonImportPayloadSchema).min(1).max(1000),
+    ignoreDuplicates: z.boolean().optional(),
   }).strip()
 );
 
