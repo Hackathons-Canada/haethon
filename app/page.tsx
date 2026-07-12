@@ -1,5 +1,7 @@
+import { auth } from "@clerk/nextjs/server";
 import Image from "next/image";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { HeroHeadline } from "@/components/hero-headline";
 import { HeroAurora } from "@/components/hero-inuksuk";
@@ -83,15 +85,17 @@ const faqs = [
 const surfaceCard =
   "rounded-[1.75rem] border border-navy/10 bg-navy/[0.03] p-6 sm:rounded-[2rem] sm:p-8 lg:p-10 dark:border-white/10 dark:bg-white/[0.04]";
 
-export default function Home() {
+export default async function Home() {
+  const { userId } = await auth();
+
+  // Logged-in visitors skip the marketing page and land straight in the app.
+  if (userId) {
+    redirect("/hackathons");
+  }
+
   return (
-    // The landing page is always night-sky dark, whatever the app theme:
-    // the `dark` class scopes every dark: variant, and globals.css keys the
-    // html/body background off data-page-theme so overscroll matches.
-    <main
-      data-page-theme="dark"
-      className="dark min-h-screen overflow-x-clip bg-page text-ink"
-    >
+    // The landing page is always night-sky dark, whatever the app theme.
+    <main className="dark min-h-screen overflow-x-clip bg-[#141414] text-wheat">
       <PrimaryNav showThemeToggle={false} />
 
       <section className="relative isolate min-h-[min(110svh,980px)] overflow-hidden pb-28 pt-28 sm:pb-32 sm:pt-32">
@@ -116,7 +120,7 @@ export default function Home() {
             <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
               <Link
                 href="/hackathons"
-                className="cta-sheen group inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-cabernet px-6 text-sm font-semibold text-wheat shadow-[0_12px_32px_-12px_rgba(114,28,36,0.6)] transition duration-300 hover:-translate-y-0.5 hover:bg-[#5c151c] hover:shadow-[0_18px_40px_-12px_rgba(114,28,36,0.7)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cabernet active:translate-y-0 dark:bg-wheat dark:text-[#141414] dark:shadow-[0_12px_32px_-12px_rgba(244,235,217,0.35)] dark:hover:bg-white dark:hover:shadow-[0_18px_40px_-12px_rgba(244,235,217,0.45)] dark:focus-visible:outline-wheat"
+                className="group relative inline-flex min-h-11 items-center justify-center gap-2 overflow-hidden rounded-full bg-cabernet px-6 text-sm font-semibold text-wheat shadow-[0_12px_32px_-12px_rgba(114,28,36,0.6)] transition duration-300 hover:-translate-y-0.5 hover:bg-[#5c151c] hover:shadow-[0_18px_40px_-12px_rgba(114,28,36,0.7)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cabernet active:translate-y-0 after:pointer-events-none after:absolute after:inset-0 after:bg-[linear-gradient(115deg,transparent_32%,rgb(255_255_255_/_0.32)_48%,rgb(255_255_255_/_0.08)_54%,transparent_68%)] after:content-[''] after:translate-x-[-130%] after:transition-transform after:duration-[750ms] after:ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:after:translate-x-[130%] group-focus-visible:after:translate-x-[130%] dark:bg-wheat dark:text-[#141414] dark:shadow-[0_12px_32px_-12px_rgba(244,235,217,0.35)] dark:hover:bg-white dark:hover:shadow-[0_18px_40px_-12px_rgba(244,235,217,0.45)] dark:focus-visible:outline-wheat motion-reduce:after:hidden"
               >
                 Open App
                 <span

@@ -52,13 +52,13 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${spaceGrotesk.variable} ${plexMono.variable} ${newsreader.variable} h-full`}
+      className={`${spaceGrotesk.variable} ${plexMono.variable} ${newsreader.variable} h-full bg-white dark:bg-[#141414]`}
       suppressHydrationWarning
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
-      <body className="min-h-full bg-page text-ink antialiased">
+      <body className="min-h-full bg-white font-sans text-navy antialiased selection:bg-cabernet/30 selection:text-white dark:bg-[#141414] dark:text-wheat motion-safe:[&_*]:transition-[color,border-color,background-color,opacity,transform] motion-safe:[&_*]:duration-[160ms] motion-safe:[&_*]:ease-out">
         <AppProviders>{children}</AppProviders>
       </body>
     </html>

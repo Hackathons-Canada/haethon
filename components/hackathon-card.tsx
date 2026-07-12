@@ -7,6 +7,7 @@ import Link from "next/link";
 import { ArrowBigDown, ArrowBigUp, BellPlus, Bookmark } from "lucide-react";
 
 import { DiscordGlyph } from "@/components/discord-glyph";
+import { filmGrainClassName } from "@/lib/tailwind";
 
 type Vote = -1 | 0 | 1;
 type Rgb = [number, number, number];
@@ -174,8 +175,7 @@ function normalizeAccentRgb(rgb: Rgb): Rgb {
   );
 }
 
-/* The aurora surface itself lives in globals.css (.hackathon-card-aurora),
-   keyed off this accent variable so it can flip with the theme. */
+/* The inline Tailwind aurora gradients read this per-card accent variable. */
 function getAccentStyle(rgb: Rgb) {
   const [r, g, b] = normalizeAccentRgb(rgb);
 
@@ -544,7 +544,7 @@ export function HackathonCard({
 
   return (
     <article
-      className="hackathon-card-aurora group relative flex min-w-0 flex-col overflow-hidden rounded-2xl border border-navy/10 dark:border-white/10 p-5 shadow-[0_18px_45px_rgb(0_0_0/0.06)] dark:shadow-[0_18px_45px_rgb(0_0_0/0.5)] transition-transform duration-200 ease-out hover:z-10 hover:scale-105 sm:p-6"
+      className="group relative flex min-w-0 flex-col overflow-hidden rounded-2xl border border-navy/10 bg-[linear-gradient(to_bottom_left,rgb(var(--hackathon-accent-rgb)_/_0.1),transparent_45%,transparent_55%,rgb(var(--hackathon-accent-rgb)_/_0.1)),radial-gradient(circle_130px_at_10%_8%,rgb(178_142_100_/_0.05),transparent_72%),radial-gradient(circle_150px_at_65%_130%,rgb(178_142_100_/_0.05),transparent_72%),linear-gradient(160deg,#ffffff_0%,#f7f3ea_100%)] p-5 shadow-[0_18px_45px_rgb(0_0_0/0.06)] transition-transform duration-200 ease-out hover:z-10 hover:scale-105 after:pointer-events-none after:absolute after:inset-0 after:bg-[linear-gradient(to_bottom_left,rgb(var(--hackathon-accent-rgb)_/_0.08),transparent_45%,transparent_55%,rgb(var(--hackathon-accent-rgb)_/_0.08))] after:opacity-0 after:transition-opacity after:duration-[450ms] after:ease-out after:content-[''] group-hover:after:opacity-100 group-focus-within:after:opacity-100 dark:border-white/10 dark:bg-[linear-gradient(to_bottom_left,rgb(var(--hackathon-accent-rgb)_/_0.14),transparent_45%,transparent_55%,rgb(var(--hackathon-accent-rgb)_/_0.14)),radial-gradient(circle_130px_at_10%_8%,rgb(178_142_100_/_0.07),transparent_72%),radial-gradient(circle_150px_at_65%_130%,rgb(178_142_100_/_0.07),transparent_72%),linear-gradient(160deg,#181a19_0%,#0f1110_100%)] dark:shadow-[0_18px_45px_rgb(0_0_0/0.5)] dark:after:bg-[linear-gradient(to_bottom_left,rgb(var(--hackathon-accent-rgb)_/_0.1),transparent_45%,transparent_55%,rgb(var(--hackathon-accent-rgb)_/_0.1))] sm:p-6"
       style={accentStyle}
     >
       {hackathon.slug && !preview ? (
@@ -565,7 +565,7 @@ export function HackathonCard({
       {/* Film grain keeps the aurora tactile, matching the hero. */}
       <span
         aria-hidden="true"
-        className="hero-grain pointer-events-none absolute inset-0 opacity-[0.05] mix-blend-overlay dark:opacity-[0.09]"
+        className={`${filmGrainClassName} pointer-events-none absolute inset-0 opacity-[0.05] mix-blend-overlay dark:opacity-[0.09]`}
       />
       <CardAccentEdges />
 

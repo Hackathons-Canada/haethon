@@ -42,7 +42,7 @@ function ParallaxFrame({
     /* The shot's className carries position, size, breakpoints, and the base
        rotation — it lives on the wrapper so motion's transform (parallax x/y,
        toss-in rotate) composes with it instead of overwriting it. */
-    <div className={`polaroid-wrap ${shot.className}`}>
+    <div className={`hover:z-50 focus-within:z-50 ${shot.className}`}>
       <motion.div
         style={still ? undefined : { x, y }}
         initial={

@@ -26,29 +26,35 @@ export function PolaroidFrame({
   // Don't set `relative` here — hero frames pass `absolute`, and both utilities
   // conflict in Tailwind (order in the stylesheet wins, not class string order).
   const positionClass = className.includes("absolute") ? "" : "relative";
+  const liftClass = {
+    left: "group-hover:translate-x-7 group-hover:-translate-y-2 group-hover:scale-[1.08] group-focus-visible:translate-x-7 group-focus-visible:-translate-y-2 group-focus-visible:scale-[1.08]",
+    right:
+      "group-hover:-translate-x-7 group-hover:-translate-y-2 group-hover:scale-[1.08] group-focus-visible:-translate-x-7 group-focus-visible:-translate-y-2 group-focus-visible:scale-[1.08]",
+    none: "group-hover:-translate-y-[0.4rem] group-hover:scale-[1.06] group-focus-visible:-translate-y-[0.4rem] group-focus-visible:scale-[1.06]",
+  }[lift];
+  const tapeClass = "absolute z-[2] h-[1.1rem] w-[3.4rem] bg-[linear-gradient(90deg,rgb(0_0_0_/_0.06),transparent_16%,transparent_84%,rgb(0_0_0_/_0.06)),linear-gradient(180deg,rgb(252_248_238_/_0.88),rgb(238_229_209_/_0.72))] shadow-[0_1px_3px_rgb(0_0_0_/_0.14)] [clip-path:polygon(0_8%,4%_0,96%_3%,100%_12%,99%_90%,95%_100%,5%_97%,1%_86%)]";
 
   return (
     <figure
-      className={`polaroid-frame group cursor-pointer select-none ${positionClass} ${className}`}
-      data-lift={lift}
+      className={`group cursor-pointer select-none hover:z-50 focus-visible:z-50 ${positionClass} ${className}`}
       tabIndex={0}
     >
-      <div className="polaroid-lift relative rounded-none bg-[linear-gradient(165deg,#ffffff_0%,#faf6ec_100%)] p-[5px] pb-6 shadow-[0_12px_28px_-8px_rgba(0,0,0,0.35),0_2px_6px_-2px_rgba(0,0,0,0.16)] ring-1 ring-black/[0.04] dark:bg-[linear-gradient(165deg,#f9f3e7_0%,#f0e7d5_100%)] dark:ring-black/10">
+      <div className={`relative rounded-none bg-[linear-gradient(165deg,#ffffff_0%,#faf6ec_100%)] p-[5px] pb-6 shadow-[0_12px_28px_-8px_rgba(0,0,0,0.35),0_2px_6px_-2px_rgba(0,0,0,0.16)] ring-1 ring-black/[0.04] transition-[transform,box-shadow] duration-[650ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:shadow-[0_28px_48px_-14px_rgba(0,0,0,0.4),0_8px_16px_-8px_rgba(0,0,0,0.2)] group-focus-visible:shadow-[0_28px_48px_-14px_rgba(0,0,0,0.4),0_8px_16px_-8px_rgba(0,0,0,0.2)] motion-reduce:transition-none motion-reduce:group-hover:transform-none motion-reduce:group-focus-visible:transform-none dark:bg-[linear-gradient(165deg,#f9f3e7_0%,#f0e7d5_100%)] dark:ring-black/10 ${liftClass}`}>
         {tape === "top" ? (
           <span
             aria-hidden="true"
-            className="polaroid-tape left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rotate-[-3deg]"
+            className={`${tapeClass} left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rotate-[-3deg]`}
           />
         ) : null}
         {tape === "corners" ? (
           <>
             <span
               aria-hidden="true"
-              className="polaroid-tape -left-3.5 -top-1.5 rotate-[-40deg]"
+              className={`${tapeClass} -left-3.5 -top-1.5 rotate-[-40deg]`}
             />
             <span
               aria-hidden="true"
-              className="polaroid-tape -right-3.5 -top-1.5 rotate-[40deg]"
+              className={`${tapeClass} -right-3.5 -top-1.5 rotate-[40deg]`}
             />
           </>
         ) : null}
@@ -58,7 +64,7 @@ export function PolaroidFrame({
             alt={alt}
             width={width}
             height={height}
-            className="polaroid-photo aspect-[4/3] h-auto w-full object-cover"
+            className="aspect-[4/3] h-auto w-full object-cover [filter:saturate(0.88)_contrast(1.04)_sepia(0.08)] transition-[filter] duration-[650ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:[filter:saturate(1.06)_contrast(1.02)_sepia(0)] group-focus-visible:[filter:saturate(1.06)_contrast(1.02)_sepia(0)] motion-reduce:transition-none"
             sizes="(max-width: 1024px) 160px, 220px"
           />
           <span

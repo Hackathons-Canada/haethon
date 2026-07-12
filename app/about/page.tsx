@@ -3,7 +3,7 @@ import { PrimaryNav } from "@/components/primary-nav";
 
 export default function AboutPage() {
   return (
-    <main className="min-h-screen overflow-x-clip bg-page text-ink">
+    <main className="min-h-screen overflow-x-clip bg-white text-navy dark:bg-[#141414] dark:text-wheat">
       <PrimaryNav activeHref="/about" />
 
       <section className="px-5 pb-16 pt-28 sm:px-8 sm:pb-20 sm:pt-32 lg:px-12">

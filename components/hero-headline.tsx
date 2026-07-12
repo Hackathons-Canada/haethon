@@ -85,9 +85,13 @@ export function HeroHeadline() {
         Where
       </RevealWord>{" "}
       <RevealWord index={1} still={still} className="relative">
-        <span className="hero-gradient-word bg-gradient-to-r from-[#a9d8b6] via-[#63c2a6] to-[#e4a3ab] bg-clip-text text-transparent">
+        <motion.span
+          animate={still ? undefined : { backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
+          className="bg-gradient-to-r from-[#a9d8b6] via-[#63c2a6] to-[#e4a3ab] bg-[length:220%_100%] bg-clip-text text-transparent"
+          transition={{ duration: 7, ease: "easeInOut", repeat: Infinity }}
+        >
           hackers
-        </span>
+        </motion.span>
         {/* Hand-drawn double-pass underline that inks itself in. */}
         <svg
           aria-hidden="true"

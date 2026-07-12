@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 
 const phrases = [
@@ -82,7 +83,11 @@ export function HeroTypewriterSpan({
         className={`inline ${className}`}
       >
         <span data-hero-typewriter-text>{text || "\u00A0"}</span>
-        <span className="typewriter-caret ml-1 inline-block h-[0.86em] w-[0.075em] translate-y-[0.08em] bg-current" />
+        <motion.span
+          animate={{ opacity: [1, 1, 0, 0, 1] }}
+          className="ml-1 inline-block h-[0.86em] w-[0.075em] translate-y-[0.08em] bg-current motion-reduce:animate-none"
+          transition={{ duration: 1.1, ease: "linear", repeat: Infinity }}
+        />
       </span>
     </>
   );

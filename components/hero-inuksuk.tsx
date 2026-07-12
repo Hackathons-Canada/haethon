@@ -2,6 +2,8 @@
 
 import { motion, useReducedMotion } from "motion/react";
 
+import { filmGrainClassName } from "@/lib/tailwind";
+
 /* Deterministic starfield for the night sky. Positions cluster in the upper
    half so stars read as sky, not confetti. */
 const stars = [
@@ -143,9 +145,21 @@ export function HeroAurora() {
 
       {/* Night sky. */}
       {stars.map((star, i) => (
-        <span
+        <motion.span
           key={i}
-          className="hero-star absolute rounded-full bg-wheat"
+          animate={
+            prefersReducedMotion
+              ? undefined
+              : { opacity: [0.2, star.max, 0.2], scale: [0.85, 1.2, 0.85] }
+          }
+          className="absolute rounded-full bg-wheat"
+          initial={false}
+          transition={{
+            delay: star.delay,
+            duration: star.duration,
+            ease: "easeInOut",
+            repeat: Infinity,
+          }}
           style={{
             top: star.top,
             left: star.left,
@@ -155,9 +169,6 @@ export function HeroAurora() {
               star.size >= 2
                 ? "0 0 6px 1px rgb(244 235 217 / 0.35)"
                 : undefined,
-            ["--star-delay" as string]: `${star.delay}s`,
-            ["--star-duration" as string]: `${star.duration}s`,
-            ["--star-max" as string]: star.max,
           }}
         />
       ))}
@@ -172,7 +183,7 @@ export function HeroAurora() {
       />
 
       {/* Film grain — keeps the gradients tactile, never smooth-plastic. */}
-      <div className="hero-grain absolute inset-0 opacity-[0.08] mix-blend-overlay" />
+      <div className={`${filmGrainClassName} absolute inset-0 opacity-[0.08] mix-blend-overlay`} />
 
       {/* Settle into the page before the map section. */}
       <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-page" />

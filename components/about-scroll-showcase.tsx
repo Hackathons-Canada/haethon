@@ -187,7 +187,7 @@ export function AboutScrollShowcase() {
               <nav aria-label="About sections">
                 <div className="h-[7rem]">
                   <div
-                    className="about-name-track transition-transform duration-500 ease-out"
+                    className="transition-transform duration-500 ease-out motion-reduce:transition-none"
                     style={{
                       transform: `translateY(${-activeIndex * NAME_ROW_REM}rem)`,
                     }}
@@ -199,8 +199,7 @@ export function AboutScrollShowcase() {
                       return (
                         <button
                           aria-current={isActive ? "true" : undefined}
-                          className="about-section-link flex h-[7rem] w-full items-center text-left font-serif text-[2.3rem] font-semibold leading-[0.95] transition duration-300 xl:text-[2.7rem]"
-                          data-active={isActive ? "true" : "false"}
+                          className="flex h-[7rem] w-full items-center text-left font-serif text-[2.3rem] font-semibold leading-[0.95] text-[#57544e] transition duration-300 hover:text-black aria-[current=page]:text-black motion-reduce:transition-none xl:text-[2.7rem]"
                           key={section.id}
                           onClick={() => scrollToSection(index)}
                           style={{
@@ -218,7 +217,7 @@ export function AboutScrollShowcase() {
             </aside>
 
             <div
-              className="about-showcase-folder"
+              className="relative mt-12 filter-[drop-shadow(0_30px_72px_rgb(0_0_0_/_0.18))] motion-safe:transition-[--folder-color] motion-safe:duration-[600ms] motion-safe:ease-out before:absolute before:left-[clamp(1.5rem,8vw,3.75rem)] before:top-[-2.9rem] before:z-0 before:h-[3.4rem] before:w-[clamp(10rem,27vw,16.5rem)] before:origin-bottom before:rounded-t-[16px] before:bg-[color-mix(in_srgb,var(--folder-color)_86%,#000)] before:content-[''] before:[transform:perspective(3.5rem)_rotateX(5deg)] after:absolute after:left-[55%] after:right-9 after:top-[-0.9rem] after:z-0 after:h-[2.1rem] after:rounded-t-[10px] after:bg-[linear-gradient(180deg,#fffef8_0%,#ebe4d4_100%)] after:content-['']"
               style={
                 {
                   "--folder-color": activeSection.folderColor,
@@ -226,26 +225,29 @@ export function AboutScrollShowcase() {
               }
             >
               <span
-                className="about-showcase-folder-tab font-mono text-xs font-medium uppercase tracking-[0.14em]"
+                className="absolute left-[calc(clamp(1.5rem,8vw,3.75rem)+1.35rem)] top-[-2.05rem] z-[1] font-mono text-xs font-medium uppercase tracking-[0.14em] text-white/85"
                 key={activeSection.id}
               >
                 {activeSection.tabLabel}
               </span>
 
-              <div className="about-showcase-folder-body">
+              <div className="relative z-[1] h-[min(80vh,48rem)] min-h-[32rem] overflow-hidden rounded-[20px] bg-[linear-gradient(150deg,rgb(255_255_255_/_0.16),transparent_36%),var(--folder-color)] after:pointer-events-none after:absolute after:inset-0 after:rounded-[inherit] after:border after:border-white/15 after:content-['']">
                 {aboutSections.map((section, index) => (
                   <article
-                    className="about-folder-layer"
-                    data-active={index === activeIndex ? "true" : "false"}
+                    className={`absolute inset-0 transition-[opacity,transform,visibility] duration-[450ms] ease-out motion-reduce:transition-none ${
+                      index === activeIndex
+                        ? "visible translate-y-0 opacity-100"
+                        : "pointer-events-none invisible translate-y-7 opacity-0"
+                    }`}
                     key={section.id}
                   >
-                    <div className="about-layer-watermark pointer-events-none absolute -left-6 top-20 select-none font-serif text-[5.5rem] font-semibold leading-none text-white/10 sm:text-[8rem]">
+                    <div className="pointer-events-none absolute -left-6 top-20 select-none font-serif text-[5.5rem] font-semibold leading-none text-white/10 sm:text-[8rem]">
                       {section.watermark}
                     </div>
 
                     <div className="relative z-10 flex h-full flex-col justify-between gap-6 p-6 sm:p-8 lg:p-10">
                       <div
-                        className="about-layer-item"
+                        className=""
                         style={{ "--stagger": 0 } as CSSProperties}
                       >
                         <p className="font-mono text-xs font-medium uppercase tracking-[0.14em] text-white/70">
@@ -261,7 +263,7 @@ export function AboutScrollShowcase() {
 
                       <div>
                         <div
-                          className="about-layer-item grid grid-cols-3 gap-3 sm:gap-4"
+                          className="grid grid-cols-3 gap-3 sm:gap-4"
                           style={{ "--stagger": 1 } as CSSProperties}
                         >
                           {section.photos.map((photo) => (
@@ -281,7 +283,7 @@ export function AboutScrollShowcase() {
                         </div>
 
                         <div
-                          className="about-layer-item mt-5 grid grid-cols-3 gap-3 sm:mt-6 sm:gap-4"
+                          className="mt-5 grid grid-cols-3 gap-3 sm:mt-6 sm:gap-4"
                           style={{ "--stagger": 2 } as CSSProperties}
                         >
                           {section.stats.map((stat) => (

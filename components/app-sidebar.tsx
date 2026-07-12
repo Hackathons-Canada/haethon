@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { motion, useReducedMotion } from "motion/react";
 import {
   Building2,
   CalendarDays,
@@ -30,6 +31,7 @@ export function AppSidebar({
   isSignedIn: boolean;
 }) {
   const pathname = usePathname();
+  const prefersReducedMotion = useReducedMotion();
 
   const links = [
     ...items,
@@ -44,9 +46,14 @@ export function AppSidebar({
     .sort((a, b) => b.href.length - a.href.length)[0]?.href;
 
   return (
-    <aside className="app-shell-sidebar z-40 border-b border-navy/10 dark:border-white/10 bg-white/75 backdrop-blur-xl dark:bg-[#141414]/60 lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:shrink-0 lg:border-b-0 lg:border-r">
+    <motion.aside
+      animate={{ opacity: 1, x: 0 }}
+      className="z-40 border-b border-navy/10 bg-white/75 backdrop-blur-xl dark:border-white/10 dark:bg-[#141414]/60 lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:shrink-0 lg:border-b-0 lg:border-r"
+      initial={prefersReducedMotion ? false : { opacity: 0, x: "-1.75rem" }}
+      transition={{ delay: 0.3, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+    >
       <div className="flex items-center justify-between gap-4 px-5 pb-0 pt-5 lg:block lg:px-5">
-        <Link className="block" href="/">
+        <Link className="block" href={isSignedIn ? "/hackathons" : "/"}>
           <span className="font-serif text-2xl font-semibold leading-none text-navy dark:text-wheat">HNA</span>
         </Link>
         {!isSignedIn ? (
@@ -92,6 +99,6 @@ export function AppSidebar({
           </Link>
         </div>
       ) : null}
-    </aside>
+    </motion.aside>
   );
 }
