@@ -81,6 +81,7 @@ function formatLatestDate(value: Date | null) {
 }
 
 const sectionHeadingClassName = "text-sm font-semibold uppercase tracking-[0.2em] text-rust";
+const sectionTitleClassName = "font-serif text-4xl font-semibold tracking-[-0.035em] text-navy dark:text-wheat sm:text-5xl";
 
 function AttendanceTierBadge({ tier }: { tier: AttendanceTrustTier | null }) {
   if (tier === "verified") {
@@ -263,62 +264,77 @@ export default async function AccountPage() {
           </section>
 
           <div className="min-w-0 space-y-10">
-            <section className="rounded-xl bg-ivory dark:bg-white/5 px-5 py-8">
+            <section className="pb-2 pt-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <h2 className={sectionHeadingClassName}>Pinned</h2>
+                <h2 className={sectionTitleClassName}>Pinned</h2>
                 <p className="text-sm text-navy/55 dark:text-wheat/55">Wins &amp; attended events you&apos;ve pinned</p>
               </div>
-              <div className="mt-4 grid gap-4 md:grid-cols-2">
+              <div className="mt-4 grid gap-5 md:grid-cols-2">
                 {pinnedItems.length ? (
                   pinnedItems.map((item) => (
                     <article
-                      className={`min-h-28 rounded-xl bg-ivory dark:bg-white/5 p-4 ${
+                      className={`group flex flex-col overflow-hidden rounded-2xl bg-ivory dark:bg-white/5 ${
                         item.isWin
                           ? "border-2 border-[#D4A72C] shadow-[0_0_0_3px_rgba(212,167,44,0.18)]"
-                          : "border-2 border-transparent"
+                          : "border border-navy/10 dark:border-white/10"
                       }`}
                       key={item.id}
                     >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex min-w-0 items-start gap-3">
-                          <div className="relative grid size-12 shrink-0 place-items-center overflow-hidden rounded-xl bg-white dark:bg-white/[0.06]">
-                            {item.imageUrl ? (
-                              <Image
-                                alt={`${item.hackathonName} logo`}
-                                className="object-contain"
-                                fill
-                                sizes="48px"
-                                src={item.imageUrl}
-                                unoptimized
-                              />
-                            ) : (
-                              <Trophy aria-hidden="true" className="size-5 text-cabernet dark:text-[#e4a3ab]" />
-                            )}
+                      {/* Big cover image, mirroring the reference listing card. */}
+                      <div className="relative aspect-[4/3] w-full overflow-hidden bg-white dark:bg-white/[0.06]">
+                        {item.imageUrl ? (
+                          <Image
+                            alt={item.hackathonName}
+                            className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                            fill
+                            sizes="(min-width: 768px) 400px, 100vw"
+                            src={item.imageUrl}
+                            unoptimized
+                          />
+                        ) : (
+                          <div className="grid size-full place-items-center">
+                            <Trophy aria-hidden="true" className="size-10 text-cabernet dark:text-[#e4a3ab]" />
                           </div>
-                          <div className="min-w-0">
-                            <p className="truncate font-semibold text-navy dark:text-wheat">{item.hackathonName}</p>
-                            <p className="mt-1 flex items-center gap-1 text-sm text-navy/55 dark:text-wheat/55">
-                              <CalendarDays aria-hidden="true" className="size-3.5 shrink-0" />
-                              <span>{formatDateRange(item.startsAt, item.endsAt)}</span>
-                            </p>
-                            <p className="mt-1 text-sm text-navy/55 dark:text-wheat/55">{item.detail}</p>
-                          </div>
-                        </div>
-                        <AttendanceTierBadge tier={item.tier} />
+                        )}
+                        {/* Winner ribbon — makes the win unmistakable. */}
+                        {item.isWin ? (
+                          <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-[#D4A72C] px-3 py-1.5 text-xs font-bold text-[#3a2c05] shadow-[0_4px_14px_rgba(0,0,0,0.25)]">
+                            <Trophy aria-hidden="true" className="size-3.5" />
+                            Winner
+                          </span>
+                        ) : null}
+                        {/* Provenance chip, kept legible over the image. */}
+                        <span className="absolute right-3 top-3 rounded-full bg-black/55 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-sm">
+                          {item.tier === "verified" ? "Verified" : "Self-reported"}
+                        </span>
                       </div>
-                      {item.devpostUrl ? (
-                        <div className="mt-3 border-t border-navy/10 dark:border-white/10 pt-3">
-                          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-navy/55 dark:text-wheat/55">Devpost link</p>
+
+                      {/* Text block below the image. */}
+                      <div className="flex flex-1 flex-col p-4">
+                        <p className="font-semibold text-navy dark:text-wheat">{item.hackathonName}</p>
+                        <p className="mt-1 flex items-center gap-1 text-sm text-navy/55 dark:text-wheat/55">
+                          <CalendarDays aria-hidden="true" className="size-3.5 shrink-0" />
+                          <span>{formatDateRange(item.startsAt, item.endsAt)}</span>
+                        </p>
+                        {item.isWin ? (
+                          <p className="mt-1.5 flex items-center gap-1.5 text-sm font-semibold text-[#9a7b1f] dark:text-[#e8c76b]">
+                            <Trophy aria-hidden="true" className="size-3.5 shrink-0" />
+                            Won · {item.detail}
+                          </p>
+                        ) : (
+                          <p className="mt-1.5 text-sm text-navy/55 dark:text-wheat/55">{item.detail}</p>
+                        )}
+                        {item.devpostUrl ? (
                           <a
-                            className="mt-1 block truncate text-sm font-semibold text-cabernet dark:text-[#e4a3ab] underline decoration-1 underline-offset-4 hover:no-underline"
+                            className="mt-3 block truncate text-sm font-semibold text-cabernet dark:text-[#e4a3ab] underline decoration-1 underline-offset-4 hover:no-underline"
                             href={item.devpostUrl}
                             rel="noreferrer"
                             target="_blank"
                           >
-                            {item.devpostUrl.replace(/^https?:\/\//, "")}
+                            View on Devpost
                           </a>
-                        </div>
-                      ) : null}
+                        ) : null}
+                      </div>
                     </article>
                   ))
                 ) : (
@@ -342,7 +358,7 @@ export default async function AccountPage() {
                   const tier = deriveAttendanceTrustTier(hackathon.sources ?? []);
 
                   return (
-                    <article className="rounded-xl bg-ivory dark:bg-white/5 p-4" key={hackathon.id}>
+                    <article className="w-full rounded-xl bg-ivory dark:bg-white/5 p-4 sm:w-[320px]" key={hackathon.id}>
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex min-w-0 items-start gap-2">
                           <CalendarDays aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-cabernet dark:text-[#e4a3ab]" />

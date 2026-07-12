@@ -19,6 +19,7 @@ import {
   computeSelectableReminderSchedule,
   getSelectableReminderTypesForStatus,
 } from "@/lib/hackathons/reminder-plan";
+import { countPendingEmailReminders } from "@/lib/hackathons/reminders";
 
 export const metadata: Metadata = {
   title: "Add Reminder | Hackathons North America",
@@ -37,7 +38,7 @@ export default async function HackathonRemindersPage({
     redirect("/sign-in");
   }
 
-  const [[row], preferenceRows] = await Promise.all([
+  const [[row], preferenceRows, pendingElsewhereCount] = await Promise.all([
     db
       .select({
         applicationStatus: userHackathons.applicationStatus,
@@ -74,6 +75,7 @@ export default async function HackathonRemindersPage({
           eq(userHackathonNotificationPreferences.channel, "email")
         )
       ),
+    countPendingEmailReminders({ userId: user.id, excludeHackathonId: hackathonId }),
   ]);
 
   if (!row) {
@@ -136,6 +138,7 @@ export default async function HackathonRemindersPage({
               <HackathonNotificationPreferences
                 hackathonId={row.hackathonId}
                 initialPreferences={notificationPreferences}
+                pendingElsewhereCount={pendingElsewhereCount}
               />
             </>
           ) : (

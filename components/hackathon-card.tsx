@@ -788,13 +788,6 @@ export function HackathonCard({
       <div className={`flex items-start ${compact ? "gap-3" : "gap-4"}`}>
         <div className="flex shrink-0 flex-col items-start gap-2">
           <HackathonLogoMark compact={compact} hackathon={hackathon} logoSrc={logoSrc} />
-          {/* Provenance badge — sits directly under the image, naming where this
-              hackathon's data came from. Absent when we have no source on file. */}
-          {hackathon.source ? (
-            <span className="relative z-10 inline-flex items-center rounded-full border border-navy/15 bg-navy/[0.03] px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-navy/55 dark:border-white/15 dark:bg-white/[0.04] dark:text-wheat/55">
-              {SOURCE_BADGE_LABELS[hackathon.source]}
-            </span>
-          ) : null}
         </div>
         <div className="min-w-0 pt-1">
           <h2
@@ -822,11 +815,23 @@ export function HackathonCard({
                 })()
               : null}
           </p>
-          {hackathon.hasDiscord ? (
-            <span className="mt-2 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-[0.08em] text-[#5865F2]">
-              <DiscordGlyph className="size-3.5" />
-              Discord
-            </span>
+          {hackathon.source || hackathon.hasDiscord ? (
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              {/* Provenance badge — names where this hackathon's data came from.
+                  Sits under the location, to the left of the Discord badge when both
+                  are present. Absent when we have no source on file. */}
+              {hackathon.source ? (
+                <span className="relative z-10 inline-flex items-center rounded-full border border-navy/15 bg-navy/[0.03] px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-navy/55 dark:border-white/15 dark:bg-white/[0.04] dark:text-wheat/55">
+                  {SOURCE_BADGE_LABELS[hackathon.source]}
+                </span>
+              ) : null}
+              {hackathon.hasDiscord ? (
+                <span className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-[0.08em] text-[#5865F2]">
+                  <DiscordGlyph className="size-3.5" />
+                  Discord
+                </span>
+              ) : null}
+            </div>
           ) : null}
         </div>
       </div>

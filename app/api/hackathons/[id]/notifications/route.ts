@@ -4,7 +4,10 @@ import { NextResponse } from "next/server";
 import { getCurrentUserContext } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { hackathons, userHackathons } from "@/lib/db/schema";
+import { EMAIL_NOTIFICATION_LIMIT } from "@/lib/hackathons/reminder-plan";
 import {
+  countPendingEmailReminders,
+  countPlannedEmailReminders,
   setUserHackathonNotificationPreferences,
   syncRemindersForUserHackathon,
 } from "@/lib/hackathons/reminders";
@@ -32,6 +35,25 @@ export async function PATCH(request: Request, context: RouteContext) {
 
   if (!hackathon) {
     return NextResponse.json({ error: "Hackathon not found." }, { status: 404 });
+  }
+
+  const [plannedCount, currentCount, elsewhereCount] = await Promise.all([
+    countPlannedEmailReminders({
+      userId: userContext.user.id,
+      hackathonId: id,
+      preferences: parsed.data.preferences,
+    }),
+    countPendingEmailReminders({ userId: userContext.user.id, hackathonId: id }),
+    countPendingEmailReminders({ userId: userContext.user.id, excludeHackathonId: id }),
+  ]);
+
+  // Only changes that add sends are refused, so anyone already past the cap
+  // can still turn reminders off.
+  if (plannedCount > currentCount && plannedCount + elsewhereCount > EMAIL_NOTIFICATION_LIMIT) {
+    return NextResponse.json(
+      { code: "notification_limit", error: "Email notification limit reached." },
+      { status: 409 }
+    );
   }
 
   const [tracked] = await db

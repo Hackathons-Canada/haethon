@@ -13,6 +13,13 @@ export type ReminderType =
   | "application_week_before"
   | "application_day_before";
 
+/**
+ * Account-wide cap on pending email notifications. Anything a hacker tries to
+ * enable past this is refused (and the UI explains nothing more would be
+ * delivered) until existing reminders send or get turned off.
+ */
+export const EMAIL_NOTIFICATION_LIMIT = 6;
+
 export const selectableReminderTypes = [
   "application_week_before",
   "application_day_before",

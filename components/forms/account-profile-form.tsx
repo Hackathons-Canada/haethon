@@ -5,6 +5,8 @@ import { Globe, Pencil, Save, X } from "lucide-react";
 import { FaLinkedin } from "react-icons/fa6";
 import { SiDevpost, SiGithub, SiInstagram, SiX } from "react-icons/si";
 
+import { SkillsField } from "@/components/forms/skills-field";
+import { sanitizeSkills } from "@/lib/profile/skills";
 import { containsProfanity } from "@/lib/validations/profanity";
 import {
   SOCIAL_PLATFORMS,
@@ -27,6 +29,7 @@ type ProfileValues = {
   xUrl?: string | null;
   devpostUrl?: string | null;
   portfolioUrl?: string | null;
+  skills?: string[] | null;
 };
 
 type ProfileFormProps = {
@@ -121,8 +124,10 @@ export function AccountProfileForm({ displayEmail, displayName, profile }: Profi
     xUrl: profile?.xUrl ?? "",
     devpostUrl: profile?.devpostUrl ?? "",
     portfolioUrl: profile?.portfolioUrl ?? "",
+    skills: sanitizeSkills(profile?.skills ?? []),
   });
   const [socialDrafts, setSocialDrafts] = useState<SocialDrafts>(() => draftsFromValues(values));
+  const [skillsDraft, setSkillsDraft] = useState<string[]>(() => sanitizeSkills(profile?.skills ?? []));
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   function clearFieldError(name: string) {
@@ -241,7 +246,8 @@ export function AccountProfileForm({ displayEmail, displayName, profile }: Profi
     setFieldErrors({});
     setStatus("saving");
 
-    const payload = { ...textPayload, ...socialPayload };
+    const cleanedSkills = sanitizeSkills(skillsDraft);
+    const payload = { ...textPayload, ...socialPayload, skills: cleanedSkills };
 
     const response = await fetch("/api/account/profile", {
       method: "PATCH",
@@ -274,6 +280,7 @@ export function AccountProfileForm({ displayEmail, displayName, profile }: Profi
   }
 
   const location = [values.locationCity, values.locationRegion].filter(Boolean).join(", ");
+  const skills = values.skills ?? [];
   const rawLinks: { label: string; href: string | null | undefined; icon: IconComponent }[] = [
     { label: values.githubUrl ? compactHandle(values.githubUrl, "GitHub") : "GitHub", href: values.githubUrl, icon: SiGithub },
     { label: values.linkedinUrl ? compactHandle(values.linkedinUrl, "LinkedIn") : "LinkedIn", href: values.linkedinUrl, icon: FaLinkedin },
@@ -336,6 +343,7 @@ export function AccountProfileForm({ displayEmail, displayName, profile }: Profi
           onClick={() => {
             setStatus("idle");
             setSocialDrafts(draftsFromValues(values));
+            setSkillsDraft(sanitizeSkills(values.skills ?? []));
             setFieldErrors({});
             setIsEditing(true);
           }}
@@ -365,6 +373,28 @@ export function AccountProfileForm({ displayEmail, displayName, profile }: Profi
           </div>
         ) : (
           <p className="mt-4 text-sm text-navy/55 dark:text-wheat/55">Add social profiles to display them here.</p>
+        )}
+      </div>
+
+      <div className="pb-2 pt-16 sm:pt-20">
+        <h2 className="font-serif text-4xl font-semibold tracking-[-0.035em] text-navy dark:text-wheat sm:text-5xl">Skills</h2>
+        {skills.length > 0 ? (
+          // Stored skills are already in canonical order, so each language sits
+          // next to its own frameworks without needing explicit headers.
+          <div className="mt-5 flex flex-wrap items-center gap-2.5">
+            {skills.map((skill) => (
+              <span
+                className="inline-flex min-h-10 items-center rounded-full bg-navy px-3.5 py-2 text-sm font-medium text-wheat dark:bg-wheat dark:text-[#141414]"
+                key={skill}
+              >
+                {skill}
+              </span>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-4 text-sm text-navy/55 dark:text-wheat/55">
+            Add the languages and frameworks you know to display them here.
+          </p>
         )}
       </div>
 
@@ -508,6 +538,13 @@ export function AccountProfileForm({ displayEmail, displayName, profile }: Profi
                 className={`${inputClassName} ${fieldErrors.portfolioUrl ? errorBorderClassName : ""}`}
               />
               {fieldErrors.portfolioUrl ? <p className={fieldErrorClassName}>{fieldErrors.portfolioUrl}</p> : null}
+            </div>
+            <div className="sm:col-span-2">
+              <label className={labelClassName}>Skills</label>
+              <p className="mb-2 text-xs text-navy/55 dark:text-wheat/55">
+                Pick the languages and frameworks you know — select as many as you like.
+              </p>
+              <SkillsField value={skillsDraft} onChange={setSkillsDraft} />
             </div>
           </div>
 

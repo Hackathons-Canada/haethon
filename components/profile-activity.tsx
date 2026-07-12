@@ -1,7 +1,7 @@
 "use client";
 
 import { type ReactNode, useState } from "react";
-import { CalendarDays, Trophy } from "lucide-react";
+import { CalendarDays } from "lucide-react";
 
 export type ActivityWeek = { key: string; count: number };
 
@@ -15,7 +15,7 @@ export type YearActivity = {
 
 export type LatestAttended = { name: string; dateLabel: string } | null;
 
-const sectionHeadingClassName = "text-sm font-semibold uppercase tracking-[0.2em] text-rust";
+const sectionTitleClassName = "font-serif text-4xl font-semibold tracking-[-0.035em] text-navy dark:text-wheat sm:text-5xl";
 
 function formatChartDate(value: string | undefined) {
   if (!value) {
@@ -53,9 +53,9 @@ export function ProfileActivity({
   const minWidth = Math.max(weeks.length * 12, 320);
 
   return (
-    <section id="activity" className="rounded-xl bg-ivory dark:bg-white/5 p-5">
+    <section id="activity" className="pb-2 pt-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <h2 className={sectionHeadingClassName}>Activity</h2>
+        <h2 className={sectionTitleClassName}>Activity</h2>
         <div className="flex flex-wrap gap-2">
           {years.map((year) => (
             <button
@@ -74,28 +74,10 @@ export function ProfileActivity({
         </div>
       </div>
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        <div className="rounded-xl bg-ivory dark:bg-white/5 px-4 py-3">
-          <p className="text-2xl font-semibold text-navy dark:text-wheat">{active.hackathonsAttended}</p>
-          <p className="text-sm text-navy/55 dark:text-wheat/55">
-            Hackathon{active.hackathonsAttended === 1 ? "" : "s"} attended in {active.year}
-          </p>
-        </div>
-        <div className="rounded-xl bg-ivory dark:bg-white/5 px-4 py-3">
-          <p className="flex items-center gap-1.5 text-2xl font-semibold text-navy dark:text-wheat">
-            <Trophy aria-hidden="true" className="size-5 text-[#D4A72C]" />
-            {active.wins}
-          </p>
-          <p className="text-sm text-navy/55 dark:text-wheat/55">
-            Win{active.wins === 1 ? "" : "s"} in {active.year}
-          </p>
-        </div>
-      </div>
-
       <p className="mt-4 text-sm font-semibold text-navy dark:text-wheat">
-        {active.totalDays} hackathon attendance {active.totalDays === 1 ? "entry" : "entries"} in {active.year}
+        {active.hackathonsAttended} hackathon{active.hackathonsAttended === 1 ? "" : "s"} attended in {active.year}, {active.wins} win{active.wins === 1 ? "" : "s"} in {active.year}
       </p>
-      <div className={`mt-3 overflow-x-auto ${hasActivity ? "rounded-xl bg-ivory dark:bg-white/5 p-4" : ""}`}>
+      <div className="mt-3 overflow-x-auto">
         <div
           className="grid gap-1"
           style={{ minWidth: `${minWidth}px`, gridTemplateColumns: `repeat(${weeks.length}, minmax(0, 1fr))` }}
@@ -127,7 +109,7 @@ export function ProfileActivity({
       </div>
 
       {latestAttended ? (
-        <div className="mt-4 flex items-center gap-2 pt-4 text-sm text-navy/55 dark:text-wheat/55">
+        <div className="mt-2 flex items-center gap-2 text-sm text-navy/55 dark:text-wheat/55">
           <CalendarDays aria-hidden="true" className="size-4 shrink-0 text-cabernet dark:text-[#e4a3ab]" />
           <span>
             Latest attended:{" "}
@@ -139,8 +121,8 @@ export function ProfileActivity({
 
       {children ? (
         <div className="mt-6 pt-6">
-          <h3 className={sectionHeadingClassName}>Hackathons attended</h3>
-          <div className="mt-4 space-y-3">{children}</div>
+          <h3 className={sectionTitleClassName}>Hackathons attended</h3>
+          <div className="mt-4 flex flex-wrap gap-3">{children}</div>
         </div>
       ) : null}
     </section>

@@ -47,6 +47,7 @@ import {
   selectableReminderTypes,
 } from "@/lib/hackathons/reminder-plan";
 import { formatReminderDate, reminderTypeLabels } from "@/lib/hackathons/reminder-labels";
+import { countPendingEmailReminders } from "@/lib/hackathons/reminders";
 
 const publicStatuses = ["upcoming", "live", "completed"] as const;
 
@@ -184,7 +185,7 @@ export default async function HackathonDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const [tagRows, [tracked], upcomingReminders, notificationPreferenceRows, discordChannelLink] = await Promise.all([
+  const [tagRows, [tracked], upcomingReminders, notificationPreferenceRows, pendingElsewhereCount, discordChannelLink] = await Promise.all([
     db
       .select({ name: tags.name })
       .from(hackathonTags)
@@ -225,6 +226,9 @@ export default async function HackathonDetailPage({ params }: PageProps) {
             )
           )
       : Promise.resolve([]),
+    user
+      ? countPendingEmailReminders({ userId: user.id, excludeHackathonId: hackathon.id })
+      : Promise.resolve(0),
     getDiscordChannelLink(hackathon.id, hackathon.seriesId),
   ]);
 
@@ -459,6 +463,7 @@ export default async function HackathonDetailPage({ params }: PageProps) {
             <HackathonNotificationPreferences
               hackathonId={hackathon.id}
               initialPreferences={notificationPreferences}
+              pendingElsewhereCount={pendingElsewhereCount}
             />
           ) : null}
           {upcomingReminders.length ? (

@@ -298,4 +298,13 @@ describe("profileUpdateSchema", () => {
 
     expect(result.success).toBe(true);
   });
+
+  it("keeps only known skills, deduped and in canonical order", () => {
+    const result = profileUpdateSchema.parse({
+      // Out of order, with a duplicate and an unknown token mixed in.
+      skills: ["Django", "not-a-real-skill", "Python", "Django"],
+    });
+
+    expect(result.skills).toEqual(["Python", "Django"]);
+  });
 });

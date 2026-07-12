@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { normalizeCountrySelections } from "@/lib/hackathons/countries";
+import { sanitizeSkills } from "@/lib/profile/skills";
 import { normalizeCountry, normalizeLocationPayload } from "@/lib/hackathons/location-normalization";
 import { containsProfanity } from "@/lib/validations/profanity";
 import { parsePortfolioUrl, parseSocialInput, type SocialPlatformKey } from "@/lib/validations/social";
@@ -291,6 +292,13 @@ export const profileUpdateSchema = z.object({
   xUrl: socialLinkField("xUrl"),
   devpostUrl: socialLinkField("devpostUrl"),
   portfolioUrl: portfolioLinkField,
+  // Cap the raw array to bound payload size, then drop anything outside the
+  // known taxonomy (also de-dupes and puts it in canonical order).
+  skills: z
+    .array(z.string())
+    .max(500)
+    .transform((values) => sanitizeSkills(values))
+    .optional(),
 });
 
 export const userHackathonUpdateSchema = z.object({
