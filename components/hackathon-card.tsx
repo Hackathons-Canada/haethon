@@ -9,6 +9,7 @@ import { ArrowBigDown, ArrowBigUp, BellPlus, Bookmark, Check, ChevronDown } from
 import { DiscordGlyph } from "@/components/discord-glyph";
 import { formatReminderDate } from "@/lib/hackathons/reminder-labels";
 import type { SelectableReminderType } from "@/lib/hackathons/reminder-plan";
+import type { HackathonSource } from "@/lib/hackathons/source-badges";
 import { filmGrainClassName } from "@/lib/tailwind";
 
 type Vote = -1 | 0 | 1;
@@ -27,9 +28,23 @@ export type HackathonCardData = {
   location: string;
   name: string;
   slug?: string | null;
+  /* Where this hackathon's data came from — surfaced as a small provenance
+     badge under the card text. Absent when we have no source on file. */
+  source?: HackathonSource | null;
   userVote: Vote;
   voteScore: number;
   websiteUrl?: string | null;
+};
+
+/* Human labels for the provenance badge. mlh/devpost read as their brand; the
+   remaining sources are all community/volunteer contributed, so they collapse
+   to a single "Community" word rather than exposing internal enum names. */
+const SOURCE_BADGE_LABELS: Record<HackathonSource, string> = {
+  mlh: "MLH",
+  devpost: "Devpost",
+  organizer_site: "Organizer",
+  manual: "Community",
+  other: "Community",
 };
 
 function handleUnauthenticated() {
@@ -770,14 +785,17 @@ export function HackathonCard({
       />
       <CardAccentEdges />
 
-      {cornerAction ? (
-        <div className="absolute right-2.5 top-2.5 z-20 opacity-0 transition-opacity duration-150 focus-within:opacity-100 group-hover:opacity-100">
-          {cornerAction}
-        </div>
-      ) : null}
-
       <div className={`flex items-start ${compact ? "gap-3" : "gap-4"}`}>
-        <HackathonLogoMark compact={compact} hackathon={hackathon} logoSrc={logoSrc} />
+        <div className="flex shrink-0 flex-col items-start gap-2">
+          <HackathonLogoMark compact={compact} hackathon={hackathon} logoSrc={logoSrc} />
+          {/* Provenance badge — sits directly under the image, naming where this
+              hackathon's data came from. Absent when we have no source on file. */}
+          {hackathon.source ? (
+            <span className="relative z-10 inline-flex items-center rounded-full border border-navy/15 bg-navy/[0.03] px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-navy/55 dark:border-white/15 dark:bg-white/[0.04] dark:text-wheat/55">
+              {SOURCE_BADGE_LABELS[hackathon.source]}
+            </span>
+          ) : null}
+        </div>
         <div className="min-w-0 pt-1">
           <h2
             className={`line-clamp-2 font-semibold text-navy dark:text-wheat ${
@@ -815,11 +833,14 @@ export function HackathonCard({
 
       <div className={`mt-auto text-base leading-6 ${compact ? "pt-3" : "pt-5"}`}>
         {reminder ? (
-          <ReminderControl
-            hackathonId={reminder.hackathonId}
-            options={reminder.options}
-            statusLabel={reminder.statusLabel}
-          />
+          <div className="flex items-start justify-between gap-2">
+            <ReminderControl
+              hackathonId={reminder.hackathonId}
+              options={reminder.options}
+              statusLabel={reminder.statusLabel}
+            />
+            {cornerAction ? <div className="relative z-20 shrink-0">{cornerAction}</div> : null}
+          </div>
         ) : (
           <div className="flex items-center justify-between gap-3">
             <VoteControl

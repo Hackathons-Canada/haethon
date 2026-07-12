@@ -24,6 +24,7 @@ import {
 } from "@/lib/hackathons/utils";
 import type { HackathonSubmissionInput, NormalizedHackathonPayload } from "@/lib/hackathons/utils";
 import { ensureHackathonSeries } from "@/lib/hackathons/series";
+import { deriveSourceType } from "@/lib/hackathons/source-badges";
 import {
   adminHackathonFixImportItemSchema,
   adminHackathonImportPayloadSchema,
@@ -219,7 +220,7 @@ export async function createPublishedHackathon(
 
   await db.insert(sources).values({
     hackathonId: created.id,
-    sourceType: "manual",
+    sourceType: deriveSourceType(payload.sourceUrl, payload.websiteUrl),
     sourceUrl: payload.sourceUrl ?? payload.websiteUrl,
     reliabilityScore: "0.85",
   });
@@ -308,7 +309,7 @@ export async function mergeIntoHackathon(targetHackathonId: string, payload: Nor
 
   await db.insert(sources).values({
     hackathonId: targetHackathonId,
-    sourceType: "manual",
+    sourceType: deriveSourceType(payload.sourceUrl, payload.websiteUrl),
     sourceUrl: payload.sourceUrl ?? payload.websiteUrl,
     reliabilityScore: "0.7",
   });

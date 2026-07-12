@@ -12,6 +12,7 @@
 
 const SUBSTRING_TERMS = [
   "fuck",
+  "shit",
   "phuck",
   "asshole",
   "cunt",
@@ -39,7 +40,6 @@ const SUBSTRING_TERMS = [
 ];
 
 const WORD_TERMS = [
-  "shit",
   "shite",
   "ass",
   "arse",

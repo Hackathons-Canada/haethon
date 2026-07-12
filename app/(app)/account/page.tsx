@@ -256,13 +256,13 @@ export default async function AccountPage() {
 
   return (
     <main className="relative min-h-[calc(100vh-80px)] bg-white dark:bg-white/[0.06] px-5 py-8 text-navy dark:text-wheat sm:px-8 lg:px-12">
-      <div className="mx-auto w-full max-w-[720px]">
-        <div className="space-y-6">
+      <div className="mx-auto w-full max-w-[840px]">
+        <div className="space-y-10">
           <section id="profile" className="pt-2">
             <AccountProfileForm displayEmail={context.user.email} displayName={displayName} profile={profile ?? null} />
           </section>
 
-          <div className="min-w-0 space-y-6">
+          <div className="min-w-0 space-y-10">
             <section className="rounded-xl bg-ivory dark:bg-white/5 px-5 py-8">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h2 className={sectionHeadingClassName}>Pinned</h2>

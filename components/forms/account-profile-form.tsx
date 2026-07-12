@@ -126,7 +126,15 @@ export function AccountProfileForm({ displayEmail, displayName, profile }: Profi
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   function clearFieldError(name: string) {
-    setFieldErrors(({ [name]: _removed, ...rest }) => rest);
+    setFieldErrors((errors) => {
+      if (!(name in errors)) {
+        return errors;
+      }
+
+      const next = { ...errors };
+      delete next[name];
+      return next;
+    });
   }
 
   function onSocialChange(name: SocialPlatformKey, rawValue: string) {
@@ -282,77 +290,82 @@ export function AccountProfileForm({ displayEmail, displayName, profile }: Profi
       .slice(0, 2)
       .map((part) => part[0]?.toUpperCase() ?? "")
       .join("") || displayName[0]?.toUpperCase() || "?";
-  const profileDetails = [
+  const supportingDetails = [
     { label: "Email", value: displayEmail, breakAll: true },
-    values.headline ? { label: "Headline", value: values.headline } : null,
-    values.bio ? { label: "Bio", value: values.bio } : null,
-    values.school ? { label: "University", value: values.school } : null,
     location ? { label: "Location", value: location } : null,
   ].filter((detail) => detail !== null);
 
   return (
     <section>
-      {/* Profile header: identity and labeled details, followed by socials */}
-      <div className="rounded-2xl border border-navy/10 dark:border-white/10 bg-ivory dark:bg-white/5 p-6 sm:p-8">
-        <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
-          <div
-            aria-hidden="true"
-            className="flex size-16 shrink-0 items-center justify-center rounded-full bg-cabernet text-2xl font-semibold text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white"
-          >
-            {initials}
-          </div>
+      {/* Spacious portfolio-style introduction, modelled after the supplied reference. */}
+      <div className="relative py-8 sm:py-14">
+        <div className="grid items-center gap-8 sm:grid-cols-[minmax(0,1fr)_9rem] sm:gap-12">
+          <div className="min-w-0">
+            <h1 className="font-serif text-[clamp(3rem,8vw,4.75rem)] font-semibold leading-[0.92] tracking-[-0.055em] text-navy dark:text-wheat">
+              Hi, I&apos;m {displayName}
+            </h1>
+            <p className="mt-5 text-xl font-medium leading-snug text-navy dark:text-wheat sm:text-2xl">
+              {values.school || "Computer & Software Engineer"}
+            </p>
+            <p className="mt-8 max-w-xl text-base leading-7 text-navy/55 dark:text-wheat/60 sm:text-lg">
+              I write ergonomic and performant software at scale.
+            </p>
 
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div className="min-w-0">
-                <p className={headingClassName}>My account</p>
-                <h1 className="mt-2 font-serif text-3xl font-semibold tracking-[-0.02em] leading-tight text-navy dark:text-wheat">{displayName}</h1>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setStatus("idle");
-                  setSocialDrafts(draftsFromValues(values));
-                  setFieldErrors({});
-                  setIsEditing(true);
-                }}
-                className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-full border border-cabernet dark:border-[#e4a3ab]/50 bg-white dark:bg-white/[0.06] px-4 text-sm font-semibold text-cabernet dark:text-[#e4a3ab] transition hover:bg-cabernet hover:text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white focus-visible:bg-cabernet focus-visible:text-wheat focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cabernet dark:focus-visible:outline-wheat"
-              >
-                <Pencil aria-hidden="true" className="size-4" />
-                Edit profile
-              </button>
-            </div>
-
-            <dl className="mt-5 grid gap-x-8 gap-y-4 sm:grid-cols-2">
-              {profileDetails.map(({ label, value, breakAll }) => (
-                <div key={label} className={label === "Bio" ? "sm:col-span-2" : undefined}>
+            <dl className="mt-6 flex flex-wrap gap-x-8 gap-y-3">
+              {supportingDetails.map(({ label, value, breakAll }) => (
+                <div key={label}>
                   <dt className={detailLabelClassName}>{label}</dt>
-                  <dd className={`mt-1 text-sm leading-6 text-navy dark:text-wheat${breakAll ? " break-all" : ""}`}>{value}</dd>
+                  <dd className={`mt-1 text-sm text-navy/70 dark:text-wheat/70${breakAll ? " break-all" : ""}`}>{value}</dd>
                 </div>
               ))}
             </dl>
+          </div>
 
-            {links.length > 0 ? (
-              <div className="mt-5 border-t border-navy/10 dark:border-white/10 pt-5">
-                <p className={detailLabelClassName}>Socials</p>
-                <div className="mt-2 flex flex-wrap items-center gap-2">
-                  {links.map(({ href, icon: Icon, label }) => (
-                    <a
-                      className="inline-flex items-center gap-2 rounded-full border border-navy/10 dark:border-white/10 bg-white dark:bg-white/[0.06] px-3 py-1.5 text-sm text-navy/55 dark:text-wheat/55 transition hover:border-cabernet dark:hover:border-[#e4a3ab]/60 hover:text-cabernet dark:hover:text-[#e4a3ab]"
-                      href={href}
-                      key={href}
-                      rel="noreferrer"
-                      target="_blank"
-                    >
-                      <Icon aria-hidden="true" className="size-4 shrink-0" />
-                      <span className="break-all">{label}</span>
-                    </a>
-                  ))}
-                </div>
-              </div>
-            ) : null}
+          <div className="flex items-center sm:flex-col sm:gap-4">
+            <div
+              aria-hidden="true"
+              className="flex size-24 shrink-0 items-center justify-center rounded-full bg-cabernet text-3xl font-semibold text-wheat shadow-[0_16px_40px_rgba(114,28,36,0.18)] dark:bg-wheat dark:text-[#141414] sm:size-36 sm:text-5xl"
+            >
+              {initials}
+            </div>
           </div>
         </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            setStatus("idle");
+            setSocialDrafts(draftsFromValues(values));
+            setFieldErrors({});
+            setIsEditing(true);
+          }}
+          className="mt-8 inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-cabernet/40 px-4 text-sm font-semibold text-cabernet transition hover:bg-cabernet hover:text-wheat dark:border-[#e4a3ab]/50 dark:text-[#e4a3ab] dark:hover:bg-[#e4a3ab] dark:hover:text-[#141414] sm:absolute sm:right-0 sm:top-0 sm:mt-0"
+        >
+          <Pencil aria-hidden="true" className="size-4" />
+          Edit profile
+        </button>
+      </div>
+
+      <div className="pb-2 pt-5">
+        <h2 className="font-serif text-4xl font-semibold tracking-[-0.035em] text-navy dark:text-wheat sm:text-5xl">Socials</h2>
+        {links.length > 0 ? (
+          <div className="mt-5 flex flex-wrap items-center gap-2.5">
+            {links.map(({ href, icon: Icon, label }) => (
+              <a
+                className="inline-flex min-h-10 items-center gap-2 rounded-full border border-navy/10 bg-ivory px-3.5 py-2 text-sm text-navy/65 transition hover:border-cabernet hover:text-cabernet dark:border-white/10 dark:bg-white/5 dark:text-wheat/65 dark:hover:border-[#e4a3ab]/60 dark:hover:text-[#e4a3ab]"
+                href={href}
+                key={href}
+                rel="noreferrer"
+                target="_blank"
+              >
+                <Icon aria-hidden="true" className="size-4 shrink-0" />
+                <span className="break-all">{label}</span>
+              </a>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-4 text-sm text-navy/55 dark:text-wheat/55">Add social profiles to display them here.</p>
+        )}
       </div>
 
       {status === "saved" ? <p className="mt-3 text-center text-sm font-semibold text-[#027A48]">Saved</p> : null}

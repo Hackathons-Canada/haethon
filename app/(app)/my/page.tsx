@@ -24,6 +24,8 @@ import {
   formatLocationParts,
 } from "@/lib/hackathons/card-format";
 import { getHackathonIdsWithDiscord } from "@/lib/hackathons/discord-cards";
+import { getPrimarySourceByHackathon } from "@/lib/hackathons/source-badges";
+import type { HackathonSource } from "@/lib/hackathons/source-badges";
 import { reminderTypeLabels } from "@/lib/hackathons/reminder-labels";
 import {
   computeSelectableReminderPlan,
@@ -72,7 +74,7 @@ const stageTitles: Record<(typeof stageOrder)[number], string> = {
   accepted: "Accepted",
 };
 
-function toCardData(row: PipelineRow, hasDiscord: boolean): HackathonCardData {
+function toCardData(row: PipelineRow, hasDiscord: boolean, source: HackathonSource | null): HackathonCardData {
   const location = formatLocationParts(row);
 
   return {
@@ -89,6 +91,7 @@ function toCardData(row: PipelineRow, hasDiscord: boolean): HackathonCardData {
     location: location.locality ?? "Location TBA",
     name: row.hackathonName,
     slug: row.slug,
+    source,
     userVote: 0,
     voteScore: row.voteScore,
     websiteUrl: row.websiteUrl,
@@ -164,8 +167,9 @@ export default async function MyHackathonsPage() {
   pastRows.sort((a, b) => (b.endsAt?.getTime() ?? 0) - (a.endsAt?.getTime() ?? 0));
 
   const activeCount = stageOrder.reduce((total, stage) => total + (byStage.get(stage)?.length ?? 0), 0);
-  const [discordHackathonIds, preferenceRows] = await Promise.all([
+  const [discordHackathonIds, sourceByHackathon, preferenceRows] = await Promise.all([
     getHackathonIdsWithDiscord(rows.map((row) => ({ id: row.hackathonId, seriesId: row.seriesId }))),
+    getPrimarySourceByHackathon(rows.map((row) => row.hackathonId)),
     db
       .select({
         hackathonId: userHackathonNotificationPreferences.hackathonId,
@@ -219,7 +223,7 @@ export default async function MyHackathonsPage() {
     cards: (byStage.get(stage) ?? []).map((row) => ({
       userHackathonId: row.id,
       hackathonId: row.hackathonId,
-      card: toCardData(row, discordHackathonIds.has(row.hackathonId)),
+      card: toCardData(row, discordHackathonIds.has(row.hackathonId), sourceByHackathon.get(row.hackathonId) ?? null),
       reminder: toReminder(row, stageTitles[stage]),
     })),
   }));

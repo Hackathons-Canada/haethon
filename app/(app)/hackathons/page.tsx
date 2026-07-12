@@ -8,6 +8,7 @@ import { db } from "@/lib/db";
 import { hackathonDates, hackathonLocations, hackathons, userHackathons, userHackathonVotes } from "@/lib/db/schema";
 import { buildBadges, formatDateRange, formatDuration, formatLocationParts } from "@/lib/hackathons/card-format";
 import { getHackathonIdsWithDiscord } from "@/lib/hackathons/discord-cards";
+import { getPrimarySourceByHackathon } from "@/lib/hackathons/source-badges";
 import { dateRangeForPeriod, normalizeSearchFilters } from "@/lib/hackathons/search-filters";
 import type { HackathonSearchFilters } from "@/lib/hackathons/search-filters";
 
@@ -92,7 +93,10 @@ async function getHackathonCards(filters: HackathonSearchFilters): Promise<Hacka
 
   const savedByHackathon = new Map(savedRows.map((row) => [row.hackathonId, row.isSaved]));
   const voteByHackathon = new Map(voteRows.map((row) => [row.hackathonId, row.vote]));
-  const discordHackathonIds = await getHackathonIdsWithDiscord(rows);
+  const [discordHackathonIds, sourceByHackathon] = await Promise.all([
+    getHackathonIdsWithDiscord(rows),
+    getPrimarySourceByHackathon(hackathonIds),
+  ]);
 
   return rows.map((row) => {
     const location = formatLocationParts(row);
@@ -110,6 +114,7 @@ async function getHackathonCards(filters: HackathonSearchFilters): Promise<Hacka
       location: location.locality ?? "Location TBA",
       name: row.name,
       slug: row.slug,
+      source: sourceByHackathon.get(row.id) ?? null,
       userVote: (voteByHackathon.get(row.id) ?? 0) as -1 | 0 | 1,
       voteScore: row.voteScore,
       websiteUrl: row.websiteUrl,

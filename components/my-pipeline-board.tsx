@@ -9,7 +9,7 @@ import type { HackathonCardData, HackathonCardReminder } from "@/components/hack
 import { RemoveHackathonControl } from "@/components/remove-hackathon-control";
 
 const trashButtonClassName =
-  "grid size-8 place-items-center rounded-full bg-white/80 dark:bg-black/40 text-navy/60 dark:text-wheat/60 backdrop-blur transition-colors hover:bg-cabernet/15 hover:text-cabernet dark:hover:bg-white/10 dark:hover:text-[#e4a3ab] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40 disabled:cursor-wait disabled:opacity-60";
+  "relative z-20 grid size-8 place-items-center rounded-full text-navy/45 dark:text-wheat/45 transition-colors hover:bg-cabernet/10 hover:text-cabernet dark:hover:bg-white/10 dark:hover:text-[#e4a3ab] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40 disabled:cursor-wait disabled:opacity-60";
 
 function redirectToSignIn() {
   window.location.href = "/sign-in";

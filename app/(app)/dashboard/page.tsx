@@ -17,6 +17,7 @@ import {
   userProfiles,
 } from "@/lib/db/schema";
 import { buildBadges, formatDateRange, formatDuration, formatLocation, formatLocationParts } from "@/lib/hackathons/card-format";
+import { getPrimarySourceByHackathon } from "@/lib/hackathons/source-badges";
 import { formatReminderDate } from "@/lib/hackathons/reminder-labels";
 
 export const metadata: Metadata = {
@@ -143,6 +144,10 @@ export default async function DashboardPage() {
     .orderBy(...suggestionOrderBy)
     .limit(3);
 
+  const suggestionSourceByHackathon = await getPrimarySourceByHackathon(
+    suggestionRows.map((row) => row.id)
+  );
+
   const suggestions: HackathonCardData[] = suggestionRows.map((row) => {
     const location = formatLocationParts(row);
 
@@ -158,6 +163,7 @@ export default async function DashboardPage() {
       location: location.locality ?? "Location TBA",
       name: row.name,
       slug: row.slug,
+      source: suggestionSourceByHackathon.get(row.id) ?? null,
       userVote: 0,
       voteScore: row.voteScore,
       websiteUrl: row.websiteUrl,
