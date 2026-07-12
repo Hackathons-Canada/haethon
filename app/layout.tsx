@@ -27,19 +27,13 @@ export const metadata: Metadata = {
   description: "Discover, track, and organize hackathons across North America.",
 };
 
+// The app is dark-only. Lock the theme in before hydration so there's no flash.
 const themeInitScript = `
 (() => {
   try {
-    const stored = localStorage.getItem("hna-theme");
-    const theme =
-      stored === "light" || stored === "dark"
-        ? stored
-        : window.matchMedia("(prefers-color-scheme: light)").matches
-          ? "light"
-          : "dark";
-    document.documentElement.classList.toggle("dark", theme === "dark");
-    document.documentElement.classList.toggle("light", theme === "light");
-    document.documentElement.style.colorScheme = theme;
+    document.documentElement.classList.add("dark");
+    document.documentElement.classList.remove("light");
+    document.documentElement.style.colorScheme = "dark";
   } catch {}
 })();
 `;
@@ -52,7 +46,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${spaceGrotesk.variable} ${plexMono.variable} ${newsreader.variable} h-full bg-white dark:bg-[#141414]`}
+      className={`dark ${spaceGrotesk.variable} ${plexMono.variable} ${newsreader.variable} h-full bg-[#141414]`}
       suppressHydrationWarning
     >
       <head>

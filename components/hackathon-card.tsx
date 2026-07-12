@@ -477,14 +477,20 @@ function VoteControl({
 }
 
 function HackathonLogoMark({
+  compact = false,
   hackathon,
   logoSrc,
 }: {
+  compact?: boolean;
   hackathon: HackathonCardData;
   logoSrc: string | null;
 }) {
   return (
-    <div className="relative grid size-[4.5rem] shrink-0 place-items-center overflow-hidden rounded-xl bg-[radial-gradient(120%_120%_at_30%_20%,#d9c3a5_0%,#c4a882_55%,#b0946a_100%)]">
+    <div
+      className={`relative grid shrink-0 place-items-center overflow-hidden rounded-xl bg-[radial-gradient(120%_120%_at_30%_20%,#d9c3a5_0%,#c4a882_55%,#b0946a_100%)] ${
+        compact ? "size-14" : "size-[4.5rem]"
+      }`}
+    >
       {logoSrc ? (
         <Image
           alt={`${hackathon.name} logo`}
@@ -701,10 +707,14 @@ function CardAccentEdges() {
 }
 
 export function HackathonCard({
+  compact = false,
   hackathon,
   preview = false,
   reminder,
 }: {
+  /* Tightens padding, logo, and footer spacing so cards stack densely on the
+     My Hackathons board. */
+  compact?: boolean;
   hackathon: HackathonCardData;
   index: number;
   preview?: boolean;
@@ -727,19 +737,23 @@ export function HackathonCard({
 
   return (
     <article
-      className="group relative flex min-w-0 flex-col overflow-hidden rounded-2xl border border-navy/10 bg-[linear-gradient(to_bottom_left,rgb(var(--hackathon-accent-rgb)_/_0.1),transparent_45%,transparent_55%,rgb(var(--hackathon-accent-rgb)_/_0.1)),radial-gradient(circle_130px_at_10%_8%,rgb(178_142_100_/_0.05),transparent_72%),radial-gradient(circle_150px_at_65%_130%,rgb(178_142_100_/_0.05),transparent_72%),linear-gradient(160deg,#ffffff_0%,#f7f3ea_100%)] p-5 shadow-[0_18px_45px_rgb(0_0_0/0.06)] transition-transform duration-200 ease-out hover:z-10 hover:scale-105 after:pointer-events-none after:absolute after:inset-0 after:bg-[linear-gradient(to_bottom_left,rgb(var(--hackathon-accent-rgb)_/_0.08),transparent_45%,transparent_55%,rgb(var(--hackathon-accent-rgb)_/_0.08))] after:opacity-0 after:transition-opacity after:duration-[450ms] after:ease-out after:content-[''] group-hover:after:opacity-100 group-focus-within:after:opacity-100 dark:border-white/10 dark:bg-[linear-gradient(to_bottom_left,rgb(var(--hackathon-accent-rgb)_/_0.14),transparent_45%,transparent_55%,rgb(var(--hackathon-accent-rgb)_/_0.14)),radial-gradient(circle_130px_at_10%_8%,rgb(178_142_100_/_0.07),transparent_72%),radial-gradient(circle_150px_at_65%_130%,rgb(178_142_100_/_0.07),transparent_72%),linear-gradient(160deg,#181a19_0%,#0f1110_100%)] dark:shadow-[0_18px_45px_rgb(0_0_0/0.5)] dark:after:bg-[linear-gradient(to_bottom_left,rgb(var(--hackathon-accent-rgb)_/_0.1),transparent_45%,transparent_55%,rgb(var(--hackathon-accent-rgb)_/_0.1))] sm:p-6"
+      className={`group relative flex min-w-0 flex-col overflow-hidden rounded-2xl border border-navy/10 bg-[linear-gradient(to_bottom_left,rgb(var(--hackathon-accent-rgb)_/_0.1),transparent_45%,transparent_55%,rgb(var(--hackathon-accent-rgb)_/_0.1)),radial-gradient(circle_130px_at_10%_8%,rgb(178_142_100_/_0.05),transparent_72%),radial-gradient(circle_150px_at_65%_130%,rgb(178_142_100_/_0.05),transparent_72%),linear-gradient(160deg,#ffffff_0%,#f7f3ea_100%)] shadow-[0_18px_45px_rgb(0_0_0/0.06)] transition-transform duration-200 ease-out hover:z-10 hover:scale-105 after:pointer-events-none after:absolute after:inset-0 after:bg-[linear-gradient(to_bottom_left,rgb(var(--hackathon-accent-rgb)_/_0.08),transparent_45%,transparent_55%,rgb(var(--hackathon-accent-rgb)_/_0.08))] after:opacity-0 after:transition-opacity after:duration-[450ms] after:ease-out after:content-[''] group-hover:after:opacity-100 group-focus-within:after:opacity-100 dark:border-white/10 dark:bg-[linear-gradient(to_bottom_left,rgb(var(--hackathon-accent-rgb)_/_0.14),transparent_45%,transparent_55%,rgb(var(--hackathon-accent-rgb)_/_0.14)),radial-gradient(circle_130px_at_10%_8%,rgb(178_142_100_/_0.07),transparent_72%),radial-gradient(circle_150px_at_65%_130%,rgb(178_142_100_/_0.07),transparent_72%),linear-gradient(160deg,#181a19_0%,#0f1110_100%)] dark:shadow-[0_18px_45px_rgb(0_0_0/0.5)] dark:after:bg-[linear-gradient(to_bottom_left,rgb(var(--hackathon-accent-rgb)_/_0.1),transparent_45%,transparent_55%,rgb(var(--hackathon-accent-rgb)_/_0.1))] ${
+        compact ? "p-4" : "p-5 sm:p-6"
+      }`}
       style={accentStyle}
     >
       {hackathon.slug && !preview ? (
         <Link
           aria-label={`View ${hackathon.name} details`}
           className="absolute inset-0 z-[1]"
+          draggable={false}
           href={`/hackathons/${hackathon.slug}`}
         />
       ) : hackathon.websiteUrl && !preview ? (
         <a
           aria-label={`Visit ${hackathon.name} website`}
           className="absolute inset-0 z-[1]"
+          draggable={false}
           href={hackathon.websiteUrl}
           rel="noopener noreferrer"
           target="_blank"
@@ -752,10 +766,14 @@ export function HackathonCard({
       />
       <CardAccentEdges />
 
-      <div className="flex items-start gap-4">
-        <HackathonLogoMark hackathon={hackathon} logoSrc={logoSrc} />
+      <div className={`flex items-start ${compact ? "gap-3" : "gap-4"}`}>
+        <HackathonLogoMark compact={compact} hackathon={hackathon} logoSrc={logoSrc} />
         <div className="min-w-0 pt-1">
-          <h2 className="line-clamp-2 text-xl font-semibold leading-6 text-navy dark:text-wheat sm:text-[1.35rem]">
+          <h2
+            className={`line-clamp-2 font-semibold text-navy dark:text-wheat ${
+              compact ? "text-lg leading-6" : "text-xl leading-6 sm:text-[1.35rem]"
+            }`}
+          >
             {hackathon.name}
           </h2>
           <p className="mt-2 text-[15px] font-semibold leading-5 text-navy/55 dark:text-wheat/55">
@@ -785,7 +803,7 @@ export function HackathonCard({
         </div>
       </div>
 
-      <div className="mt-auto pt-5 text-base leading-6">
+      <div className={`mt-auto text-base leading-6 ${compact ? "pt-3" : "pt-5"}`}>
         {reminder ? (
           <ReminderControl
             hackathonId={reminder.hackathonId}

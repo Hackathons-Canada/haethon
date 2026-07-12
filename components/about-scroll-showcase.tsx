@@ -86,8 +86,14 @@ function SideFigure({
   );
 }
 
+// The side cards stay hidden until the names have scrolled roughly to
+// center, then fade in over this progress window (matches the YC reveal).
+const REVEAL_START = 0.12;
+const REVEAL_END = 0.28;
+
 export function AboutScrollShowcase() {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [reveal, setReveal] = useState(0);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -116,6 +122,16 @@ export function AboutScrollShowcase() {
 
       setActiveIndex((currentIndex) =>
         currentIndex === nextIndex ? currentIndex : nextIndex
+      );
+
+      const nextReveal = Math.min(
+        Math.max((progress - REVEAL_START) / (REVEAL_END - REVEAL_START), 0),
+        1
+      );
+      const roundedReveal = Math.round(nextReveal * 100) / 100;
+
+      setReveal((currentReveal) =>
+        currentReveal === roundedReveal ? currentReveal : roundedReveal
       );
     };
 
@@ -177,7 +193,13 @@ export function AboutScrollShowcase() {
         >
           <div className="relative mx-auto grid h-full max-w-[1300px] grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-center gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-10">
             {/* Left image — "During YC" equivalent */}
-            <div className="order-2 lg:order-1">
+            <div
+              className="order-2 lg:order-1"
+              style={{
+                opacity: reveal,
+                transform: `translateY(${(1 - reveal) * 24}px)`,
+              }}
+            >
               <SideFigure
                 activeIndex={activeIndex}
                 label="During YC"
@@ -234,7 +256,13 @@ export function AboutScrollShowcase() {
             </div>
 
             {/* Right image — "Now" */}
-            <div className="order-3">
+            <div
+              className="order-3"
+              style={{
+                opacity: reveal,
+                transform: `translateY(${(1 - reveal) * 24}px)`,
+              }}
+            >
               <SideFigure activeIndex={activeIndex} label="Now" side="now" />
             </div>
           </div>

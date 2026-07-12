@@ -11,7 +11,6 @@ test("loads the home page shell", async ({ page }) => {
   await expect(page.getByRole("navigation", { name: "Primary navigation" })).toBeVisible();
   await expect(page.getByRole("link", { name: "About", exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "FAQ", exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: /Switch to (light|dark) theme/ })).toBeVisible();
   await expect(page.getByRole("link", { name: "Submit", exact: true })).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Open App", exact: true }).first()).toHaveAttribute(
     "href",

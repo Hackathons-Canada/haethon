@@ -1,8 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { ThemeToggle } from "@/components/theme-toggle";
-
 const navItems = [
   { label: "About", href: "/about" },
   { label: "FAQ", href: "/#fqa" },
@@ -10,14 +8,9 @@ const navItems = [
 
 type PrimaryNavProps = {
   activeHref?: string;
-  /** Pages locked to one theme (the landing page) hide the toggle. */
-  showThemeToggle?: boolean;
 };
 
-export function PrimaryNav({
-  activeHref,
-  showThemeToggle = true,
-}: PrimaryNavProps) {
+export function PrimaryNav({ activeHref }: PrimaryNavProps) {
   return (
     <header className="pointer-events-none fixed inset-x-0 top-0 z-40 px-4 pt-4 sm:px-6 sm:pt-5">
       <nav
@@ -59,7 +52,6 @@ export function PrimaryNav({
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
-          {showThemeToggle ? <ThemeToggle /> : null}
           <Link
             className="rounded-full bg-cabernet px-4 py-2 text-[0.8rem] font-semibold text-wheat transition-colors hover:bg-[#5c151c] sm:px-5 dark:bg-wheat dark:text-[#141414] dark:hover:bg-white"
             href="/hackathons"

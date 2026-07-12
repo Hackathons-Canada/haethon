@@ -103,7 +103,7 @@ export default async function Home({
   return (
     // The landing page is always night-sky dark, whatever the app theme.
     <main className="dark min-h-screen overflow-x-clip bg-[#141414] text-wheat">
-      <PrimaryNav showThemeToggle={false} />
+      <PrimaryNav />
 
       <section className="relative isolate min-h-[min(110svh,980px)] overflow-hidden pb-28 pt-28 sm:pb-32 sm:pt-32">
         <HeroAurora />

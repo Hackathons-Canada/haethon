@@ -4,9 +4,10 @@ import { redirect } from "next/navigation";
 import { and, asc, eq, ne, or } from "drizzle-orm";
 import { CalendarDays, ExternalLink, MapPin, Pin, Trophy } from "lucide-react";
 
-import { HackathonCard } from "@/components/hackathon-card";
 import type { HackathonCardData, HackathonCardReminder } from "@/components/hackathon-card";
 import { HackathonResultActions } from "@/components/hackathon-result-actions";
+import { MyPipelineBoard } from "@/components/my-pipeline-board";
+import type { PipelineColumn } from "@/components/my-pipeline-board";
 import { MarkAttendedButton } from "@/components/mark-attended-button";
 import { getCurrentUserRecord } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -214,6 +215,17 @@ export default async function MyHackathonsPage() {
     return { hackathonId: row.hackathonId, options, statusLabel };
   }
 
+  const pipelineColumns: PipelineColumn[] = stageOrder.map((stage) => ({
+    stage,
+    title: stageTitles[stage],
+    cards: (byStage.get(stage) ?? []).map((row) => ({
+      userHackathonId: row.id,
+      hackathonId: row.hackathonId,
+      card: toCardData(row, discordHackathonIds.has(row.hackathonId)),
+      reminder: toReminder(row, stageTitles[stage]),
+    })),
+  }));
+
   return (
     <main className="min-h-screen px-5 pb-20 pt-14 text-navy dark:text-wheat sm:px-8 sm:pt-16 lg:px-12">
       <div className="mx-auto w-full max-w-[1400px]">
@@ -232,38 +244,8 @@ export default async function MyHackathonsPage() {
             </Link>
           </div>
         ) : (
-          /* Notion-style board: one rectangle column per pipeline status. */
-          <div className="mt-10 flex items-start gap-5 overflow-x-auto pb-4">
-            {stageOrder.map((stage) => {
-              const stageRows = byStage.get(stage) ?? [];
-
-              return (
-                <section
-                  className="w-[320px] shrink-0 rounded-2xl border border-navy/10 dark:border-white/10 bg-ivory dark:bg-white/5 p-3"
-                  key={stage}
-                >
-                  <div className="flex items-center gap-2 px-1 py-1">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-cabernet/10 dark:bg-[#e4a3ab]/15 px-2.5 py-1 font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-cabernet dark:text-[#e4a3ab]">
-                      <span aria-hidden="true" className="size-1.5 rounded-full bg-current" />
-                      {stageTitles[stage]}
-                    </span>
-                    <span className="text-sm font-semibold text-navy/45 dark:text-wheat/45">{stageRows.length}</span>
-                  </div>
-
-                  <div className="mt-2 space-y-3">
-                    {stageRows.map((row, index) => (
-                      <HackathonCard
-                        hackathon={toCardData(row, discordHackathonIds.has(row.hackathonId))}
-                        index={index}
-                        key={row.id}
-                        reminder={toReminder(row, stageTitles[stage])}
-                      />
-                    ))}
-                  </div>
-                </section>
-              );
-            })}
-          </div>
+          /* Notion-style board: drag cards between pipeline status columns. */
+          <MyPipelineBoard columns={pipelineColumns} />
         )}
 
         {pastRows.length ? (
