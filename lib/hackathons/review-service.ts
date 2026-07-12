@@ -22,7 +22,7 @@ import {
   payloadForJson,
   slugify,
 } from "@/lib/hackathons/utils";
-import type { HackathonSubmissionInput, NormalizedHackathonPayload } from "@/lib/hackathons/utils";
+import type { CommunitySubmissionInput, HackathonSubmissionInput, NormalizedHackathonPayload } from "@/lib/hackathons/utils";
 import { ensureHackathonSeries } from "@/lib/hackathons/series";
 import { deriveSourceType } from "@/lib/hackathons/source-badges";
 import {
@@ -319,9 +319,40 @@ export async function mergeIntoHackathon(targetHackathonId: string, payload: Nor
   return targetHackathonId;
 }
 
+// A community submission is just a name + link, so it always lands in the
+// pending queue for a reviewer to complete — never a candidate for direct publish.
+async function createCommunitySubmission(input: CommunitySubmissionInput, submitter: SelectUser) {
+  const websiteUrl = input.websiteUrl;
+  const sourceUrl = input.sourceUrl ?? websiteUrl;
+  const duplicate = await findBestDuplicate({ name: input.name, websiteUrl, sourceUrl });
+
+  const [submission] = await db
+    .insert(hackathonSubmissions)
+    .values({
+      submittedByUserId: submitter.id,
+      submitterType: "community",
+      matchedHackathonId: duplicate?.id,
+      status: "pending",
+      // Only the fields the submitter actually provided; the reviewer supplies
+      // dates, location, and format from the admin queue before publishing.
+      payload: { submitterType: "community", name: input.name, websiteUrl, sourceUrl },
+      normalizedName: input.name,
+      websiteUrl,
+      sourceUrl,
+      duplicateScore: (duplicate?.score ?? 0).toFixed(2),
+    })
+    .returning();
+
+  return { submission, publishedHackathonId: null, publishedDirectly: false };
+}
+
 export async function createHackathonSubmission(input: HackathonSubmissionInput, submitter: SelectUser, submitterRole: string) {
+  if (input.submitterType === "community") {
+    return createCommunitySubmission(input, submitter);
+  }
+
   const normalizedPayload = normalizeSubmissionPayload(input);
-  const organization = input.submitterType === "organizer" ? await findOrganizationByName(input.organizationName) : null;
+  const organization = await findOrganizationByName(input.organizationName);
   const duplicate = await findBestDuplicate(normalizedPayload);
   const organizationId = organization?.id ?? normalizedPayload.organizationId ?? null;
   const shouldPublishDirectly = await isVerifiedOrganizerForOrganization(submitter.id, submitterRole, organizationId);

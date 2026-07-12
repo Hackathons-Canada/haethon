@@ -265,9 +265,47 @@ function findProminentColor(image: HTMLImageElement): Rgb | null {
   }
 }
 
-/* Session-wide accent cache so each logo is decoded and sampled at most once,
-   no matter how often cards remount across pages. */
-const accentCache = new Map<string, Rgb>();
+/* Session-wide accent caches so each logo is decoded and sampled at most once,
+   no matter how often cards remount across pages. Results (including failed
+   samples, stored as null) land in accentCache; accentPending dedupes
+   concurrent mounts of the same src so only the first one runs the canvas
+   work while the rest await its promise. */
+const accentCache = new Map<string, Rgb | null>();
+const accentPending = new Map<string, Promise<Rgb | null>>();
+
+function sampleLogoAccent(src: string): Promise<Rgb | null> {
+  if (accentCache.has(src)) {
+    return Promise.resolve(accentCache.get(src) ?? null);
+  }
+
+  const pending = accentPending.get(src);
+  if (pending) {
+    return pending;
+  }
+
+  const promise = new Promise<Rgb | null>((resolve) => {
+    const image = new window.Image();
+
+    /* Same-origin proxy URLs don't need CORS; absolute URLs do, or the
+       canvas is tainted and getImageData throws. */
+    if (!src.startsWith("/")) {
+      image.crossOrigin = "anonymous";
+    }
+    image.decoding = "async";
+    image.onload = () => resolve(findProminentColor(image));
+    image.onerror = () => resolve(null);
+    image.src = src;
+  }).then((rgb) => {
+    accentCache.set(src, rgb);
+    accentPending.delete(src);
+
+    return rgb;
+  });
+
+  accentPending.set(src, promise);
+
+  return promise;
+}
 
 function useLogoAccentRgb(src: string | null | undefined, fallbackRgb: Rgb) {
   const [sampledColor, setSampledColor] = useState<{ rgb: Rgb; src: string } | null>(() => {
@@ -277,31 +315,20 @@ function useLogoAccentRgb(src: string | null | undefined, fallbackRgb: Rgb) {
   });
 
   useEffect(() => {
-    if (!src || accentCache.has(src)) {
+    if (!src) {
       return;
     }
 
     let canceled = false;
-    const image = new window.Image();
 
-    /* Same-origin proxy URLs don't need CORS; absolute URLs do, or the
-       canvas is tainted and getImageData throws. */
-    if (!src.startsWith("/")) {
-      image.crossOrigin = "anonymous";
-    }
-    image.decoding = "async";
-    image.onload = () => {
-      if (canceled) {
-        return;
+    /* sampleLogoAccent resolves straight from the module cache when this src
+       was already sampled (by this or another card), so this never redoes
+       canvas work — it just syncs state on the microtask after render. */
+    void sampleLogoAccent(src).then((rgb) => {
+      if (!canceled && rgb) {
+        setSampledColor((current) => (current?.src === src ? current : { rgb, src }));
       }
-
-      const prominentColor = findProminentColor(image);
-      if (prominentColor) {
-        accentCache.set(src, prominentColor);
-        setSampledColor({ rgb: prominentColor, src });
-      }
-    };
-    image.src = src;
+    });
 
     return () => {
       canceled = true;
@@ -514,7 +541,10 @@ function HackathonLogoMark({
           priority={false}
           sizes="72px"
           src={logoSrc}
-          unoptimized
+          /* Non-preview logos route through our same-origin /logo proxy, so
+             next/image can optimize them (WebP + srcset) without remotePatterns.
+             Preview cards carry raw remote URLs and must skip optimization. */
+          unoptimized={!logoSrc.startsWith("/")}
         />
       ) : (
         <div className="grid size-full place-items-center bg-[rgb(var(--hackathon-accent-rgb)/0.92)] px-2 text-center text-lg font-semibold text-white">

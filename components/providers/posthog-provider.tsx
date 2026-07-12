@@ -2,7 +2,6 @@
 
 import posthog from "posthog-js";
 import { PostHogProvider as Provider } from "posthog-js/react";
-import { Suspense } from "react";
 
 import { PostHogIdentify } from "@/components/providers/posthog-identify";
 import { PostHogPageView } from "@/components/providers/posthog-pageview";
@@ -27,8 +26,9 @@ if (typeof window !== "undefined" && !posthog.__loaded) {
       // client-side navigations correctly.
       capture_pageview: false,
       capture_pageleave: true,
-      // Autocapture (clicks, form interactions) stays on for broad usage data.
-      autocapture: true,
+      // Autocapture is off to control event volume at scale — we instrument
+      // explicit events instead.
+      autocapture: false,
     });
   }
 }
@@ -36,9 +36,7 @@ if (typeof window !== "undefined" && !posthog.__loaded) {
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
   return (
     <Provider client={posthog}>
-      <Suspense fallback={null}>
-        <PostHogPageView />
-      </Suspense>
+      <PostHogPageView />
       <PostHogIdentify />
       {children}
     </Provider>

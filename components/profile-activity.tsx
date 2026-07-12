@@ -44,7 +44,6 @@ export function ProfileActivity({
   }
 
   const { weeks } = active;
-  const hasActivity = active.totalDays > 0;
   const chartLabels = [
     { className: "text-left", text: formatChartDate(weeks[0]?.key) },
     { className: "text-center", text: formatChartDate(weeks[Math.floor(weeks.length / 2)]?.key) },

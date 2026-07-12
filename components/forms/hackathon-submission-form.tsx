@@ -62,21 +62,18 @@ export function HackathonSubmissionForm() {
     setMessage(null);
 
     const formData = new FormData(form);
-    const commonPayload = {
-      submitterType,
-      name: fieldValue(formData, "name"),
-      startDate: fieldValue(formData, "startDate"),
-      endDate: fieldValue(formData, "endDate"),
-      format: fieldValue(formData, "format"),
-      country: fieldValue(formData, "country"),
-      city: fieldValue(formData, "city"),
-      region: fieldValue(formData, "region"),
-      shortDescription: fieldValue(formData, "shortDescription"),
-    };
     const payload =
       submitterType === "organizer"
         ? {
-            ...commonPayload,
+            submitterType,
+            name: fieldValue(formData, "name"),
+            startDate: fieldValue(formData, "startDate"),
+            endDate: fieldValue(formData, "endDate"),
+            format: fieldValue(formData, "format"),
+            country: fieldValue(formData, "country"),
+            city: fieldValue(formData, "city"),
+            region: fieldValue(formData, "region"),
+            shortDescription: fieldValue(formData, "shortDescription"),
             organizationName: fieldValue(formData, "organizationName"),
             websiteUrl: urlValue(formData, "websiteUrl"),
             applicationOpensAt: fieldValue(formData, "applicationOpensAt"),
@@ -87,9 +84,12 @@ export function HackathonSubmissionForm() {
             prizeAmountUsd: optionalNumber(formData, "prizeAmountUsd"),
           }
         : {
-            ...commonPayload,
-            sourceUrl: FORM_SUBMISSION_SOURCE_URL,
+            // Community submitters give us only a name + link; a reviewer fills in
+            // the date, province, location, and everything else before it goes live.
+            submitterType,
+            name: fieldValue(formData, "name"),
             websiteUrl: urlValue(formData, "websiteUrl"),
+            sourceUrl: FORM_SUBMISSION_SOURCE_URL,
           };
 
     try {
@@ -197,58 +197,67 @@ export function HackathonSubmissionForm() {
           )}
         </div>
 
-        <div className="grid gap-x-8 gap-y-7 md:grid-cols-4">
-          <div>
-            <label className={labelClassName} htmlFor="startDate">
-              Start date
-            </label>
-            <input id="startDate" name="startDate" required type="date" className={inputClassName} />
-          </div>
-          <div>
-            <label className={labelClassName} htmlFor="endDate">
-              End date
-            </label>
-            <input id="endDate" name="endDate" required type="date" className={inputClassName} />
-          </div>
-          <div>
-            <label className={labelClassName} htmlFor="format">
-              Format
-            </label>
-            <select id="format" name="format" defaultValue="in_person" className={inputClassName}>
-              <option value="in_person">In person</option>
-              <option value="online">Online</option>
-            </select>
-          </div>
-          <div>
-            <label className={labelClassName} htmlFor="country">
-              Country
-            </label>
-            <input id="country" name="country" required defaultValue="Canada" className={inputClassName} />
-          </div>
-        </div>
+        {submitterType === "community" ? (
+          <p className="text-sm leading-6 text-navy/55 dark:text-wheat/55">
+            That’s all we need. Our team finds the date, province, location, and everything else before the hackathon goes
+            live — you just point us to it.
+          </p>
+        ) : null}
 
-        <div className="grid gap-x-8 gap-y-7 md:grid-cols-3">
-          <div>
-            <label className={labelClassName} htmlFor="city">
-              City
-            </label>
-            <input id="city" name="city" className={inputClassName} />
-          </div>
-          <div>
-            <label className={labelClassName} htmlFor="region">
-              Province / state
-            </label>
-            <input id="region" name="region" className={inputClassName} />
-          </div>
-          {submitterType === "organizer" ? (
-            <div>
-              <label className={labelClassName} htmlFor="venue">
-                Venue
-              </label>
-              <input id="venue" name="venue" className={inputClassName} />
+        {submitterType === "organizer" ? (
+          <>
+            <div className="grid gap-x-8 gap-y-7 md:grid-cols-4">
+              <div>
+                <label className={labelClassName} htmlFor="startDate">
+                  Start date
+                </label>
+                <input id="startDate" name="startDate" required type="date" className={inputClassName} />
+              </div>
+              <div>
+                <label className={labelClassName} htmlFor="endDate">
+                  End date
+                </label>
+                <input id="endDate" name="endDate" required type="date" className={inputClassName} />
+              </div>
+              <div>
+                <label className={labelClassName} htmlFor="format">
+                  Format
+                </label>
+                <select id="format" name="format" defaultValue="in_person" className={inputClassName}>
+                  <option value="in_person">In person</option>
+                  <option value="online">Online</option>
+                </select>
+              </div>
+              <div>
+                <label className={labelClassName} htmlFor="country">
+                  Country
+                </label>
+                <input id="country" name="country" required defaultValue="Canada" className={inputClassName} />
+              </div>
             </div>
-          ) : null}
-        </div>
+
+            <div className="grid gap-x-8 gap-y-7 md:grid-cols-3">
+              <div>
+                <label className={labelClassName} htmlFor="city">
+                  City
+                </label>
+                <input id="city" name="city" className={inputClassName} />
+              </div>
+              <div>
+                <label className={labelClassName} htmlFor="region">
+                  Province / state
+                </label>
+                <input id="region" name="region" className={inputClassName} />
+              </div>
+              <div>
+                <label className={labelClassName} htmlFor="venue">
+                  Venue
+                </label>
+                <input id="venue" name="venue" className={inputClassName} />
+              </div>
+            </div>
+          </>
+        ) : null}
 
         {submitterType === "organizer" ? (
           <div className="grid gap-x-8 gap-y-7 border-t border-navy/10 dark:border-white/10 pt-10 md:grid-cols-2">
@@ -283,18 +292,14 @@ export function HackathonSubmissionForm() {
           </div>
         ) : null}
 
-        <div>
-          <label className={labelClassName} htmlFor="shortDescription">
-            {submitterType === "organizer" ? "Short description" : "Notes"}
-          </label>
-          <textarea
-            id="shortDescription"
-            name="shortDescription"
-            required={submitterType === "organizer"}
-            rows={4}
-            className={inputClassName}
-          />
-        </div>
+        {submitterType === "organizer" ? (
+          <div>
+            <label className={labelClassName} htmlFor="shortDescription">
+              Short description
+            </label>
+            <textarea id="shortDescription" name="shortDescription" required rows={4} className={inputClassName} />
+          </div>
+        ) : null}
 
         <div className="flex flex-wrap items-center gap-4 border-t border-navy/10 dark:border-white/10 pt-8">
           <button

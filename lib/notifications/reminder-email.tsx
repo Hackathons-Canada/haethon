@@ -22,6 +22,7 @@ export type BuildReminderEmailInput = {
   hackathonSlug: string;
   scheduledFor: Date;
   appUrl: string;
+  unsubscribeUrl?: string;
 };
 
 /**
@@ -44,6 +45,7 @@ export async function buildReminderEmail(input: BuildReminderEmailInput) {
       label={label}
       pipelineUrl={pipelineUrl}
       scheduledForLabel={formatReminderDate(input.scheduledFor)}
+      unsubscribeUrl={input.unsubscribeUrl}
     />
   );
 

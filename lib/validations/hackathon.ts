@@ -149,6 +149,7 @@ export const hackathonSearchSchema = z
     startsAfter: z.coerce.date().optional(),
     startsBefore: z.coerce.date().optional(),
     limit: z.coerce.number().int().min(1).max(50).default(12),
+    offset: z.coerce.number().int().min(0).max(500).default(0),
   })
   .strip()
   .transform(({ country, countries, ...filters }) => ({
@@ -230,24 +231,15 @@ export const organizerSubmissionSchema = normalizedHackathonPayloadBaseSchema
   })
   .superRefine(dateRangeRefinement);
 
-export const communitySubmissionSchema = z
-  .object({
-    submitterType: z.literal("community"),
-    name: z.string().trim().min(3).max(180),
-    sourceUrl: z.string().trim().url(),
-    websiteUrl: z.string().trim().url(),
-    imageUrl: optionalUrl,
-    applicationUrl: optionalUrl,
-    city: optionalString(120),
-    region: optionalString(120),
-    country: z.string().trim().min(2).max(120),
-    startDate: requiredDate,
-    endDate: requiredDate,
-    format: z.enum(["online", "in_person"]),
-    timeNote: optionalString(160),
-    shortDescription: optionalString(500),
-  })
-  .superRefine(dateRangeRefinement);
+// Community submitters only vouch that a hackathon exists — they give us the
+// name and a link. A reviewer fills in the date, province, location, format,
+// and everything else from the admin submissions queue before it is published.
+export const communitySubmissionSchema = z.object({
+  submitterType: z.literal("community"),
+  name: z.string().trim().min(3).max(180),
+  websiteUrl: z.string().trim().url(),
+  sourceUrl: z.string().trim().url(),
+});
 
 export const hackathonSubmissionSchema = z.discriminatedUnion("submitterType", [
   organizerSubmissionSchema,
@@ -362,13 +354,4 @@ export const attendanceAnomalyResolveSchema = z.object({
 
 export const hackathonVoteSchema = z.object({
   vote: z.union([z.literal(-1), z.literal(0), z.literal(1)]),
-});
-
-export const sponsorLeadSchema = z.object({
-  companyName: z.string().min(2).max(180),
-  contactName: z.string().min(2).max(180),
-  email: z.string().email(),
-  websiteUrl: z.string().url().optional().or(z.literal("")),
-  budgetUsd: z.coerce.number().int().min(0).optional(),
-  message: z.string().min(20).max(2000),
 });

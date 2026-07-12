@@ -57,6 +57,13 @@
       "when": 1783827541238,
       "tag": "0007_lowly_firelord",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1783883554236,
+      "tag": "0008_brave_ikaris",
+      "breakpoints": true
     }
   ]
 }

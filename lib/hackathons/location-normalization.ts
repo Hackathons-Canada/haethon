@@ -222,25 +222,6 @@ export function normalizeCity(value: string | undefined) {
   return value ? normalizeLooseName(value) : value;
 }
 
-export function normalizeLocationFields(value: unknown) {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return value;
-  }
-
-  const record = value as Record<string, unknown>;
-  const country = typeof record.country === "string" ? normalizeCountry(record.country) : record.country;
-
-  return {
-    ...record,
-    city: typeof record.city === "string" ? normalizeCity(record.city) : record.city,
-    country,
-    region:
-      typeof record.region === "string"
-        ? normalizeRegion(record.region, typeof country === "string" ? country : undefined)
-        : record.region,
-  };
-}
-
 export function normalizeLocationPayload<T extends { city?: string; country: string; region?: string }>(value: T): T {
   const country = normalizeCountry(value.country);
 

@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { AlertTriangle, Building2, CalendarDays, Mail, ShieldAlert, Upload } from "lucide-react";
+import { AlertTriangle, Building2, CalendarDays, Inbox, Mail, ShieldAlert, Upload } from "lucide-react";
 
 const items = [
   { href: "/admin/hackathons", icon: CalendarDays, label: "Hackathons" },
+  { href: "/admin/submissions", icon: Inbox, label: "Submissions" },
   { href: "/admin/organizer-preview", icon: Building2, label: "Organizer view" },
   { href: "/admin/import", icon: Upload, label: "Import" },
   { href: "/admin/broken", icon: AlertTriangle, label: "Broken" },

@@ -19,8 +19,13 @@ import type {
 
 type HackathonSearchResponse = {
   data?: HackathonCardData[];
+  hasMore?: boolean;
   error?: unknown;
 };
+
+/* Cards fetched per request. Mirrors CATALOG_PAGE_SIZE on the server so the
+   grid loads in light pages instead of one big render. */
+const PAGE_SIZE = 30;
 
 const countryListboxId = "hackathon-country-options";
 const countryPopoverId = "hackathon-country-popover";
@@ -36,15 +41,22 @@ const formatOptions: { label: string; value: HackathonFormatFilter; detail: stri
   { label: "In person", value: "in_person", detail: "Venue-based hackathons and local events" },
 ];
 
-function buildSearchParams({
-  beginnerFriendly,
-  countries,
-  datePeriod,
-  format,
-  name,
-  travelReimbursement,
-}: HackathonSearchFilters) {
-  const params = new URLSearchParams({ limit: "48" });
+function buildSearchParams(
+  {
+    beginnerFriendly,
+    countries,
+    datePeriod,
+    format,
+    name,
+    travelReimbursement,
+  }: HackathonSearchFilters,
+  offset = 0
+) {
+  const params = new URLSearchParams({ limit: String(PAGE_SIZE) });
+
+  if (offset > 0) {
+    params.set("offset", String(offset));
+  }
   const trimmedName = name.trim();
   const range = dateRangeForPeriod(datePeriod);
 
@@ -131,9 +143,11 @@ function replaceSearchUrl({
 export function HackathonSearch({
   initialFilters,
   initialHackathons,
+  initialHasMore = false,
 }: {
   initialFilters: HackathonSearchFilters;
   initialHackathons: HackathonCardData[];
+  initialHasMore?: boolean;
 }) {
   const [name, setName] = useState(initialFilters.name);
   const [countries, setCountries] = useState(initialFilters.countries);
@@ -143,6 +157,8 @@ export function HackathonSearch({
   const [beginnerFriendly, setBeginnerFriendly] = useState<FeatureFilter>(initialFilters.beginnerFriendly);
   const [travelReimbursement, setTravelReimbursement] = useState<FeatureFilter>(initialFilters.travelReimbursement);
   const [hackathons, setHackathons] = useState(initialHackathons);
+  const [hasMore, setHasMore] = useState(initialHasMore);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasSearched, setHasSearched] = useState(() => hasActiveFilters(initialFilters));
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -281,12 +297,48 @@ export function HackathonSearch({
       }
 
       setHackathons(payload.data);
+      setHasMore(payload.hasMore ?? false);
       setHasSearched(options.markSearched);
       replaceSearchUrl(nextFilters);
     } catch {
       setError("Search is unavailable right now. Try again in a moment.");
     } finally {
       setIsSearching(false);
+    }
+  }
+
+  async function loadMore() {
+    setIsLoadingMore(true);
+    setError(null);
+
+    try {
+      const params = buildSearchParams(currentFilters, hackathons.length);
+      const response = await fetch(`/api/hackathons?${params.toString()}`, {
+        headers: { Accept: "application/json" },
+      });
+
+      if (!response.ok) {
+        throw new Error("Search failed.");
+      }
+
+      const payload = (await response.json()) as HackathonSearchResponse;
+
+      if (!Array.isArray(payload.data)) {
+        throw new Error("Search returned an unexpected response.");
+      }
+
+      const nextPage = payload.data;
+
+      setHackathons((current) => {
+        // Guard against overlap if the catalog shifted between pages.
+        const seen = new Set(current.map((hackathon) => hackathon.id));
+        return [...current, ...nextPage.filter((hackathon) => !seen.has(hackathon.id))];
+      });
+      setHasMore(payload.hasMore ?? false);
+    } catch {
+      setError("Could not load more hackathons. Try again in a moment.");
+    } finally {
+      setIsLoadingMore(false);
     }
   }
 
@@ -745,11 +797,25 @@ export function HackathonSearch({
           </div>
 
           {hackathons.length ? (
-            <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
-              {hackathons.map((hackathon, index) => (
-                <HackathonCard hackathon={hackathon} index={index} key={hackathon.id} />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+                {hackathons.map((hackathon, index) => (
+                  <HackathonCard hackathon={hackathon} index={index} key={hackathon.id} />
+                ))}
+              </div>
+              {hasMore ? (
+                <div className="mt-12 flex justify-center">
+                  <button
+                    className="inline-flex min-h-12 items-center justify-center rounded-full border border-navy/15 dark:border-white/15 px-8 text-sm font-semibold text-navy dark:text-wheat transition-colors hover:border-navy dark:hover:border-white/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40 disabled:cursor-wait disabled:opacity-60"
+                    disabled={isLoadingMore}
+                    onClick={() => void loadMore()}
+                    type="button"
+                  >
+                    {isLoadingMore ? "Loading more hackathons…" : "Load more hackathons"}
+                  </button>
+                </div>
+              ) : null}
+            </>
           ) : (
             <div className="rounded-xl border border-navy/10 dark:border-white/10 bg-ivory dark:bg-white/5 p-8 text-center">
               <h2 className="text-xl font-semibold text-navy dark:text-wheat">No hackathons match your search</h2>

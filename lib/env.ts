@@ -21,7 +21,10 @@ export const env = createEnv({
     SENTRY_ORG: z.string().min(1).optional(),
     SENTRY_PROJECT: z.string().min(1).optional(),
     UPLOADTHING_TOKEN: z.string().min(1).optional(),
-    CRON_SECRET: z.string().min(1).optional(),
+    // Required: cron auth breaks silently (503s) without it, and it is the
+    // fallback signing key for unsubscribe links.
+    CRON_SECRET: z.string().min(1),
+    EMAIL_UNSUBSCRIBE_SECRET: z.string().min(1).optional(),
   },
   client: {
     NEXT_PUBLIC_APP_URL: z.string().url(),
@@ -50,6 +53,7 @@ export const env = createEnv({
     SENTRY_PROJECT: process.env.SENTRY_PROJECT,
     UPLOADTHING_TOKEN: process.env.UPLOADTHING_TOKEN,
     CRON_SECRET: process.env.CRON_SECRET,
+    EMAIL_UNSUBSCRIBE_SECRET: process.env.EMAIL_UNSUBSCRIBE_SECRET,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
     NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,

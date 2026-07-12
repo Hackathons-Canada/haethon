@@ -20,6 +20,7 @@ export type ReminderEmailProps = {
   scheduledForLabel: string;
   detailUrl: string;
   pipelineUrl: string;
+  unsubscribeUrl?: string;
 };
 
 const maroon = "#660000";
@@ -111,6 +112,7 @@ export function ReminderEmail({
   scheduledForLabel,
   detailUrl,
   pipelineUrl,
+  unsubscribeUrl,
 }: ReminderEmailProps) {
   return (
     <Html>
@@ -138,7 +140,18 @@ export function ReminderEmail({
               .
             </Text>
           </Section>
-          <Text style={footer}>You are receiving this because you saved this hackathon on Haethon.</Text>
+          <Text style={footer}>
+            You are receiving this because you saved this hackathon on Haethon.
+            {unsubscribeUrl ? (
+              <>
+                {" "}
+                <Link href={unsubscribeUrl} style={{ color: muted, textDecoration: "underline" }}>
+                  Unsubscribe from all emails
+                </Link>
+                .
+              </>
+            ) : null}
+          </Text>
         </Container>
       </Body>
     </Html>

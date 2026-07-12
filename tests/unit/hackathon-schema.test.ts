@@ -54,6 +54,7 @@ describe("hackathonSearchSchema", () => {
       countries: [],
       format: "in_person",
       limit: 12,
+      offset: 0,
     });
   });
 
@@ -83,26 +84,50 @@ describe("hackathonSearchSchema", () => {
 });
 
 describe("hackathon submission schemas", () => {
-  it("accepts a minimal community submission", () => {
+  it("accepts a minimal community submission of just a name and links", () => {
     const result = communitySubmissionSchema.safeParse({
       submitterType: "community",
       name: "Waterloo Build Weekend",
-      sourceUrl: "https://example.com/event",
       websiteUrl: "https://example.com",
-      country: "Canada",
-      startDate: "2026-09-12",
-      endDate: "2026-09-14",
-      format: "in_person",
+      sourceUrl: "https://example.com/event",
     });
 
     expect(result.success).toBe(true);
   });
 
-  it("normalizes location aliases in community submissions", () => {
-    const result = normalizeSubmissionPayload(communitySubmissionSchema.parse({
+  it("rejects a community submission without a website", () => {
+    const result = communitySubmissionSchema.safeParse({
       submitterType: "community",
       name: "Waterloo Build Weekend",
       sourceUrl: "https://example.com/event",
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("drops hackathon detail fields from community submissions", () => {
+    // Community submitters no longer send dates or location — a reviewer fills
+    // those in later — so any such fields are stripped rather than persisted.
+    const result = communitySubmissionSchema.parse({
+      submitterType: "community",
+      name: "Waterloo Build Weekend",
+      websiteUrl: "https://example.com",
+      sourceUrl: "https://example.com/event",
+      country: "Canada",
+      startDate: "2026-09-12",
+      format: "in_person",
+    });
+
+    expect(result).not.toHaveProperty("country");
+    expect(result).not.toHaveProperty("startDate");
+    expect(result).not.toHaveProperty("format");
+  });
+
+  it("normalizes location aliases in organizer submissions", () => {
+    const result = normalizeSubmissionPayload(organizerSubmissionSchema.parse({
+      submitterType: "organizer",
+      name: "Waterloo Build Weekend",
+      organizationName: "Waterloo Builders",
       websiteUrl: "https://example.com",
       city: "toronto",
       region: "ON",
@@ -110,6 +135,7 @@ describe("hackathon submission schemas", () => {
       startDate: "2026-09-12",
       endDate: "2026-09-14",
       format: "in_person",
+      shortDescription: "A weekend hackathon for students building useful software.",
     }));
 
     expect(result.city).toBe("Toronto");
@@ -166,30 +192,32 @@ describe("hackathon submission schemas", () => {
   });
 
   it("rejects an end date before the start date", () => {
-    const result = communitySubmissionSchema.safeParse({
-      submitterType: "community",
+    const result = organizerSubmissionSchema.safeParse({
+      submitterType: "organizer",
       name: "Backwards Hack",
-      sourceUrl: "https://example.com/event",
+      organizationName: "Waterloo Builders",
       websiteUrl: "https://example.com",
       country: "Canada",
       startDate: "2026-09-14",
       endDate: "2026-09-12",
       format: "online",
+      shortDescription: "A weekend hackathon for students building useful software.",
     });
 
     expect(result.success).toBe(false);
   });
 
   it("rejects the removed hybrid format", () => {
-    const result = communitySubmissionSchema.safeParse({
-      submitterType: "community",
+    const result = organizerSubmissionSchema.safeParse({
+      submitterType: "organizer",
       name: "Waterloo Build Weekend",
-      sourceUrl: "https://example.com/event",
+      organizationName: "Waterloo Builders",
       websiteUrl: "https://example.com",
       country: "Canada",
       startDate: "2026-09-12",
       endDate: "2026-09-14",
       format: "hybrid",
+      shortDescription: "A weekend hackathon for students building useful software.",
     });
 
     expect(result.success).toBe(false);

@@ -39,12 +39,6 @@ export const SKILL_VALUES: readonly string[] = SKILL_LANGUAGES.flatMap((language
   ...language.frameworks,
 ]);
 
-const SKILL_VALUE_SET = new Set(SKILL_VALUES);
-
-export function isKnownSkill(value: string): boolean {
-  return SKILL_VALUE_SET.has(value);
-}
-
 /**
  * Reduce arbitrary input to a deduped list of known skills in canonical order.
  * Filtering the canonical list gives us de-duplication and stable ordering for

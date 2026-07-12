@@ -33,7 +33,6 @@ type ProfileValues = {
 };
 
 type ProfileFormProps = {
-  displayEmail: string;
   displayName: string;
   profile: ProfileValues | null;
 };
@@ -54,7 +53,6 @@ const prefixInputClassName =
   "w-full min-w-0 flex-1 bg-transparent px-3 py-2.5 text-sm text-navy dark:text-wheat outline-none placeholder:text-navy/55 dark:placeholder:text-wheat/40";
 const labelClassName = "mb-1.5 block text-sm font-semibold text-navy dark:text-wheat";
 const headingClassName = "text-sm font-semibold uppercase tracking-[0.2em] text-rust";
-const detailLabelClassName = "text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-navy/55 dark:text-wheat/55";
 const fieldErrorClassName = "mt-1.5 text-xs font-semibold text-[#B42318]";
 const errorBorderClassName = "border-[#B42318]";
 const defaultBorderClassName = "border-navy/15 dark:border-white/15";
@@ -109,7 +107,7 @@ function compactHandle(url: string, fallback: string) {
   }
 }
 
-export function AccountProfileForm({ displayEmail, displayName, profile }: ProfileFormProps) {
+export function AccountProfileForm({ displayName, profile }: ProfileFormProps) {
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [isEditing, setIsEditing] = useState(false);
   const [values, setValues] = useState<ProfileValues>({
@@ -279,7 +277,6 @@ export function AccountProfileForm({ displayEmail, displayName, profile }: Profi
     setStatus("error");
   }
 
-  const location = [values.locationCity, values.locationRegion].filter(Boolean).join(", ");
   const skills = values.skills ?? [];
   const rawLinks: { label: string; href: string | null | undefined; icon: IconComponent }[] = [
     { label: values.githubUrl ? compactHandle(values.githubUrl, "GitHub") : "GitHub", href: values.githubUrl, icon: SiGithub },
@@ -290,23 +287,12 @@ export function AccountProfileForm({ displayEmail, displayName, profile }: Profi
     { label: values.portfolioUrl ? labelFromUrl(values.portfolioUrl) : "Portfolio", href: values.portfolioUrl, icon: Globe },
   ];
   const links = rawLinks.filter((link): link is ProfileLink => Boolean(link.href));
-  const initials =
-    displayName
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part[0]?.toUpperCase() ?? "")
-      .join("") || displayName[0]?.toUpperCase() || "?";
-  const supportingDetails = [
-    { label: "Email", value: displayEmail, breakAll: true },
-    location ? { label: "Location", value: location } : null,
-  ].filter((detail) => detail !== null);
 
   return (
     <section>
       {/* Spacious portfolio-style introduction, modelled after the supplied reference. */}
       <div className="relative py-8 sm:py-14">
-        <div className="grid items-center gap-8 sm:grid-cols-[minmax(0,1fr)_9rem] sm:gap-12">
+        <div className="items-center gap-8 sm:gap-12">
           <div className="min-w-0">
             <h1 className="font-serif text-[clamp(3rem,8vw,4.75rem)] font-semibold leading-[0.92] tracking-[-0.055em] text-navy dark:text-wheat">
               Hi, I&apos;m {displayName}
@@ -314,27 +300,11 @@ export function AccountProfileForm({ displayEmail, displayName, profile }: Profi
             <p className="mt-5 text-xl font-medium leading-snug text-navy dark:text-wheat sm:text-2xl">
               {values.school || "Computer & Software Engineer"}
             </p>
-            <p className="mt-8 max-w-xl text-base leading-7 text-navy/55 dark:text-wheat/60 sm:text-lg">
-              I write ergonomic and performant software at scale.
-            </p>
-
-            <dl className="mt-6 flex flex-wrap gap-x-8 gap-y-3">
-              {supportingDetails.map(({ label, value, breakAll }) => (
-                <div key={label}>
-                  <dt className={detailLabelClassName}>{label}</dt>
-                  <dd className={`mt-1 text-sm text-navy/70 dark:text-wheat/70${breakAll ? " break-all" : ""}`}>{value}</dd>
-                </div>
-              ))}
-            </dl>
-          </div>
-
-          <div className="flex items-center sm:flex-col sm:gap-4">
-            <div
-              aria-hidden="true"
-              className="flex size-24 shrink-0 items-center justify-center rounded-full bg-cabernet text-3xl font-semibold text-wheat shadow-[0_16px_40px_rgba(114,28,36,0.18)] dark:bg-wheat dark:text-[#141414] sm:size-36 sm:text-5xl"
-            >
-              {initials}
-            </div>
+            {values.bio ? (
+              <p className="mt-8 max-w-xl text-base leading-7 text-navy/55 dark:text-wheat/60 sm:text-lg">
+                {values.bio}
+              </p>
+            ) : null}
           </div>
         </div>
 

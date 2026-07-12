@@ -4,21 +4,6 @@ import { UserProfile } from "@clerk/nextjs";
 import { LogOut } from "lucide-react";
 
 import { AccountSignOutButton } from "@/components/account-sign-out-button";
-import { useTheme } from "@/components/providers/theme-provider";
-
-/* Clerk's appearance variables only take flat color values, so this wrapper
-   swaps the palette with the theme: brand paper tones in light, the night-sky
-   surfaces from the landing hero in dark. */
-const lightVariables = {
-  colorBackground: "#fcf9f4",
-  colorInput: "#ffffff",
-  colorForeground: "#1d2a44",
-  colorMutedForeground: "#818793",
-  colorPrimary: "#721c24",
-  colorPrimaryForeground: "#f4ebd9",
-  borderRadius: "0.75rem",
-};
-
 const darkVariables = {
   colorBackground: "#1b1b1b",
   colorInput: "#262626",
@@ -30,14 +15,12 @@ const darkVariables = {
 };
 
 export function ThemedUserProfile() {
-  const { theme } = useTheme();
-
   return (
     <UserProfile
       path="/account/settings"
       routing="path"
       appearance={{
-        variables: theme === "dark" ? darkVariables : lightVariables,
+        variables: darkVariables,
         elements: {
           rootBox: "w-full max-w-5xl",
           cardBox: "w-full bg-white/70 dark:bg-white/10 shadow-none",

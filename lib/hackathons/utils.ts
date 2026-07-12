@@ -72,30 +72,13 @@ export function deriveHackathonStatus(startsAt: Date, endsAt: Date, now = new Da
   return "completed";
 }
 
-export function normalizeSubmissionPayload(input: HackathonSubmissionInput): NormalizedHackathonPayload {
-  if (input.submitterType === "organizer") {
-    return normalizeLocationPayload({
-      ...input,
-      sourceUrl: input.sourceUrl ?? input.websiteUrl,
-    });
-  }
-
+// Community submissions carry only a name + link and are stored as-is for a
+// reviewer to complete, so only organizer submissions — which arrive fully
+// specified — are normalized into a publishable payload here.
+export function normalizeSubmissionPayload(input: OrganizerSubmissionInput): NormalizedHackathonPayload {
   return normalizeLocationPayload({
-    name: input.name,
-    websiteUrl: input.websiteUrl ?? input.sourceUrl,
-    imageUrl: input.imageUrl,
-    sourceUrl: input.sourceUrl,
-    applicationUrl: input.applicationUrl,
-    city: input.city,
-    region: input.region,
-    country: input.country,
-    startDate: input.startDate,
-    endDate: input.endDate,
-    format: input.format,
-    shortDescription: input.shortDescription,
-    timeNote: input.timeNote,
-    beginnerFriendly: false,
-    travelReimbursement: false,
+    ...input,
+    sourceUrl: input.sourceUrl ?? input.websiteUrl,
   });
 }
 

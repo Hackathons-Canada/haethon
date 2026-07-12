@@ -1,31 +1,26 @@
 "use client";
 
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import posthog from "posthog-js";
 import { useEffect } from "react";
 
 // Captures a $pageview on every App Router navigation. Next.js does client-side
 // route changes without a full reload, so PostHog's built-in pageview tracking
-// is disabled and we fire it manually here. useSearchParams requires a Suspense
-// boundary, which the provider supplies.
+// is disabled and we fire it manually here. Keyed on pathname only — query-param
+// changes (e.g. filter tweaks on /hackathons) are not new pageviews, though the
+// captured URL still includes whatever search string is current at fire time.
 export function PostHogPageView() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
     if (!pathname || !posthog.__loaded) {
       return;
     }
 
-    let url = window.origin + pathname;
-    const search = searchParams.toString();
-
-    if (search) {
-      url += `?${search}`;
-    }
+    const url = window.origin + pathname + window.location.search;
 
     posthog.capture("$pageview", { $current_url: url });
-  }, [pathname, searchParams]);
+  }, [pathname]);
 
   return null;
 }

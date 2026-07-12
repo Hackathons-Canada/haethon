@@ -52,7 +52,7 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
-      <body className="min-h-full bg-white font-sans text-navy antialiased selection:bg-cabernet/30 selection:text-white dark:bg-[#141414] dark:text-wheat motion-safe:[&_*]:transition-[color,border-color,background-color,opacity,transform] motion-safe:[&_*]:duration-[160ms] motion-safe:[&_*]:ease-out">
+      <body className="min-h-full bg-white font-sans text-navy antialiased selection:bg-cabernet/30 selection:text-white dark:bg-[#141414] dark:text-wheat motion-safe:[&_*]:transition-[color,border-color,background-color,opacity] motion-safe:[&_*]:duration-[160ms] motion-safe:[&_*]:ease-out">
         <AppProviders>{children}</AppProviders>
       </body>
     </html>

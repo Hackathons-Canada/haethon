@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { cache } from "react";
 import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { unstable_cache } from "next/cache";
 import { notFound } from "next/navigation";
 import { and, asc, eq, inArray, isNotNull, isNull, or } from "drizzle-orm";
 import {
@@ -120,9 +122,63 @@ async function getDiscordChannelLink(hackathonId: string, seriesId: string | nul
   return `https://discord.com/channels/${channel.guildSnowflake}/${channel.channelSnowflake}`;
 }
 
+type HackathonRow = NonNullable<Awaited<ReturnType<typeof getHackathon>>>;
+
+/* unstable_cache round-trips through JSON, so Date columns come back as ISO
+   strings on a cache hit. new Date() accepts both, making this safe on the
+   miss path (already Dates) and the hit path (strings). */
+function reviveHackathonDates(hackathon: HackathonRow): HackathonRow {
+  return {
+    ...hackathon,
+    startsAt: hackathon.startsAt ? new Date(hackathon.startsAt) : null,
+    endsAt: hackathon.endsAt ? new Date(hackathon.endsAt) : null,
+    applicationOpensAt: hackathon.applicationOpensAt ? new Date(hackathon.applicationOpensAt) : null,
+    applicationClosesAt: hackathon.applicationClosesAt ? new Date(hackathon.applicationClosesAt) : null,
+    acceptanceAt: hackathon.acceptanceAt ? new Date(hackathon.acceptanceAt) : null,
+  };
+}
+
+/* Everything on this page that isn't user-specific — the hackathon row, its
+   tags, and the Discord link — cached across requests per slug so popular
+   detail pages stop re-querying identical public data on every view. */
+const getCachedHackathonPageData = unstable_cache(
+  async (slug: string) => {
+    const hackathon = await getHackathon(slug);
+
+    if (!hackathon) {
+      return null;
+    }
+
+    const [tagRows, discordChannelLink] = await Promise.all([
+      db
+        .select({ name: tags.name })
+        .from(hackathonTags)
+        .innerJoin(tags, eq(tags.id, hackathonTags.tagId))
+        .where(eq(hackathonTags.hackathonId, hackathon.id)),
+      getDiscordChannelLink(hackathon.id, hackathon.seriesId),
+    ]);
+
+    return { hackathon, tagRows, discordChannelLink };
+  },
+  ["hackathon-detail"],
+  { revalidate: 600, tags: ["hackathon-detail"] }
+);
+
+/* React cache() dedupes within a request: generateMetadata and the page body
+   used to run getHackathon twice per view — now they share one lookup. */
+const getHackathonPageData = cache(async (slug: string) => {
+  const data = await getCachedHackathonPageData(slug);
+
+  if (!data) {
+    return null;
+  }
+
+  return { ...data, hackathon: reviveHackathonDates(data.hackathon) };
+});
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const hackathon = await getHackathon(slug);
+  const hackathon = (await getHackathonPageData(slug))?.hackathon ?? null;
 
   if (!hackathon) {
     return { title: "Hackathon not found | Hackathons North America" };
@@ -179,18 +235,15 @@ function Property({ children, icon: Icon, label }: { children: ReactNode; icon: 
 
 export default async function HackathonDetailPage({ params }: PageProps) {
   const { slug } = await params;
-  const [hackathon, user] = await Promise.all([getHackathon(slug), getCurrentUserRecord()]);
+  const [pageData, user] = await Promise.all([getHackathonPageData(slug), getCurrentUserRecord()]);
 
-  if (!hackathon) {
+  if (!pageData) {
     notFound();
   }
 
-  const [tagRows, [tracked], upcomingReminders, notificationPreferenceRows, pendingElsewhereCount, discordChannelLink] = await Promise.all([
-    db
-      .select({ name: tags.name })
-      .from(hackathonTags)
-      .innerJoin(tags, eq(tags.id, hackathonTags.tagId))
-      .where(eq(hackathonTags.hackathonId, hackathon.id)),
+  const { hackathon, tagRows, discordChannelLink } = pageData;
+
+  const [[tracked], upcomingReminders, notificationPreferenceRows, pendingElsewhereCount] = await Promise.all([
     user
       ? db
           .select({ applicationStatus: userHackathons.applicationStatus })
@@ -229,7 +282,6 @@ export default async function HackathonDetailPage({ params }: PageProps) {
     user
       ? countPendingEmailReminders({ userId: user.id, excludeHackathonId: hackathon.id })
       : Promise.resolve(0),
-    getDiscordChannelLink(hackathon.id, hackathon.seriesId),
   ]);
 
   const applyUrl = hackathon.applicationUrl ?? hackathon.websiteUrl;

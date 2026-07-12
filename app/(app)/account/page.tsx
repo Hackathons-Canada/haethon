@@ -5,9 +5,10 @@ import { and, desc, eq, isNotNull, or, sql } from "drizzle-orm";
 import { BadgeCheck, CalendarDays, MapPin, Trophy } from "lucide-react";
 
 import { AccountProfileForm } from "@/components/forms/account-profile-form";
+import { EmailPreferencesToggle } from "@/components/email-preferences-toggle";
 import { HackathonCheckinForm } from "@/components/hackathon-checkin-form";
 import { ProfileActivity, type LatestAttended, type YearActivity } from "@/components/profile-activity";
-import { getCurrentUserContext } from "@/lib/auth";
+import { getCurrentUserContext, syncCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import {
   hackathonDates,
@@ -21,6 +22,15 @@ import {
 import { deriveAttendanceTrustTier, type AttendanceSource, type AttendanceTrustTier } from "@/lib/hackathons/attendance-rules";
 import { formatDateRange } from "@/lib/hackathons/card-format";
 import { dateToInputValue } from "@/lib/hackathons/utils";
+
+function getInitials(name: string) {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0]?.toUpperCase())
+    .join("");
+}
 
 function startOfWeek(date: Date) {
   const value = new Date(date);
@@ -80,7 +90,6 @@ function formatLatestDate(value: Date | null) {
   return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(value);
 }
 
-const sectionHeadingClassName = "text-sm font-semibold uppercase tracking-[0.2em] text-rust";
 const sectionTitleClassName = "font-serif text-4xl font-semibold tracking-[-0.035em] text-navy dark:text-wheat sm:text-5xl";
 
 function AttendanceTierBadge({ tier }: { tier: AttendanceTrustTier | null }) {
@@ -105,6 +114,10 @@ function AttendanceTierBadge({ tier }: { tier: AttendanceTrustTier | null }) {
 }
 
 export default async function AccountPage() {
+  // Most pages skip the Clerk profile sync for speed; the account page is
+  // where profile data is shown/edited, so refresh it here explicitly.
+  await syncCurrentUser();
+
   const context = await getCurrentUserContext();
 
   if (!context) {
@@ -260,7 +273,11 @@ export default async function AccountPage() {
       <div className="mx-auto w-full max-w-[840px]">
         <div className="space-y-10">
           <section id="profile" className="pt-2">
-            <AccountProfileForm displayEmail={context.user.email} displayName={displayName} profile={profile ?? null} />
+            <AccountProfileForm displayName={displayName} profile={profile ?? null} />
+          </section>
+
+          <section id="email-preferences">
+            <EmailPreferencesToggle initialEnabled={!context.user.emailUnsubscribedAt} />
           </section>
 
           <div className="min-w-0 space-y-10">
@@ -292,8 +309,12 @@ export default async function AccountPage() {
                             unoptimized
                           />
                         ) : (
-                          <div className="grid size-full place-items-center">
-                            <Trophy aria-hidden="true" className="size-10 text-cabernet dark:text-[#e4a3ab]" />
+                          // No cover image: fall back to a hackathon-specific branded tile
+                          // (initials over the accent gradient) rather than a generic trophy.
+                          <div className="grid size-full place-items-center bg-[radial-gradient(120%_120%_at_30%_20%,rgba(102,0,0,0.12)_0%,rgba(102,0,0,0.04)_55%,transparent_100%)] dark:bg-[radial-gradient(120%_120%_at_30%_20%,rgba(228,163,171,0.16)_0%,rgba(228,163,171,0.05)_55%,transparent_100%)]">
+                            <span className="text-4xl font-semibold tracking-tight text-cabernet dark:text-[#e4a3ab]">
+                              {getInitials(item.hackathonName) || "HN"}
+                            </span>
                           </div>
                         )}
                         {/* Winner ribbon — makes the win unmistakable. */}

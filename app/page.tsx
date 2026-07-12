@@ -1,18 +1,16 @@
-import { auth } from "@clerk/nextjs/server";
 import Image from "next/image";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
 import { HeroHeadline } from "@/components/hero-headline";
 import { HeroAurora } from "@/components/hero-inuksuk";
 import { HeroPolaroids } from "@/components/hero-polaroids";
 import { HeroTypewriterSpan } from "@/components/hero-typewriter-span";
 import {
-  DiscoverVisual,
-  ProfileVisual,
-  RemindersVisual,
-} from "@/components/landing-feature-visuals";
-import { LandingMap } from "@/components/landing-map";
+  LazyDiscoverVisual,
+  LazyLandingMap,
+  LazyProfileVisual,
+  LazyRemindersVisual,
+} from "@/components/landing-lazy-visuals";
 import { LandingReveal } from "@/components/landing-reveal";
 import { PolaroidFrame, mobilePolaroids } from "@/components/polaroid-frame";
 import { PrimaryNav } from "@/components/primary-nav";
@@ -23,21 +21,21 @@ const features = [
     eyebrow: "Discover",
     heading: "Every hackathon in one place",
     body: "Search hundreds of events across North America by name, city, date, and format — including beginner-friendly and travel-reimbursed options.",
-    Visual: DiscoverVisual,
+    Visual: LazyDiscoverVisual,
   },
   {
     id: "reminders",
     eyebrow: "Reminders",
     heading: "Deadlines that find you",
     body: "Get email alerts when applications open or close, decisions land, and check-in starts — so you never scramble at the last minute.",
-    Visual: RemindersVisual,
+    Visual: LazyRemindersVisual,
   },
   {
     id: "profile",
     eyebrow: "Profile",
     heading: "A record of what you shipped",
     body: "Track your pipeline, verify attendance, pin wins, and build an activity history that shows where you've been and what you've built.",
-    Visual: ProfileVisual,
+    Visual: LazyProfileVisual,
   },
 ] as const;
 
@@ -85,21 +83,9 @@ const faqs = [
 const surfaceCard =
   "rounded-[1.75rem] border border-navy/10 bg-navy/[0.03] p-6 sm:rounded-[2rem] sm:p-8 lg:p-10 dark:border-white/10 dark:bg-white/[0.04]";
 
-export default async function Home({
-  searchParams,
-}: {
-  searchParams?: Promise<Record<string, string | string[] | undefined>>;
-}) {
-  const { userId } = await auth();
-
-  // A fresh/typed visit to the bare root sends logged-in visitors straight
-  // into the app. Clicking the HNA logo adds ?home so they can still view the
-  // landing page on purpose without being bounced away.
-  const wantsLanding = "home" in ((await searchParams) ?? {});
-  if (userId && !wantsLanding) {
-    redirect("/hackathons");
-  }
-
+export default function Home() {
+  // Signed-in visitors are redirected into the app by the middleware, keeping
+  // this page fully static.
   return (
     // The landing page is always night-sky dark, whatever the app theme.
     <main className="dark min-h-screen overflow-x-clip bg-[#141414] text-wheat">
@@ -199,7 +185,7 @@ export default async function Home({
             </div>
 
             <div className="mt-8 overflow-hidden rounded-2xl border border-navy/10 bg-white dark:border-white/10">
-              <LandingMap />
+              <LazyLandingMap />
             </div>
           </div>
         </div>

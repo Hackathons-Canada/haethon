@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
+import * as Sentry from "@sentry/nextjs";
 
 import { syncPublishedHackathonDiscordChannels } from "@/lib/discord/sync";
 import { env } from "@/lib/env";
+
+export const maxDuration = 60;
 
 export async function GET(request: Request) {
   if (!env.CRON_SECRET) {
@@ -12,7 +15,14 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const data = await syncPublishedHackathonDiscordChannels();
+  try {
+    const data = await syncPublishedHackathonDiscordChannels();
 
-  return NextResponse.json({ data });
+    return NextResponse.json({ data });
+  } catch (error) {
+    Sentry.captureException(error);
+    console.error("Discord sync run failed.", { error });
+
+    return NextResponse.json({ error: "Discord sync failed." }, { status: 500 });
+  }
 }
