@@ -7,7 +7,7 @@ export default function AboutPage() {
     <main className="min-h-screen overflow-x-clip bg-white text-navy dark:bg-[#141414] dark:text-wheat">
       <PrimaryNav activeHref="/about" />
 
-      <section className="px-5 pb-16 pt-28 sm:px-8 sm:pb-20 sm:pt-32 lg:px-12">
+      <section className="px-5 pb-8 pt-28 sm:px-8 sm:pb-10 sm:pt-32 lg:px-12">
         <div className="mx-auto max-w-[1180px]">
           <p className="font-mono text-xs font-medium uppercase tracking-[0.14em] text-rust">
             About HNA

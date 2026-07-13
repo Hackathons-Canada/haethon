@@ -1,5 +1,5 @@
 import { revalidateTag, unstable_cache } from "next/cache";
-import { and, asc, eq, gte, ilike, inArray, isNotNull, lte, sql } from "drizzle-orm";
+import { and, asc, eq, gte, ilike, inArray, isNotNull, lte } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import {
@@ -118,7 +118,9 @@ async function queryCatalogPage(query: CatalogQuery): Promise<CatalogPage> {
         startsBefore ? lte(hackathonDates.startsAt, startsBefore) : undefined
       )
     )
-    .orderBy(name ? sql`similarity(${hackathons.name}, ${name}) desc` : asc(hackathonDates.startsAt))
+    // Keep every catalog view chronological, including name searches, so the
+    // first card is always the hackathon that starts soonest.
+    .orderBy(asc(hackathonDates.startsAt))
     // One extra row beyond the page tells us whether a "Load more" exists
     // without a separate count query.
     .limit(query.limit + 1)

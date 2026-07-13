@@ -11,24 +11,23 @@ test("pins the about showcase and swaps sections on scroll", async ({ page }) =>
 
   const stage = page.locator("[data-about-stage]");
   const sectionNav = page.getByRole("navigation", { name: "About sections" });
+  const scrollHint = page.locator("[data-about-scroll-hint]");
 
   await stage.scrollIntoViewIfNeeded();
 
-  // Side images are already visible once the section is in view.
-  await expect(stage.getByText("During YC")).toBeVisible();
-  await expect(stage.getByText("Now")).toBeVisible();
-
-  // Hack Canada is the first (active) section by default.
+  // HC25 is the first (active) section by default.
   await expect(
-    sectionNav.getByRole("button", { name: "Hack Canada" })
+    sectionNav.getByRole("button", { name: "HC25" })
   ).toHaveAttribute("aria-current", "true");
+  await expect(scrollHint).toHaveCount(1);
 
   await sectionNav
-    .getByRole("button", { name: "Hackathons North America" })
+    .getByRole("button", { name: "HNA" })
     .click();
   await expect(
-    sectionNav.getByRole("button", { name: "Hackathons North America" })
+    sectionNav.getByRole("button", { name: "HNA" })
   ).toHaveAttribute("aria-current", "true");
+  await expect(scrollHint).toHaveCount(0);
 
   await sectionNav.getByRole("button", { name: "Corporate" }).click();
   await expect(

@@ -82,7 +82,9 @@ export function normalizeSubmissionPayload(input: OrganizerSubmissionInput): Nor
   });
 }
 
-export function payloadForJson(payload: NormalizedHackathonPayload & { submitterType?: "organizer" | "community" }) {
+export function payloadForJson(
+  payload: NormalizedHackathonPayload & { submitterType?: "organizer" | "community"; origin?: "admin_import" }
+) {
   return {
     ...payload,
     startDate: payload.startDate.toISOString(),

@@ -35,40 +35,19 @@ function handleUnauthenticated() {
   window.location.href = "/sign-in";
 }
 
-/* Map a full country name to a short code plus the accent used to underline it.
-   US flips blue, Canada red; every other country keeps the muted body color. */
-const COUNTRY_SHORT_FORMS: Record<string, string> = {
-  "united states": "US",
-  "united states of america": "US",
-  usa: "US",
-  canada: "CA",
-  "united kingdom": "UK",
-  germany: "DE",
-  france: "FR",
-  india: "IN",
-  australia: "AU",
-  singapore: "SG",
-  netherlands: "NL",
-  spain: "ES",
-  japan: "JP",
-  china: "CN",
-  brazil: "BR",
-  mexico: "MX",
-};
-
-function getCountryShortForm(country: string): { code: string; underlineClass: string } {
+/* Keep country names readable while preserving the US/Canada color accents. */
+function getCountryDisplay(country: string): { label: string; underlineClass: string } {
   const key = country.trim().toLowerCase();
-  const code = COUNTRY_SHORT_FORMS[key] ?? country.trim().toUpperCase();
 
   if (key === "united states" || key === "united states of america" || key === "usa") {
-    return { code: "US", underlineClass: "underline decoration-[#5A6CFF] underline-offset-2" };
+    return { label: "United States", underlineClass: "underline decoration-[#5A6CFF] underline-offset-2" };
   }
 
   if (key === "canada") {
-    return { code: "CA", underlineClass: "underline decoration-[#D9043D] underline-offset-2" };
+    return { label: "Canada", underlineClass: "underline decoration-[#D9043D] underline-offset-2" };
   }
 
-  return { code, underlineClass: "" };
+  return { label: country.trim(), underlineClass: "" };
 }
 
 function getInitials(name: string) {
@@ -569,20 +548,25 @@ export function HackathonCard({
           <p className="mt-2 text-[15px] font-semibold leading-5 text-navy/55 dark:text-wheat/55">
             {hackathon.date}
           </p>
-          <p className="mt-1 text-[15px] font-semibold leading-5 text-navy/55 dark:text-wheat/55">
-            {hackathon.location}
+          <p
+            className="mt-1 truncate text-[15px] font-semibold leading-5 text-navy/55 dark:text-wheat/55"
+            title={[hackathon.country ? getCountryDisplay(hackathon.country).label : null, hackathon.location]
+              .filter(Boolean)
+              .join(", ")}
+          >
             {hackathon.country
               ? (() => {
-                  const { code, underlineClass } = getCountryShortForm(hackathon.country);
+                  const { label, underlineClass } = getCountryDisplay(hackathon.country);
 
                   return (
                     <>
+                      <span className={underlineClass}>{label}</span>
                       {", "}
-                      <span className={underlineClass}>{code}</span>
                     </>
                   );
                 })()
               : null}
+            {hackathon.location}
           </p>
           {hackathon.source || hackathon.hasDiscord ? (
             <div className="mt-2 flex flex-wrap items-center gap-2">

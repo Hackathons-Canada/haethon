@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { Check, GitMerge, X } from "lucide-react";
+import { AlertTriangle, Check, GitMerge, Trash2, X } from "lucide-react";
 
 import { HackathonCardPreview } from "@/components/admin/hackathon-card-preview";
 
@@ -11,6 +11,8 @@ export type SubmissionReviewItem = {
   submitterType: "organizer" | "community";
   organizationName: string | null;
   matchedHackathonId: string | null;
+  matchedHackathonName: string | null;
+  matchedHackathonSlug: string | null;
   status: "pending" | "approved" | "rejected" | "merged" | "withdrawn";
   payload: Record<string, unknown>;
   normalizedName: string;
@@ -42,6 +44,30 @@ function importReason(payload: Record<string, unknown>) {
   return value(payload, "importReason") || value(payload, "reason");
 }
 
+export function submissionReviewErrorMessage(error: unknown) {
+  if (typeof error === "string") {
+    return error;
+  }
+
+  if (error && typeof error === "object" && "fieldErrors" in error) {
+    const { fieldErrors, formErrors } = error as {
+      fieldErrors?: Record<string, string[] | undefined>;
+      formErrors?: string[];
+    };
+    const [field, issues] = Object.entries(fieldErrors ?? {}).find(([, issues]) => issues?.length) ?? [];
+
+    if (field && issues) {
+      return `${field}: ${issues[0]}`;
+    }
+
+    if (formErrors?.[0]) {
+      return formErrors[0];
+    }
+  }
+
+  return "Review action failed.";
+}
+
 const inputClassName =
   "w-full rounded-xl border border-navy/15 dark:border-white/15 bg-white dark:bg-white/[0.06] px-3 py-2 text-sm text-navy dark:text-wheat outline-none focus:border-cabernet focus:ring-2 focus:ring-cabernet/15";
 const checkboxClassName = "size-4 rounded border-navy/20 dark:border-white/20 text-cabernet dark:text-[#e4a3ab] focus:ring-cabernet/20";
@@ -71,6 +97,7 @@ export function SubmissionReviewCard({
   const [previewPayload, setPreviewPayload] = useState<Record<string, unknown>>(() => initialPreviewPayload(submission));
   const disabled = status === "submitting" || submission.status !== "pending";
   const fixReason = importReason(submission.payload);
+  const hasDuplicate = Boolean(submission.matchedHackathonId);
 
   function updatePreview(key: string, nextValue: unknown) {
     if (!key) {
@@ -118,9 +145,9 @@ export function SubmissionReviewCard({
             rejectionReason: formData.get("rejectionReason")?.toString() ?? "",
             reviewerNotes,
           }
-        : intent === "merge"
+        : intent === "merge" || intent === "delete_existing"
           ? {
-              action: "merge",
+              action: intent,
               targetHackathonId: formData.get("targetHackathonId")?.toString() ?? "",
               reviewerNotes,
               normalizedPayload,
@@ -136,11 +163,11 @@ export function SubmissionReviewCard({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
-    const result = (await response.json()) as { error?: string };
+    const result = (await response.json()) as { error?: unknown };
 
     if (!response.ok) {
       setStatus("error");
-      setMessage(result.error ?? "Review action failed.");
+      setMessage(submissionReviewErrorMessage(result.error));
       return;
     }
 
@@ -177,6 +204,32 @@ export function SubmissionReviewCard({
           <div className="rounded-xl border border-[#B54708]/25 bg-[#FFFAEB] p-4 text-sm leading-6 text-[#704600]">
             <p className="font-semibold text-[#B54708]">Needs fix</p>
             <p className="mt-1">{fixReason}</p>
+          </div>
+        ) : null}
+
+        {hasDuplicate ? (
+          <div className="rounded-xl border border-[#B54708]/30 bg-[#FFFAEB] p-4 text-sm leading-6 text-[#704600]">
+            <p className="flex items-center gap-2 font-semibold text-[#B54708]">
+              <AlertTriangle aria-hidden="true" className="size-4" />
+              Possible duplicate · score {submission.duplicateScore ?? "0.00"}
+            </p>
+            <p className="mt-1">
+              Looks like{" "}
+              {submission.matchedHackathonSlug ? (
+                <a
+                  className="font-semibold text-[#B54708] underline"
+                  href={`/hackathons/${submission.matchedHackathonSlug}`}
+                  rel="noreferrer noopener"
+                  target="_blank"
+                >
+                  {submission.matchedHackathonName ?? "an existing hackathon"}
+                </a>
+              ) : (
+                <span className="font-semibold">{submission.matchedHackathonName ?? "an existing hackathon"}</span>
+              )}{" "}
+              is already published. Decide now: <strong>Merge</strong> to fold this into the existing entry, or{" "}
+              <strong>Delete existing &amp; publish</strong> to remove it and publish this submission in its place.
+            </p>
           </div>
         ) : null}
 
@@ -292,7 +345,7 @@ export function SubmissionReviewCard({
           </div>
           <div>
             <label className={labelClassName} htmlFor={`${submission.id}-targetHackathonId`}>
-              Merge target ID
+              Duplicate / target ID
             </label>
             <input
               id={`${submission.id}-targetHackathonId`}
@@ -430,6 +483,18 @@ export function SubmissionReviewCard({
             <GitMerge aria-hidden="true" className="size-4" />
             Merge
           </button>
+          {hasDuplicate ? (
+            <button
+              className="inline-flex min-h-10 items-center gap-2 rounded-full bg-[#B54708] hover:bg-[#8a3606] px-4 text-sm font-semibold text-white disabled:opacity-50"
+              disabled={disabled}
+              name="intent"
+              type="submit"
+              value="delete_existing"
+            >
+              <Trash2 aria-hidden="true" className="size-4" />
+              Delete existing &amp; publish
+            </button>
+          ) : null}
           <button
             className="inline-flex min-h-10 items-center gap-2 rounded-full border border-[#B42318] px-4 text-sm font-semibold text-[#B42318] disabled:opacity-50"
             disabled={disabled}
@@ -440,7 +505,11 @@ export function SubmissionReviewCard({
             <X aria-hidden="true" className="size-4" />
             Reject
           </button>
-          {message ? <p className={`text-sm font-semibold ${status === "error" ? "text-[#B42318]" : "text-[#027A48]"}`}>{message}</p> : null}
+          {message ? (
+            <p aria-live="polite" className={`text-sm font-semibold ${status === "error" ? "text-[#B42318]" : "text-[#027A48]"}`}>
+              {message}
+            </p>
+          ) : null}
         </div>
       </form>
     </article>
