@@ -102,6 +102,7 @@ export function HackathonEditDialog({
       beginnerFriendly: formData.get("beginnerFriendly") === "on",
       travelReimbursement: formData.get("travelReimbursement") === "on",
       prizeAmountUsd: formData.get("prizeAmountUsd")?.toString() ?? "",
+      voteDisplayOffset: formData.get("voteDisplayOffset")?.toString() ?? "0",
     };
 
     const response = await fetch(`/api/admin/hackathons/${item.id}`, {
@@ -152,7 +153,12 @@ export function HackathonEditDialog({
         <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]">
           <div className="lg:sticky lg:top-6 lg:self-start">
             <HackathonCard
-              hackathon={{ ...previewPayloadToCard(previewPayload, item.id), isSaved: false, voteScore: item.voteScore }}
+              hackathon={{
+                ...previewPayloadToCard(previewPayload, item.id),
+                isSaved: false,
+                voteDisplayOffset: Number(previewPayload.voteDisplayOffset ?? item.voteDisplayOffset),
+                voteScore: item.voteScore,
+              }}
               preview
             />
           </div>
@@ -336,6 +342,23 @@ export function HackathonEditDialog({
                   defaultValue={item.prizeAmountUsd ?? ""}
                   className={inputClassName}
                 />
+              </div>
+              <div>
+                <label className={labelClassName} htmlFor={`${item.id}-voteDisplayOffset`}>
+                  Vote display offset (beta)
+                </label>
+                <input
+                  aria-describedby={`${item.id}-voteDisplayOffset-note`}
+                  id={`${item.id}-voteDisplayOffset`}
+                  name="voteDisplayOffset"
+                  type="number"
+                  step="1"
+                  defaultValue={item.voteDisplayOffset}
+                  className={inputClassName}
+                />
+                <p id={`${item.id}-voteDisplayOffset-note`} className="mt-1 text-xs leading-5 text-rust dark:text-[#e4a3ab]">
+                  Beta testing only — this changes the displayed upvote/downvote total, not real votes. Remove this before production.
+                </p>
               </div>
               <label className="flex items-center gap-2 rounded-xl border border-navy/10 dark:border-white/10 bg-ivory dark:bg-white/5 px-3 py-2 text-sm font-semibold text-navy dark:text-wheat">
                 <input className={checkboxClassName} defaultChecked={item.beginnerFriendly} name="beginnerFriendly" type="checkbox" />

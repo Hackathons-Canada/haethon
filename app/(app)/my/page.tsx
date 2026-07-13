@@ -44,6 +44,7 @@ type PipelineRow = {
   imageUrl: string | null;
   venue: string | null;
   format: "online" | "in_person";
+  voteDisplayOffset: number;
   voteScore: number;
   city: string | null;
   region: string | null;
@@ -78,6 +79,7 @@ function toCardData(row: PipelineRow, hasDiscord: boolean, source: HackathonSour
     slug: row.slug,
     source,
     userVote: 0,
+    voteDisplayOffset: row.voteDisplayOffset,
     voteScore: row.voteScore,
   };
 }
@@ -103,6 +105,7 @@ export default async function MyHackathonsPage() {
       imageUrl: hackathons.imageUrl,
       venue: hackathons.venue,
       format: hackathons.format,
+      voteDisplayOffset: hackathons.voteDisplayOffset,
       voteScore: hackathons.voteScore,
       city: hackathonLocations.city,
       region: hackathonLocations.region,

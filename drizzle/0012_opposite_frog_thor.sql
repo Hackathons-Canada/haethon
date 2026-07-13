@@ -1,0 +1,1 @@
+ALTER TABLE "hackathons" ADD COLUMN "vote_display_offset" integer DEFAULT 0 NOT NULL;
