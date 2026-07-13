@@ -10,7 +10,7 @@ test("loads the home page shell", async ({ page }) => {
   ).toBeVisible();
   await expect(page.getByRole("navigation", { name: "Primary navigation" })).toBeVisible();
   await expect(page.getByRole("link", { name: "About", exact: true })).toBeVisible();
-  await expect(page.getByRole("link", { name: "FAQ", exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "FAQ", exact: true })).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Submit", exact: true })).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Open App", exact: true }).first()).toHaveAttribute(
     "href",
@@ -27,12 +27,15 @@ test("loads the home page shell", async ({ page }) => {
     })
   ).toHaveCount(0);
   await expect(
-    page.getByRole("heading", { name: "From coast to coast, every weekend that matters" })
+    page.getByRole("heading", { name: "Hackathons across the globe" })
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Find the ones worth going to" })
   ).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Built for the full hackathon cycle" })
   ).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Ready to find your next hackathon?" })
-  ).toBeVisible();
+  ).toHaveCount(0);
 });

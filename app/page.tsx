@@ -1,15 +1,17 @@
-import Image from "next/image";
 import Link from "next/link";
 
 import { HeroHeadline } from "@/components/hero-headline";
 import { HeroAurora } from "@/components/hero-inuksuk";
 import { HeroPolaroids } from "@/components/hero-polaroids";
 import { HeroTypewriterSpan } from "@/components/hero-typewriter-span";
+import { ShieldCheck, Rss, Users } from "lucide-react";
+
 import {
   LazyDiscoverVisual,
-  LazyLandingMap,
+  LazyLandingGlobe,
   LazyProfileVisual,
   LazyRemindersVisual,
+  LazySearchSpotlight,
 } from "@/components/landing-lazy-visuals";
 import { LandingReveal } from "@/components/landing-reveal";
 import { PolaroidFrame, mobilePolaroids } from "@/components/polaroid-frame";
@@ -39,6 +41,24 @@ const features = [
   },
 ] as const;
 
+const coveragePillars = [
+  {
+    Icon: Rss,
+    title: "Sourced from everywhere",
+    body: "We pull hackathons from dev posts, LinkedIn, Luma, and MLH — if an event is announced somewhere, it lands here.",
+  },
+  {
+    Icon: Users,
+    title: "Built by 5,000+ of us",
+    body: "Our 5,000-strong community — from first-time hackers to seasoned organizers — can add their own hackathon with a simple form.",
+  },
+  {
+    Icon: ShieldCheck,
+    title: "Approved by admins",
+    body: "Every hackathon is read over and approved by an admin before it's published, so a bad event never slips through.",
+  },
+];
+
 const audiences = [
   {
     label: "Hackers",
@@ -56,32 +76,6 @@ const audiences = [
     body: "Partner with HNA to host end to end — or use our playbooks to run your own.",
   },
 ];
-
-const faqs = [
-  {
-    question: "What is Hackathons North America?",
-    answer:
-      "HNA is a discovery and tracking layer for hackathons across North America — plus organizer support and a flagship event ecosystem.",
-  },
-  {
-    question: "Is it free to use?",
-    answer:
-      "Yes. Searching, saving events, and tracking your pipeline are free for hackers.",
-  },
-  {
-    question: "How do reminders work?",
-    answer:
-      "Save a hackathon and choose which milestones you care about. We will email you when applications open, close, decisions go out, or check-in begins.",
-  },
-  {
-    question: "Can I list my hackathon?",
-    answer:
-      "Organizers can submit events for review. Once published, they appear in search and can reach hackers across the HNA network.",
-  },
-];
-
-const surfaceCard =
-  "rounded-[1.75rem] border border-navy/10 bg-navy/[0.03] p-6 sm:rounded-[2rem] sm:p-8 lg:p-10 dark:border-white/10 dark:bg-white/[0.04]";
 
 export default function Home() {
   // Signed-in visitors are redirected into the app by the middleware, keeping
@@ -163,30 +157,83 @@ export default function Home() {
       </section>
 
       <section
-        aria-labelledby="map-heading"
+        aria-labelledby="coverage-heading"
         className="px-5 py-16 sm:px-8 sm:py-20 lg:px-12"
       >
         <div className="mx-auto max-w-[1100px]">
-          <div className={surfaceCard}>
-            <div className="max-w-[34rem]">
-              <p className="text-[0.7rem] font-medium tracking-[0.04em] text-rust">
-                Coverage
-              </p>
-              <h2
-                id="map-heading"
-                className="mt-3 font-serif text-2xl font-semibold leading-[1.15] tracking-[-0.02em] text-navy sm:text-3xl lg:text-4xl dark:text-wheat"
-              >
-                From coast to coast, every weekend that matters
-              </h2>
-              <p className="mt-4 text-base leading-relaxed text-navy/55 dark:text-wheat/55">
-                Live routes across the cities where hackers actually build —
-                Toronto to the Bay, Montreal to Vancouver, Austin to Chicago.
-              </p>
-            </div>
+          <div className="max-w-[36rem]">
+            <h2
+              id="coverage-heading"
+              className="font-serif text-2xl font-semibold leading-[1.15] tracking-[-0.02em] text-navy sm:text-3xl lg:text-4xl dark:text-wheat"
+            >
+              Hackathons across the globe
+            </h2>
+            <p className="mt-4 max-w-[32rem] text-base leading-relaxed text-navy/55 dark:text-wheat/55">
+              One home for every event — sourced from across the web, submitted
+              by the community, and vetted by real people.
+            </p>
+          </div>
 
-            <div className="mt-8 overflow-hidden rounded-2xl border border-navy/10 bg-white dark:border-white/10">
-              <LazyLandingMap />
+          <div className="mt-10 sm:mt-12">
+            <LazyLandingGlobe />
+          </div>
+
+          <div className="mt-10 grid divide-y divide-navy/10 border-t border-navy/10 sm:mt-12 sm:grid-cols-3 sm:divide-x sm:divide-y-0 dark:divide-white/10 dark:border-white/10">
+            {coveragePillars.map(({ Icon, title, body }) => (
+              <div key={title} className="px-1 py-7 sm:px-7 sm:py-8">
+                <Icon
+                  aria-hidden="true"
+                  className="size-6 text-rust"
+                  strokeWidth={1.75}
+                />
+                <h3 className="mt-4 text-lg font-semibold tracking-tight text-navy dark:text-wheat">
+                  {title}
+                </h3>
+                <p className="mt-2 text-[0.95rem] leading-relaxed text-navy/55 dark:text-wheat/55">
+                  {body}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section
+        aria-labelledby="search-spotlight-heading"
+        className="px-5 py-16 sm:px-8 sm:py-20 lg:px-12"
+      >
+        <div className="mx-auto max-w-[1100px]">
+          <div className="grid gap-6 lg:grid-cols-[1.05fr_1fr] lg:gap-20">
+            <h2
+              id="search-spotlight-heading"
+              className="max-w-[22rem] font-serif text-2xl font-semibold leading-[1.15] tracking-[-0.02em] text-navy sm:text-3xl lg:text-4xl dark:text-wheat"
+            >
+              Find the ones worth going to
+            </h2>
+            <div>
+              <p className="max-w-[32rem] text-base leading-relaxed text-navy/55 dark:text-wheat/55 sm:text-lg">
+                Search hackathons by country, filter by date and format, and
+                surface the events that reimburse your travel. Find the
+                hackathon you actually want to attend in your area — and never
+                miss a single one.
+              </p>
+              <Link
+                href="/hackathons"
+                className="mt-8 inline-flex items-center gap-3 font-mono text-sm text-navy/40 transition-colors hover:text-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-navy/30 dark:text-wheat/40 dark:hover:text-wheat dark:focus-visible:outline-wheat"
+              >
+                1.0
+                <span className="text-navy/70 dark:text-wheat/70">
+                  Search{" "}
+                  <span aria-hidden="true" className="ml-1">
+                    →
+                  </span>
+                </span>
+              </Link>
             </div>
+          </div>
+
+          <div className="mt-14 sm:mt-16 lg:mt-20">
+            <LazySearchSpotlight />
           </div>
         </div>
       </section>
@@ -284,71 +331,6 @@ export default function Home() {
         </div>
       </section>
 
-      <section
-        id="fqa"
-        aria-labelledby="faq-heading"
-        className="px-5 py-16 sm:px-8 sm:py-20 lg:px-12"
-      >
-        <div className="mx-auto max-w-[1100px]">
-          <div className={`${surfaceCard} lg:p-10`}>
-            <div className="max-w-[32rem]">
-              <p className="text-[0.7rem] font-medium tracking-[0.04em] text-rust">
-                FAQ
-              </p>
-              <h2
-                id="faq-heading"
-                className="mt-3 font-serif text-2xl font-semibold leading-[1.15] tracking-[-0.02em] text-navy sm:text-3xl dark:text-wheat"
-              >
-                Questions, answered
-              </h2>
-            </div>
-
-            <dl className="mt-8 space-y-0 sm:mt-10">
-              {faqs.map((faq) => (
-                <div
-                  key={faq.question}
-                  className="grid gap-2 border-t border-navy/10 py-6 sm:grid-cols-[minmax(0,20rem)_1fr] sm:gap-12 sm:py-7 dark:border-white/10"
-                >
-                  <dt className="text-base font-semibold tracking-tight text-navy dark:text-wheat">
-                    {faq.question}
-                  </dt>
-                  <dd className="max-w-[34rem] text-[0.95rem] leading-relaxed text-navy/55 dark:text-wheat/55">
-                    {faq.answer}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          </div>
-        </div>
-      </section>
-
-      <section className="px-5 pb-16 pt-4 sm:px-8 sm:pb-20 lg:px-12">
-        <div className="mx-auto max-w-[1100px]">
-          <div className="relative overflow-hidden rounded-[1.75rem] border border-cabernet/20 bg-cabernet px-6 py-12 text-center text-wheat sm:rounded-[2rem] sm:px-10 sm:py-14">
-            <Image
-              src="/logo-beaver.png"
-              alt=""
-              aria-hidden="true"
-              width={90}
-              height={80}
-              className="pointer-events-none absolute left-6 top-6 hidden w-14 rotate-[-8deg] opacity-90 sm:block"
-            />
-            <h2 className="font-serif text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">
-              Ready to find your next hackathon?
-            </h2>
-            <p className="mx-auto mt-4 max-w-[28rem] text-base leading-relaxed text-wheat/70">
-              Open the app to search events, set reminders, and start building
-              your profile.
-            </p>
-            <Link
-              href="/hackathons"
-              className="mt-8 inline-flex min-h-11 items-center justify-center rounded-full bg-wheat px-6 text-sm font-semibold text-[#141414] transition-colors hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-wheat"
-            >
-              Open App
-            </Link>
-          </div>
-        </div>
-      </section>
     </main>
   );
 }

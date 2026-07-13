@@ -1,10 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-const navItems = [
-  { label: "About", href: "/about" },
-  { label: "FAQ", href: "/#fqa" },
-];
+const navItems = [{ label: "About", href: "/about" }];
 
 type PrimaryNavProps = {
   activeHref?: string;
