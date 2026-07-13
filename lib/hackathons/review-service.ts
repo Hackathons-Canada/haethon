@@ -687,7 +687,6 @@ export async function reviewHackathonSubmission(input: {
       .update(hackathonSubmissions)
       .set({
         status: "rejected",
-        reviewerNotes: input.action.reviewerNotes,
         rejectionReason: input.action.rejectionReason,
         reviewedByUserId: input.reviewerUserId,
         reviewedAt: new Date(),
@@ -725,7 +724,6 @@ export async function reviewHackathonSubmission(input: {
           : input.action.action === "delete_existing"
             ? null
             : submission.matchedHackathonId,
-      reviewerNotes: input.action.reviewerNotes,
       reviewedByUserId: input.reviewerUserId,
       reviewedAt: new Date(),
       updatedAt: new Date(),
@@ -759,7 +757,6 @@ export async function listHackathonSubmissions(options?: { allowedOrganizationId
       websiteUrl: hackathonSubmissions.websiteUrl,
       sourceUrl: hackathonSubmissions.sourceUrl,
       duplicateScore: hackathonSubmissions.duplicateScore,
-      reviewerNotes: hackathonSubmissions.reviewerNotes,
       rejectionReason: hackathonSubmissions.rejectionReason,
       reviewedAt: hackathonSubmissions.reviewedAt,
       createdAt: hackathonSubmissions.createdAt,

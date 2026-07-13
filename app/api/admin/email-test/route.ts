@@ -74,6 +74,9 @@ export async function POST(request: Request) {
     hackathonSlug: hackathon.slug,
     scheduledFor,
     appUrl: env.NEXT_PUBLIC_APP_URL,
+    // Keep the preview layout identical without giving a test recipient a
+    // signed link that could unsubscribe the admin who sent it.
+    unsubscribeUrl: `${env.NEXT_PUBLIC_APP_URL}/account#email-preferences`,
   });
 
   const { error } = await resend.emails.send({

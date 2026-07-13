@@ -54,6 +54,7 @@ type PublicHackathonCard = {
   name: string;
   slug: string;
   source: HackathonSourceBadge | null;
+  voteDisplayOffset: number;
   voteScore: number;
 };
 
@@ -95,6 +96,7 @@ async function queryCatalogPage(query: CatalogQuery): Promise<CatalogPage> {
       imageUrl: hackathons.imageUrl,
       venue: hackathons.venue,
       format: hackathons.format,
+      voteDisplayOffset: hackathons.voteDisplayOffset,
       voteScore: hackathons.voteScore,
       city: hackathonLocations.city,
       region: hackathonLocations.region,
@@ -149,6 +151,7 @@ async function queryCatalogPage(query: CatalogQuery): Promise<CatalogPage> {
         name: row.name,
         slug: row.slug,
         source: sourceByHackathon.get(row.id) ?? null,
+        voteDisplayOffset: row.voteDisplayOffset,
         voteScore: row.voteScore,
       };
     }),

@@ -22,13 +22,13 @@ export type BuildReminderEmailInput = {
   hackathonSlug: string;
   scheduledFor: Date;
   appUrl: string;
-  unsubscribeUrl?: string;
+  unsubscribeUrl: string;
 };
 
 /**
  * Render a reminder email once, returning the subject plus the HTML and plain
- * text bodies. The cron and the admin test endpoint both go through here so a
- * test send is byte-for-byte what a hacker would receive.
+ * text bodies. The cron and the admin test endpoint both go through here so
+ * test sends always use the same React Email layout as live reminders.
  */
 export async function buildReminderEmail(input: BuildReminderEmailInput) {
   const label = reminderTypeLabels[input.type] ?? input.type;
