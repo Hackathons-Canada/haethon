@@ -33,7 +33,7 @@ test("loads the home page shell", async ({ page }) => {
     page.getByRole("heading", { name: "Find the ones worth going to" })
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Built for the full hackathon cycle" })
+    page.getByRole("heading", { name: "Get reminders and keep track of them all" })
   ).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Ready to find your next hackathon?" })

@@ -14,21 +14,11 @@ const LandingGlobe = dynamic(
   { ssr: false },
 );
 
-const DiscoverVisual = dynamic(
+const PipelineSpotlightVisual = dynamic(
   () =>
-    import("@/components/landing-feature-visuals").then((mod) => mod.DiscoverVisual),
-  { ssr: false },
-);
-
-const RemindersVisual = dynamic(
-  () =>
-    import("@/components/landing-feature-visuals").then((mod) => mod.RemindersVisual),
-  { ssr: false },
-);
-
-const ProfileVisual = dynamic(
-  () =>
-    import("@/components/landing-feature-visuals").then((mod) => mod.ProfileVisual),
+    import("@/components/landing-pipeline-spotlight").then(
+      (mod) => mod.PipelineSpotlightVisual,
+    ),
   { ssr: false },
 );
 
@@ -49,22 +39,6 @@ export function LazyLandingGlobe() {
   );
 }
 
-export function LazyDiscoverVisual() {
-  return (
-    <LazyMount className="min-h-[24rem]">
-      <DiscoverVisual />
-    </LazyMount>
-  );
-}
-
-export function LazyRemindersVisual() {
-  return (
-    <LazyMount className="min-h-[22rem]">
-      <RemindersVisual />
-    </LazyMount>
-  );
-}
-
 export function LazySearchSpotlight() {
   return (
     /* Mobile shows just the spotlight card; md+ adds the tall backdrop grid. */
@@ -74,10 +48,11 @@ export function LazySearchSpotlight() {
   );
 }
 
-export function LazyProfileVisual() {
+export function LazyPipelineSpotlight() {
   return (
-    <LazyMount className="min-h-[23rem]">
-      <ProfileVisual />
+    /* Mobile shows just the spotlight card; md+ adds the backdrop board. */
+    <LazyMount className="min-h-[30rem] md:min-h-[36rem]">
+      <PipelineSpotlightVisual />
     </LazyMount>
   );
 }

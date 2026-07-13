@@ -124,6 +124,10 @@ pnpm test
 pnpm db:studio
 ```
 
+## CI/CD
+
+GitHub Actions runs linting, type-checking, unit tests, and a production build for pull requests into `main`. A successful push to `main` then deploys the site to Vercel. See [docs/ci-cd.md](docs/ci-cd.md) for the pipeline, required secrets, setup steps, deployment flow, and rollback notes.
+
 ## Current App Surface
 
 - `/` marketing shell with Clerk auth buttons

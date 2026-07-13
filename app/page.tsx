@@ -7,39 +7,13 @@ import { HeroTypewriterSpan } from "@/components/hero-typewriter-span";
 import { ShieldCheck, Rss, Users } from "lucide-react";
 
 import {
-  LazyDiscoverVisual,
   LazyLandingGlobe,
-  LazyProfileVisual,
-  LazyRemindersVisual,
+  LazyPipelineSpotlight,
   LazySearchSpotlight,
 } from "@/components/landing-lazy-visuals";
 import { LandingReveal } from "@/components/landing-reveal";
 import { PolaroidFrame, mobilePolaroids } from "@/components/polaroid-frame";
 import { PrimaryNav } from "@/components/primary-nav";
-
-const features = [
-  {
-    id: "discover",
-    eyebrow: "Discover",
-    heading: "Every hackathon in one place",
-    body: "Search hundreds of events across North America by name, city, date, and format — including beginner-friendly and travel-reimbursed options.",
-    Visual: LazyDiscoverVisual,
-  },
-  {
-    id: "reminders",
-    eyebrow: "Reminders",
-    heading: "Deadlines that find you",
-    body: "Get email alerts when applications open or close, decisions land, and check-in starts — so you never scramble at the last minute.",
-    Visual: LazyRemindersVisual,
-  },
-  {
-    id: "profile",
-    eyebrow: "Profile",
-    heading: "A record of what you shipped",
-    body: "Track your pipeline, verify attendance, pin wins, and build an activity history that shows where you've been and what you've built.",
-    Visual: LazyProfileVisual,
-  },
-] as const;
 
 const coveragePillars = [
   {
@@ -239,54 +213,41 @@ export default function Home() {
       </section>
 
       <section
-        aria-labelledby="features-heading"
+        aria-labelledby="pipeline-spotlight-heading"
         className="px-5 py-16 sm:px-8 sm:py-20 lg:px-12"
       >
         <div className="mx-auto max-w-[1100px]">
-          <div className="mx-auto max-w-[28rem] text-center">
-            <p className="text-[0.7rem] font-medium tracking-[0.04em] text-rust">
-              Product
-            </p>
+          <div className="grid gap-6 lg:grid-cols-[1.05fr_1fr] lg:gap-20">
             <h2
-              id="features-heading"
-              className="mt-3 font-serif text-2xl font-semibold leading-[1.15] tracking-[-0.02em] text-navy sm:text-3xl lg:text-4xl dark:text-wheat"
+              id="pipeline-spotlight-heading"
+              className="max-w-[22rem] font-serif text-2xl font-semibold leading-[1.15] tracking-[-0.02em] text-navy sm:text-3xl lg:text-4xl dark:text-wheat"
             >
-              Built for the full hackathon cycle
+              Get reminders and keep track of them all
             </h2>
+            <div>
+              <p className="max-w-[32rem] text-base leading-relaxed text-navy/55 dark:text-wheat/55 sm:text-lg">
+                Choose email reminders that land a week before applications
+                open, a day before they open, and a day before the hackathon
+                starts. Then follow the status of every hackathon you&apos;ve
+                applied to — interested, applied, accepted — on one board.
+              </p>
+              <Link
+                href="/my"
+                className="mt-8 inline-flex items-center gap-3 font-mono text-sm text-navy/40 transition-colors hover:text-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-navy/30 dark:text-wheat/40 dark:hover:text-wheat dark:focus-visible:outline-wheat"
+              >
+                2.0
+                <span className="text-navy/70 dark:text-wheat/70">
+                  Track{" "}
+                  <span aria-hidden="true" className="ml-1">
+                    →
+                  </span>
+                </span>
+              </Link>
+            </div>
           </div>
 
-          <div className="mt-12 space-y-5 sm:mt-14 sm:space-y-6">
-            {features.map((feature, index) => {
-              const Visual = feature.Visual;
-              const mirrored = index % 2 === 1;
-
-              return (
-                <div
-                  key={feature.id}
-                  className="grid items-center gap-8 rounded-[1.75rem] border border-navy/10 bg-navy/[0.03] p-5 sm:rounded-[2rem] sm:p-7 lg:grid-cols-2 lg:gap-12 lg:p-8 dark:border-white/10 dark:bg-white/[0.04]"
-                >
-                  <div className={mirrored ? "lg:order-2" : undefined}>
-                    <p className="text-[0.7rem] font-medium tracking-[0.04em] text-rust">
-                      {feature.eyebrow}
-                    </p>
-                    <h3 className="mt-3 text-xl font-semibold leading-[1.2] tracking-[-0.02em] text-navy sm:text-2xl dark:text-wheat">
-                      {feature.heading}
-                    </h3>
-                    <p className="mt-3 max-w-[30rem] text-base leading-relaxed text-navy/55 dark:text-wheat/55">
-                      {feature.body}
-                    </p>
-                  </div>
-
-                  <div
-                    className={`overflow-hidden rounded-2xl border border-navy/10 dark:border-white/10 ${
-                      mirrored ? "lg:order-1" : ""
-                    }`}
-                  >
-                    <Visual />
-                  </div>
-                </div>
-              );
-            })}
+          <div className="mt-14 sm:mt-16 lg:mt-20">
+            <LazyPipelineSpotlight />
           </div>
         </div>
       </section>

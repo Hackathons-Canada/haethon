@@ -7,47 +7,101 @@ const companies = [
   {
     id: "hack-canada",
     name: "HC25",
+    heading: "Canada's flagship student hackathon.",
+    description:
+      "A weekend where hundreds of builders ship real projects, backed by mentors, hardware, and a community that keeps going long after the closing ceremony.",
   },
   {
     id: "hackathons-north-america",
     name: "HNA",
+    heading: "Every hackathon on the continent, in one place.",
+    description:
+      "HNA maps hackathons across North America so hackers can find, track, and commit to their next build without digging through scattered forms and Discord servers.",
   },
   {
     id: "corporate",
     name: "Corporate",
+    heading: "A direct line to the people who build.",
+    description:
+      "We help companies reach hackers through events, challenges, and recruiting — sponsorship that lands in the room instead of a logo on a banner.",
   },
 ] as const;
 
 // Height of a single name row in the centered scrolling list.
 const NAME_ROW = "8rem";
 
-function SideFigure({ activeIndex }: { activeIndex: number }) {
+// Left column: a tech-style text block (large heading + short description)
+// that crossfades to match the active section.
+function TechPanel({ activeIndex }: { activeIndex: number }) {
   return (
-    <figure className="flex w-full flex-col items-center">
-      <div className="relative aspect-[3/4] w-full overflow-hidden rounded-2xl">
-        {companies.map((company, index) => {
-          const isActive = index === activeIndex;
+    <div className="relative min-h-[22rem] lg:min-h-[30rem]">
+      {companies.map((company, index) => {
+        const isActive = index === activeIndex;
 
-          return (
-            <div
-              className={`absolute inset-0 flex flex-col items-center justify-center gap-2 rounded-2xl border border-navy/10 bg-navy/[0.04] transition-[opacity,transform,visibility] duration-[600ms] ease-out motion-reduce:transition-none dark:border-wheat/10 dark:bg-wheat/[0.06] ${
-                isActive
-                  ? "visible scale-100 opacity-100"
-                  : "invisible scale-[1.03] opacity-0"
-              }`}
-              key={company.id}
-            >
-              <span className="font-mono text-[0.65rem] font-medium uppercase tracking-[0.16em] text-navy/40 dark:text-wheat/40">
-                Placeholder image
-              </span>
-              <span className="px-4 text-center font-serif text-lg text-navy/55 dark:text-wheat/55">
-                {company.name}
-              </span>
+        return (
+          <div
+            className={`absolute inset-0 flex flex-col justify-center transition-[opacity,transform,visibility] duration-[600ms] ease-out motion-reduce:transition-none ${
+              isActive
+                ? "visible translate-y-0 opacity-100"
+                : "invisible translate-y-2 opacity-0"
+            }`}
+            key={company.id}
+          >
+            <p className="font-mono text-[0.65rem] font-medium uppercase tracking-[0.16em] text-rust">
+              {company.name}
+            </p>
+            <h3 className="mt-4 font-serif text-3xl font-semibold leading-[1.05] tracking-tight text-navy sm:text-4xl lg:text-5xl dark:text-wheat">
+              {company.heading}
+            </h3>
+            <p className="mt-5 max-w-[420px] text-sm leading-6 text-navy/60 sm:text-base sm:leading-7 dark:text-wheat/60">
+              {company.description}
+            </p>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// A single placeholder tile used inside the right-hand image trio.
+function ImageTile({ label }: { label: string }) {
+  return (
+    <div className="flex h-full w-full flex-col items-center justify-center gap-1 overflow-hidden rounded-2xl border border-navy/10 bg-navy/[0.04] dark:border-wheat/10 dark:bg-wheat/[0.06]">
+      <span className="font-mono text-[0.55rem] font-medium uppercase tracking-[0.16em] text-navy/40 dark:text-wheat/40">
+        Placeholder
+      </span>
+      <span className="px-2 text-center font-serif text-base text-navy/55 dark:text-wheat/55">
+        {label}
+      </span>
+    </div>
+  );
+}
+
+// Right column: a group of three placeholder images (one tall, two stacked)
+// that crossfades to the active section.
+function ImageTrio({ activeIndex }: { activeIndex: number }) {
+  return (
+    <figure className="relative aspect-[3/4] w-full">
+      {companies.map((company, index) => {
+        const isActive = index === activeIndex;
+
+        return (
+          <div
+            className={`absolute inset-0 grid grid-cols-2 grid-rows-2 gap-3 transition-[opacity,transform,visibility] duration-[600ms] ease-out motion-reduce:transition-none ${
+              isActive
+                ? "visible scale-100 opacity-100"
+                : "invisible scale-[1.03] opacity-0"
+            }`}
+            key={company.id}
+          >
+            <div className="row-span-2">
+              <ImageTile label={company.name} />
             </div>
-          );
-        })}
-      </div>
-
+            <ImageTile label={company.name} />
+            <ImageTile label={company.name} />
+          </div>
+        );
+      })}
     </figure>
   );
 }
@@ -166,7 +220,7 @@ export function AboutScrollShowcase() {
                 transform: `translateY(${(1 - reveal) * 24}px)`,
               }}
             >
-              <SideFigure activeIndex={activeIndex} />
+              <TechPanel activeIndex={activeIndex} />
             </div>
 
             {/* Center — scrolling list of names + scroll hint */}
@@ -228,7 +282,7 @@ export function AboutScrollShowcase() {
                 transform: `translateY(${(1 - reveal) * 24}px)`,
               }}
             >
-              <SideFigure activeIndex={activeIndex} />
+              <ImageTrio activeIndex={activeIndex} />
             </div>
           </div>
         </div>
