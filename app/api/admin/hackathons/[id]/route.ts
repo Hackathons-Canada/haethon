@@ -1,12 +1,30 @@
 import { NextResponse } from "next/server";
 
+import { serializeAdminHackathon } from "@/components/admin/hackathon-admin-item";
 import { requireAdminUser } from "@/lib/auth";
-import { deleteHackathon, updatePublishedHackathon } from "@/lib/hackathons/admin-service";
+import { deleteHackathon, getAdminHackathon, updatePublishedHackathon } from "@/lib/hackathons/admin-service";
 import { adminHackathonUpdateSchema } from "@/lib/validations/hackathon";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
 };
+
+export async function GET(_request: Request, context: RouteContext) {
+  const gate = await requireAdminUser();
+
+  if (!gate.ok) {
+    return NextResponse.json({ error: gate.reason }, { status: gate.reason === "unauthenticated" ? 401 : 403 });
+  }
+
+  const { id } = await context.params;
+  const row = await getAdminHackathon(id);
+
+  if (!row) {
+    return NextResponse.json({ error: "Hackathon not found." }, { status: 404 });
+  }
+
+  return NextResponse.json({ data: serializeAdminHackathon(row) });
+}
 
 export async function PATCH(request: Request, context: RouteContext) {
   const gate = await requireAdminUser();

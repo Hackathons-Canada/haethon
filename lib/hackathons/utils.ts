@@ -93,23 +93,46 @@ export function payloadForJson(payload: NormalizedHackathonPayload & { submitter
   };
 }
 
+// Shared event-hosting platforms. Two unrelated events routinely share one of these
+// hosts (every Luma import gets a luma.com website, MLH events share events.mlh.io, etc.),
+// so a domain match on these tells us nothing about whether it's the same organizer or
+// event — it must not count as a duplicate signal.
+const SHARED_EVENT_HOSTS = new Set([
+  "luma.com",
+  "lu.ma",
+  "events.mlh.io",
+  "mlh.io",
+  "eventbrite.com",
+  "partiful.com",
+  "devpost.com",
+  "meetup.com",
+]);
+
 function domainFromUrl(value: string | null | undefined) {
   if (!value) {
     return null;
   }
 
   try {
-    return new URL(value).hostname.replace(/^www\./, "");
+    const host = new URL(value).hostname.replace(/^www\./, "");
+    return SHARED_EVENT_HOSTS.has(host) ? null : host;
   } catch {
     return null;
   }
 }
 
+// Boilerplate that appears in nearly every hackathon name (and bare year numbers) carries
+// no identifying signal — counting it as name overlap makes distinct events look similar.
+const GENERIC_NAME_TOKENS = new Set(["hackathon", "hackathons", "hack", "hacks"]);
+
 function tokenSet(value: string) {
   return new Set(
     slugify(value)
       .split("-")
-      .filter((token) => token.length > 2)
+      .filter(
+        (token) =>
+          token.length > 2 && !GENERIC_NAME_TOKENS.has(token) && !/^\d+$/.test(token)
+      )
   );
 }
 

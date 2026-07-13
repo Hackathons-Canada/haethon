@@ -25,6 +25,7 @@ import {
 import type { CommunitySubmissionInput, HackathonSubmissionInput, NormalizedHackathonPayload } from "@/lib/hackathons/utils";
 import { ensureHackathonSeries } from "@/lib/hackathons/series";
 import { deriveSourceType } from "@/lib/hackathons/source-badges";
+import { deleteHackathon } from "@/lib/hackathons/admin-service";
 import { revalidateHackathonCaches } from "@/lib/hackathons/catalog";
 import {
   adminHackathonFixImportItemSchema,
@@ -629,7 +630,9 @@ export async function importAdminHackathons(input: {
         organizationId: payload.organizationId ?? null,
         approvedHackathonId: hackathonId,
         status: "approved",
-        payload: payloadForJson({ ...payload, submitterType: "community" }),
+        // Tag admin-imported records so the submissions review page can keep them out —
+        // imports are handled entirely on /admin/import, not in the form review queue.
+        payload: payloadForJson({ ...payload, submitterType: "community", origin: "admin_import" }),
         normalizedName: payload.name,
         websiteUrl: payload.websiteUrl,
         sourceUrl: payload.sourceUrl ?? payload.websiteUrl,
@@ -696,17 +699,32 @@ export async function reviewHackathonSubmission(input: {
     return { submission: updated, approvedHackathonId: null };
   }
 
-  const approvedHackathonId =
-    input.action.action === "approve_new"
-      ? await createPublishedHackathon(input.action.normalizedPayload)
-      : await mergeIntoHackathon(input.action.targetHackathonId, input.action.normalizedPayload);
+  let approvedHackathonId: string;
+  if (input.action.action === "merge") {
+    approvedHackathonId = await mergeIntoHackathon(input.action.targetHackathonId, input.action.normalizedPayload);
+  } else {
+    // "delete_existing" first removes the duplicate the reviewer is superseding, then
+    // publishes this submission fresh. The delete's onDelete:"set null" clears this
+    // submission's matchedHackathonId, so we leave it null below rather than re-point
+    // it at a row that no longer exists.
+    if (input.action.action === "delete_existing") {
+      await deleteHackathon(input.action.targetHackathonId);
+    }
+
+    approvedHackathonId = await createPublishedHackathon(input.action.normalizedPayload);
+  }
 
   const [updated] = await db
     .update(hackathonSubmissions)
     .set({
-      status: input.action.action === "approve_new" ? "approved" : "merged",
+      status: input.action.action === "merge" ? "merged" : "approved",
       approvedHackathonId,
-      matchedHackathonId: input.action.action === "merge" ? input.action.targetHackathonId : submission.matchedHackathonId,
+      matchedHackathonId:
+        input.action.action === "merge"
+          ? input.action.targetHackathonId
+          : input.action.action === "delete_existing"
+            ? null
+            : submission.matchedHackathonId,
       reviewerNotes: input.action.reviewerNotes,
       reviewedByUserId: input.reviewerUserId,
       reviewedAt: new Date(),
@@ -732,6 +750,8 @@ export async function listHackathonSubmissions(options?: { allowedOrganizationId
       organizationId: hackathonSubmissions.organizationId,
       organizationName: organizations.name,
       matchedHackathonId: hackathonSubmissions.matchedHackathonId,
+      matchedHackathonName: hackathons.name,
+      matchedHackathonSlug: hackathons.slug,
       approvedHackathonId: hackathonSubmissions.approvedHackathonId,
       status: hackathonSubmissions.status,
       payload: hackathonSubmissions.payload,
@@ -747,6 +767,7 @@ export async function listHackathonSubmissions(options?: { allowedOrganizationId
     .from(hackathonSubmissions)
     .leftJoin(users, eq(users.id, hackathonSubmissions.submittedByUserId))
     .leftJoin(organizations, eq(organizations.id, hackathonSubmissions.organizationId))
+    .leftJoin(hackathons, eq(hackathons.id, hackathonSubmissions.matchedHackathonId))
     .where(
       options?.allowedOrganizationIds
         ? inArray(hackathonSubmissions.organizationId, options.allowedOrganizationIds)

@@ -50,7 +50,7 @@ export async function listPublishedHackathons() {
     .orderBy(asc(hackathonDates.startsAt));
 }
 
-async function getAdminHackathon(hackathonId: string) {
+export async function getAdminHackathon(hackathonId: string) {
   const [row] = await adminHackathonQuery().where(eq(hackathons.id, hackathonId)).limit(1);
 
   return row ?? null;

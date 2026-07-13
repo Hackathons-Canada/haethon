@@ -301,7 +301,9 @@ export default async function HackathonDetailPage({ params }: PageProps) {
     },
     new Date()
   );
-  const enabledByType = new Map(selectableReminderTypes.map((type) => [type, true]));
+  // Reminders are opt-in: an offered type with no stored preference shows as OFF
+  // until the hacker turns it on, matching the reminder sync default.
+  const enabledByType = new Map(selectableReminderTypes.map((type) => [type, false]));
 
   for (const row of notificationPreferenceRows) {
     if (isSelectableReminderType(row.type)) {
@@ -318,7 +320,7 @@ export default async function HackathonDetailPage({ params }: PageProps) {
     .filter(({ type }) => availableReminderTypes.has(type))
     .map(({ type, scheduledFor }) => ({
       type,
-      enabled: enabledByType.get(type) ?? true,
+      enabled: enabledByType.get(type) ?? false,
       scheduledFor: scheduledFor.toISOString(),
     }));
 

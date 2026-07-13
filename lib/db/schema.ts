@@ -47,7 +47,15 @@ export const reminderTypeEnum = pgEnum("reminder_type", [
 ]);
 export const notificationChannelEnum = pgEnum("notification_channel", ["email", "discord", "in_app"]);
 export const importStatusEnum = pgEnum("import_status", ["pending", "approved", "rejected", "merged"]);
-export const sourceTypeEnum = pgEnum("source_type", ["devpost", "mlh", "organizer_site", "manual", "other"]);
+export const sourceTypeEnum = pgEnum("source_type", [
+  "devpost",
+  "mlh",
+  "luma",
+  "cerebral_valley",
+  "organizer_site",
+  "manual",
+  "other",
+]);
 export const leadStatusEnum = pgEnum("lead_status", ["new", "contacted", "qualified", "closed"]);
 export const attendanceSourceEnum = pgEnum("attendance_source", [
   "inferred",

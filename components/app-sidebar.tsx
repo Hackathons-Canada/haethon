@@ -8,13 +8,11 @@ import {
   CalendarDays,
   CircleUser,
   Compass,
-  LayoutDashboard,
   Settings,
   ShieldCheck,
 } from "lucide-react";
 
 const items = [
-  { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/hackathons", icon: Compass, label: "Hackathons DB" },
   { href: "/my", icon: CalendarDays, label: "My Hackathons" },
   { href: "/account", icon: CircleUser, label: "Hacker Profile" },

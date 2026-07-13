@@ -12,7 +12,7 @@ import {
 import { formatDateRange, formatLocationParts } from "@/lib/hackathons/card-format";
 import { getHackathonIdsWithDiscord } from "@/lib/hackathons/discord-cards";
 import { getPrimarySourceByHackathon } from "@/lib/hackathons/source-badges";
-import type { HackathonSource } from "@/lib/hackathons/source-badges";
+import type { HackathonSourceBadge } from "@/lib/hackathons/source-badges";
 
 /* One page of catalog results. The listing page and the search API both read
    through this module so the public catalog is queried (and cached) once. */
@@ -53,7 +53,7 @@ type PublicHackathonCard = {
   location: string;
   name: string;
   slug: string;
-  source: HackathonSource | null;
+  source: HackathonSourceBadge | null;
   voteScore: number;
 };
 

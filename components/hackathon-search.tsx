@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { CalendarDays, Check, Globe2, MapPin, PlusSquare, Search, Settings2, X } from "lucide-react";
 
 import { HackathonCard } from "@/components/hackathon-card";
@@ -104,14 +105,10 @@ function hasActiveFilters({
   );
 }
 
-function replaceSearchUrl({
-  beginnerFriendly,
-  countries,
-  datePeriod,
-  format,
-  name,
-  travelReimbursement,
-}: HackathonSearchFilters) {
+function replaceSearchUrl(
+  { beginnerFriendly, countries, datePeriod, format, name, travelReimbursement }: HackathonSearchFilters,
+  basePath: string
+) {
   const params = new URLSearchParams();
 
   if (name.trim()) {
@@ -137,17 +134,32 @@ function replaceSearchUrl({
   }
 
   const query = params.toString();
-  window.history.replaceState(null, "", query ? `/hackathons?${query}` : "/hackathons");
+  window.history.replaceState(null, "", query ? `${basePath}?${query}` : basePath);
 }
+
+/* Helpers handed to a custom card renderer so it can reflect edits/removals back
+   into the grid's state (used by the admin view's edit/delete controls). */
+export type HackathonCardHelpers = {
+  updateCard: (next: HackathonCardData) => void;
+  removeCard: (id: string) => void;
+};
 
 export function HackathonSearch({
   initialFilters,
   initialHackathons,
   initialHasMore = false,
+  basePath = "/hackathons",
+  renderCard,
 }: {
   initialFilters: HackathonSearchFilters;
   initialHackathons: HackathonCardData[];
   initialHasMore?: boolean;
+  /* Path the filter state is written back to via history.replaceState. Defaults
+     to the public page; the admin view passes its own route. */
+  basePath?: string;
+  /* Overrides how each grid card renders. Defaults to a plain HackathonCard; the
+     admin view wraps it with edit/delete controls. */
+  renderCard?: (hackathon: HackathonCardData, helpers: HackathonCardHelpers) => ReactNode;
 }) {
   const [name, setName] = useState(initialFilters.name);
   const [countries, setCountries] = useState(initialFilters.countries);
@@ -240,6 +252,15 @@ export function HackathonSearch({
     return countryOptions.filter((option) => !query || option.toLowerCase().includes(query));
   }, [countryQuery]);
 
+  const cardHelpers = useMemo<HackathonCardHelpers>(
+    () => ({
+      updateCard: (next) => setHackathons((current) => current.map((entry) => (entry.id === next.id ? next : entry))),
+      removeCard: (id) => setHackathons((current) => current.filter((entry) => entry.id !== id)),
+    }),
+    []
+  );
+  const renderCardNode = renderCard ?? ((hackathon: HackathonCardData) => <HackathonCard hackathon={hackathon} />);
+
   const selectedDateLabel = datePeriodOptions.find((option) => option.value === datePeriod)?.label ?? "Any date";
   const selectedFormatLabel = formatOptions.find((option) => option.value === format)?.label ?? "Any format";
   const selectedFeatureLabels = featureTags.filter((tag) => tag.value === "on").map((tag) => tag.label);
@@ -299,7 +320,7 @@ export function HackathonSearch({
       setHackathons(payload.data);
       setHasMore(payload.hasMore ?? false);
       setHasSearched(options.markSearched);
-      replaceSearchUrl(nextFilters);
+      replaceSearchUrl(nextFilters, basePath);
     } catch {
       setError("Search is unavailable right now. Try again in a moment.");
     } finally {
@@ -800,7 +821,7 @@ export function HackathonSearch({
             <>
               <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
                 {hackathons.map((hackathon) => (
-                  <HackathonCard hackathon={hackathon} key={hackathon.id} />
+                  <Fragment key={hackathon.id}>{renderCardNode(hackathon, cardHelpers)}</Fragment>
                 ))}
               </div>
               {hasMore ? (

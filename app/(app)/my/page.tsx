@@ -19,7 +19,7 @@ import {
 import { formatDateRange, formatLocation, formatLocationParts } from "@/lib/hackathons/card-format";
 import { getHackathonIdsWithDiscord } from "@/lib/hackathons/discord-cards";
 import { getPrimarySourceByHackathon } from "@/lib/hackathons/source-badges";
-import type { HackathonSource } from "@/lib/hackathons/source-badges";
+import type { HackathonSourceBadge } from "@/lib/hackathons/source-badges";
 import { reminderTypeLabels } from "@/lib/hackathons/reminder-labels";
 import {
   computeSelectableReminderPlan,
@@ -63,7 +63,7 @@ const stageTitles: Record<(typeof stageOrder)[number], string> = {
   accepted: "Accepted",
 };
 
-function toCardData(row: PipelineRow, hasDiscord: boolean, source: HackathonSource | null): HackathonCardData {
+function toCardData(row: PipelineRow, hasDiscord: boolean, source: HackathonSourceBadge | null): HackathonCardData {
   const location = formatLocationParts(row);
 
   return {
@@ -164,7 +164,7 @@ export default async function MyHackathonsPage() {
       ),
   ]);
 
-  // Reminder toggles default to enabled (opt-out), matching the reminder sync;
+  // Reminder toggles default to disabled (opt-in), matching the reminder sync;
   // a stored row overrides that. Keyed by hackathon + reminder type.
   const enabledByKey = new Map(
     preferenceRows.map((preference) => [`${preference.hackathonId}:${preference.type}`, preference.enabled])
@@ -190,7 +190,7 @@ export default async function MyHackathonsPage() {
         type,
         label: reminderTypeLabels[type] ?? type,
         scheduledFor: scheduledFor.toISOString(),
-        enabled: enabledByKey.get(`${row.hackathonId}:${type}`) ?? true,
+        enabled: enabledByKey.get(`${row.hackathonId}:${type}`) ?? false,
       }));
 
     return { hackathonId: row.hackathonId, options, statusLabel };

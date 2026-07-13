@@ -9,8 +9,12 @@ import {
   type SelectableReminderType,
 } from "@/lib/hackathons/reminder-plan";
 
+// Reminders are opt-in: a type with no stored preference is treated as OFF, so
+// nothing is scheduled until the hacker explicitly turns it on. This keeps a
+// status move (which re-syncs against the newly offered types) from silently
+// enabling an email reminder the hacker never asked for.
 function getDefaultPreferences() {
-  return new Map<SelectableReminderType, boolean>(selectableReminderTypes.map((type) => [type, true]));
+  return new Map<SelectableReminderType, boolean>(selectableReminderTypes.map((type) => [type, false]));
 }
 
 function isSelectableReminderType(type: string): type is SelectableReminderType {

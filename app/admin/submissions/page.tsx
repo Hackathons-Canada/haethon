@@ -3,11 +3,13 @@ import Link from "next/link";
 import { SubmissionReviewQueue } from "@/components/admin/submission-review-queue";
 import { listHackathonSubmissions } from "@/lib/hackathons/review-service";
 
-// Broken scraped imports have their own dedicated queue on /admin/broken, so
-// they are kept out of this view — this page is for hackathons that people
-// submitted through the public form.
-function needsFix(payload: Record<string, unknown>) {
-  return Boolean(payload.importReason || payload.needsFix);
+// This page is only for hackathons people submitted through the public form.
+// Two kinds of admin-imported records are kept out because they belong to other
+// surfaces: broken scraped imports have their own queue on /admin/broken
+// (importReason / needsFix), and successful admin imports are handled entirely on
+// /admin/import (origin: "admin_import").
+function isFormSubmission(payload: Record<string, unknown>) {
+  return !payload.importReason && !payload.needsFix && payload.origin !== "admin_import";
 }
 
 const statusStyles: Record<string, string> = {
@@ -28,7 +30,7 @@ function formatDate(value: Date | string) {
 
 export default async function AdminSubmissionsPage() {
   const submissions = await listHackathonSubmissions({ limit: 200 });
-  const formSubmissions = submissions.filter((submission) => !needsFix(submission.payload));
+  const formSubmissions = submissions.filter((submission) => isFormSubmission(submission.payload));
   const pending = formSubmissions.filter((submission) => submission.status === "pending");
   const approvedCount = formSubmissions.filter(
     (submission) => submission.status === "approved" || submission.status === "merged"

@@ -2,12 +2,12 @@
 
 import { FormEvent, useState } from "react";
 
+import { COMMUNITY_FORM_SOURCE_URL } from "@/lib/hackathons/source-provenance";
+
 type SubmitterType = "organizer" | "community";
 
 // Sentinel source URL so reviewers can tell a submission came from this form
 // rather than a scraped or imported source.
-const FORM_SUBMISSION_SOURCE_URL = "https://haethon.local/submissions/community-form";
-
 const inputClassName =
   "w-full rounded-none border-0 border-b border-navy/15 dark:border-white/15 bg-transparent px-0 py-2 text-[15px] text-navy dark:text-wheat outline-none transition-colors placeholder:text-navy/45 focus:border-cabernet";
 const labelClassName =
@@ -89,7 +89,7 @@ export function HackathonSubmissionForm() {
             submitterType,
             name: fieldValue(formData, "name"),
             websiteUrl: urlValue(formData, "websiteUrl"),
-            sourceUrl: FORM_SUBMISSION_SOURCE_URL,
+            sourceUrl: COMMUNITY_FORM_SOURCE_URL,
           };
 
     try {

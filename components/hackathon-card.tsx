@@ -9,7 +9,7 @@ import { ArrowBigDown, ArrowBigUp, BellPlus, Bookmark, Check, ChevronDown } from
 import { DiscordGlyph } from "@/components/discord-glyph";
 import { formatReminderDate } from "@/lib/hackathons/reminder-labels";
 import type { SelectableReminderType } from "@/lib/hackathons/reminder-plan";
-import type { HackathonSource } from "@/lib/hackathons/source-badges";
+import type { HackathonSourceBadge } from "@/lib/hackathons/source-badges";
 import { filmGrainClassName } from "@/lib/tailwind";
 
 type Vote = -1 | 0 | 1;
@@ -26,20 +26,9 @@ export type HackathonCardData = {
   slug?: string | null;
   /* Where this hackathon's data came from — surfaced as a small provenance
      badge under the card text. Absent when we have no source on file. */
-  source?: HackathonSource | null;
+  source?: HackathonSourceBadge | null;
   userVote: Vote;
   voteScore: number;
-};
-
-/* Human labels for the provenance badge. mlh/devpost read as their brand; the
-   remaining sources are all community/volunteer contributed, so they collapse
-   to a single "Community" word rather than exposing internal enum names. */
-const SOURCE_BADGE_LABELS: Record<HackathonSource, string> = {
-  mlh: "MLH",
-  devpost: "Devpost",
-  organizer_site: "Organizer",
-  manual: "Community",
-  other: "Community",
 };
 
 function handleUnauthenticated() {
@@ -602,7 +591,7 @@ export function HackathonCard({
                   are present. Absent when we have no source on file. */}
               {hackathon.source ? (
                 <span className="relative z-10 inline-flex items-center rounded-full border border-navy/15 bg-navy/[0.03] px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-navy/55 dark:border-white/15 dark:bg-white/[0.04] dark:text-wheat/55">
-                  {SOURCE_BADGE_LABELS[hackathon.source]}
+                  {hackathon.source.label}
                 </span>
               ) : null}
               {hackathon.hasDiscord ? (

@@ -7,7 +7,7 @@ export const env = createEnv({
     CLERK_SECRET_KEY: z.string().min(1),
     CLERK_SIGN_IN_URL: z.string().default("/sign-in"),
     CLERK_SIGN_UP_URL: z.string().default("/sign-up"),
-    CLERK_SIGN_IN_FALLBACK_REDIRECT_URL: z.string().default("/dashboard"),
+    CLERK_SIGN_IN_FALLBACK_REDIRECT_URL: z.string().default("/hackathons"),
     CLERK_SIGN_UP_FALLBACK_REDIRECT_URL: z.string().default("/onboarding"),
     RESEND_API_KEY: z.string().min(1).optional(),
     RESEND_AUDIENCE_FROM: z.string().optional(),

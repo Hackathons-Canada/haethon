@@ -220,7 +220,7 @@ export const adminHackathonFixImportItemSchema = z.object({
 export const adminHackathonFixImportSchema = z.preprocess(
   (value) => (Array.isArray(value) ? { items: value } : value),
   z.object({
-    items: z.array(adminHackathonFixImportItemSchema).min(1).max(100),
+    items: z.array(adminHackathonFixImportItemSchema).min(1).max(1000),
   }).strip()
 );
 
@@ -255,6 +255,14 @@ export const reviewActionSchema = z.discriminatedUnion("action", [
   }),
   z.object({
     action: z.literal("merge"),
+    targetHackathonId: z.string().uuid(),
+    reviewerNotes: optionalString(2000),
+    normalizedPayload: normalizedHackathonPayloadSchema,
+  }),
+  z.object({
+    // Deletes the existing duplicate hackathon and publishes this submission in its
+    // place — used when the reviewer decides the incoming entry supersedes the match.
+    action: z.literal("delete_existing"),
     targetHackathonId: z.string().uuid(),
     reviewerNotes: optionalString(2000),
     normalizedPayload: normalizedHackathonPayloadSchema,
