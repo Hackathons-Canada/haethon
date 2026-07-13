@@ -26,6 +26,7 @@ const adminHackathonSelection = {
   travelReimbursement: hackathons.travelReimbursement,
   prizeAmountUsd: hackathons.prizeAmountUsd,
   voteScore: hackathons.voteScore,
+  voteDisplayOffset: hackathons.voteDisplayOffset,
   city: hackathonLocations.city,
   region: hackathonLocations.region,
   country: hackathonLocations.country,
@@ -79,6 +80,9 @@ export async function updatePublishedHackathon(hackathonId: string, payload: Adm
       beginnerFriendly: payload.beginnerFriendly,
       travelReimbursement: payload.travelReimbursement,
       prizeAmountUsd: payload.prizeAmountUsd ?? null,
+      // Omitted updates (for example, the organizer editor) preserve this
+      // admin-only beta setting instead of silently resetting it.
+      ...(payload.voteDisplayOffset === undefined ? {} : { voteDisplayOffset: payload.voteDisplayOffset }),
       lastVerifiedAt: now,
       updatedAt: now,
     })

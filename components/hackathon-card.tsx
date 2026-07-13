@@ -28,6 +28,8 @@ export type HackathonCardData = {
      badge under the card text. Absent when we have no source on file. */
   source?: HackathonSourceBadge | null;
   userVote: Vote;
+  /** Beta-only presentation override; never included in vote calculations. */
+  voteDisplayOffset?: number;
   voteScore: number;
 };
 
@@ -153,18 +155,20 @@ function BookmarkButton({
 function VoteControl({
   hackathonId,
   initialVote,
+  initialVoteDisplayOffset = 0,
   initialVoteScore,
   name,
   preview = false,
 }: {
   hackathonId: string;
   initialVote: Vote;
+  initialVoteDisplayOffset?: number;
   initialVoteScore: number;
   name: string;
   preview?: boolean;
 }) {
   const [vote, setVote] = useState<Vote>(initialVote);
-  const [score, setScore] = useState(initialVoteScore);
+  const [score, setScore] = useState(initialVoteScore + initialVoteDisplayOffset);
   const [savingVote, setSavingVote] = useState(false);
 
   async function toggleVote(targetVote: Vote) {
@@ -198,7 +202,9 @@ function VoteControl({
 
       const payload = (await response.json()) as { data?: { score?: number; vote?: Vote } };
       setVote(payload.data?.vote ?? nextVote);
-      setScore(payload.data?.score ?? previousScore + nextVote - previousVote);
+      setScore(
+        (payload.data?.score ?? previousScore + nextVote - previousVote - initialVoteDisplayOffset) + initialVoteDisplayOffset
+      );
     } catch {
       setVote(previousVote);
       setScore(previousScore);
@@ -604,7 +610,9 @@ export function HackathonCard({
             <VoteControl
               hackathonId={hackathon.id}
               initialVote={hackathon.userVote}
+              initialVoteDisplayOffset={hackathon.voteDisplayOffset}
               initialVoteScore={hackathon.voteScore}
+              key={`${hackathon.id}-${hackathon.userVote}-${hackathon.voteDisplayOffset ?? 0}-${hackathon.voteScore}`}
               name={hackathon.name}
               preview={preview}
             />

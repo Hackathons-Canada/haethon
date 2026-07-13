@@ -206,6 +206,10 @@ export const adminHackathonImportSchema = z.preprocess(
 
 export const adminHackathonUpdateSchema = normalizedHackathonPayloadBaseSchema
   .omit({ organizationId: true, organizationName: true, sourceUrl: true, timeNote: true })
+  .extend({
+    // Beta-only display override. This intentionally does not modify voteScore.
+    voteDisplayOffset: z.coerce.number().int().min(-100_000).max(100_000).optional(),
+  })
   .strip()
   .superRefine(dateRangeRefinement)
   .transform((payload) => normalizeLocationPayload(payload));
@@ -250,13 +254,11 @@ export const hackathonSubmissionSchema = z.discriminatedUnion("submitterType", [
 export const reviewActionSchema = z.discriminatedUnion("action", [
   z.object({
     action: z.literal("approve_new"),
-    reviewerNotes: optionalString(2000),
     normalizedPayload: normalizedHackathonPayloadSchema,
   }),
   z.object({
     action: z.literal("merge"),
     targetHackathonId: z.string().uuid(),
-    reviewerNotes: optionalString(2000),
     normalizedPayload: normalizedHackathonPayloadSchema,
   }),
   z.object({
@@ -264,13 +266,11 @@ export const reviewActionSchema = z.discriminatedUnion("action", [
     // place — used when the reviewer decides the incoming entry supersedes the match.
     action: z.literal("delete_existing"),
     targetHackathonId: z.string().uuid(),
-    reviewerNotes: optionalString(2000),
     normalizedPayload: normalizedHackathonPayloadSchema,
   }),
   z.object({
     action: z.literal("reject"),
     rejectionReason: z.string().trim().min(3).max(1000),
-    reviewerNotes: optionalString(2000),
   }),
 ]);
 

@@ -57,6 +57,10 @@ export function submissionReviewErrorMessage(error: unknown) {
     const [field, issues] = Object.entries(fieldErrors ?? {}).find(([, issues]) => issues?.length) ?? [];
 
     if (field && issues) {
+      if (field === "rejectionReason") {
+        return "Enter a rejection reason of at least 3 characters before rejecting.";
+      }
+
       return `${field}: ${issues[0]}`;
     }
 
@@ -66,6 +70,10 @@ export function submissionReviewErrorMessage(error: unknown) {
   }
 
   return "Review action failed.";
+}
+
+export function submissionReviewIntent(submitter: EventTarget | null) {
+  return submitter instanceof HTMLButtonElement ? submitter.value : "";
 }
 
 const inputClassName =
@@ -110,7 +118,17 @@ export function SubmissionReviewCard({
   async function submitReview(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    const intent = formData.get("intent")?.toString();
+    // FormData(form) does not include the button that submitted the form. Read
+    // it from the submit event so Reject cannot accidentally become Approve.
+    const submitter = (event.nativeEvent as SubmitEvent).submitter;
+    const intent = submissionReviewIntent(submitter);
+    const rejectionReason = formData.get("rejectionReason")?.toString().trim() ?? "";
+
+    if (intent === "reject" && rejectionReason.length < 3) {
+      setStatus("error");
+      setMessage("Enter a rejection reason of at least 3 characters before rejecting.");
+      return;
+    }
 
     setStatus("submitting");
     setMessage(null);
@@ -137,24 +155,20 @@ export function SubmissionReviewCard({
       travelReimbursement: formData.get("travelReimbursement") === "on",
       prizeAmountUsd: formData.get("prizeAmountUsd")?.toString() ?? "",
     };
-    const reviewerNotes = formData.get("reviewerNotes")?.toString() ?? "";
     const body =
       intent === "reject"
         ? {
             action: "reject",
-            rejectionReason: formData.get("rejectionReason")?.toString() ?? "",
-            reviewerNotes,
+            rejectionReason,
           }
         : intent === "merge" || intent === "delete_existing"
           ? {
               action: intent,
               targetHackathonId: formData.get("targetHackathonId")?.toString() ?? "",
-              reviewerNotes,
               normalizedPayload,
             }
           : {
               action: "approve_new",
-              reviewerNotes,
               normalizedPayload,
             };
 
@@ -437,7 +451,14 @@ export function SubmissionReviewCard({
             <label className={labelClassName} htmlFor={`${submission.id}-rejectionReason`}>
               Rejection reason
             </label>
-            <textarea id={`${submission.id}-rejectionReason`} name="rejectionReason" rows={3} className={inputClassName} />
+            <textarea
+              id={`${submission.id}-rejectionReason`}
+              name="rejectionReason"
+              rows={3}
+              minLength={3}
+              placeholder="Required to reject"
+              className={inputClassName}
+            />
           </div>
           </div>
         </div>
@@ -448,19 +469,6 @@ export function SubmissionReviewCard({
             {JSON.stringify(submission.payload, null, 2)}
           </pre>
         </details>
-
-        <div>
-          <label className={labelClassName} htmlFor={`${submission.id}-reviewerNotes`}>
-            Reviewer notes
-          </label>
-          <textarea
-            id={`${submission.id}-reviewerNotes`}
-            name="reviewerNotes"
-            rows={2}
-            defaultValue={value(submission.payload, "importReason") ? `Fixed imported record: ${value(submission.payload, "importReason")}` : ""}
-            className={inputClassName}
-          />
-        </div>
 
         <div className="flex flex-wrap items-center gap-3">
           <button

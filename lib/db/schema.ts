@@ -177,6 +177,9 @@ export const hackathons = pgTable(
     travelReimbursement: boolean("travel_reimbursement").notNull().default(false),
     prizeAmountUsd: integer("prize_amount_usd"),
     voteScore: integer("vote_score").notNull().default(0),
+    // Beta-only presentation value. Keep it separate from the real vote score
+    // so voting, ranking, and reporting always use the genuine total.
+    voteDisplayOffset: integer("vote_display_offset").notNull().default(0),
     lastVerifiedAt: timestamp("last_verified_at", { withTimezone: true }),
     dataConfidenceScore: numeric("data_confidence_score", { precision: 5, scale: 2 }).default("0"),
     publishedAt: timestamp("published_at", { withTimezone: true }),

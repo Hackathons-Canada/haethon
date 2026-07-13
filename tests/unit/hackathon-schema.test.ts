@@ -313,6 +313,15 @@ describe("reviewActionSchema", () => {
 
     expect(result.success).toBe(false);
   });
+
+  it("accepts rejection without an approval payload", () => {
+    const result = reviewActionSchema.safeParse({
+      action: "reject",
+      rejectionReason: "The submission is not a hackathon.",
+    });
+
+    expect(result.success).toBe(true);
+  });
 });
 
 describe("profileUpdateSchema", () => {

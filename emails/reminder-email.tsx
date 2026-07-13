@@ -20,7 +20,7 @@ export type ReminderEmailProps = {
   scheduledForLabel: string;
   detailUrl: string;
   pipelineUrl: string;
-  unsubscribeUrl?: string;
+  unsubscribeUrl: string;
 };
 
 const maroon = "#660000";
@@ -104,6 +104,18 @@ const footer = {
   textAlign: "center" as const,
 };
 
+const unsubscribeButton = {
+  border: `1px solid ${muted}`,
+  borderRadius: "8px",
+  color: muted,
+  display: "inline-block",
+  fontSize: "12px",
+  fontWeight: 600,
+  marginTop: "12px",
+  padding: "8px 14px",
+  textDecoration: "none",
+};
+
 export function ReminderEmail({
   greetingName,
   hackathonName,
@@ -142,16 +154,12 @@ export function ReminderEmail({
           </Section>
           <Text style={footer}>
             You are receiving this because you saved this hackathon on Haethon.
-            {unsubscribeUrl ? (
-              <>
-                {" "}
-                <Link href={unsubscribeUrl} style={{ color: muted, textDecoration: "underline" }}>
-                  Unsubscribe from all emails
-                </Link>
-                .
-              </>
-            ) : null}
           </Text>
+          <Section style={{ textAlign: "center" }}>
+            <Button href={unsubscribeUrl} style={unsubscribeButton}>
+              Unsubscribe from all emails
+            </Button>
+          </Section>
         </Container>
       </Body>
     </Html>
