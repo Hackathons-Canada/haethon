@@ -26,7 +26,9 @@ jobs:
       - name: Set up pnpm
         uses: pnpm/action-setup@v6
         with:
-          version: 11.12.0
+          # Accept the action's bundled pnpm 11 instead of forcing its
+          # self-installer to replace 11.x with another 11.x release.
+          version: 11
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
@@ -78,7 +80,7 @@ jobs:
       - name: Set up pnpm
         uses: pnpm/action-setup@v6
         with:
-          version: 11.12.0
+          version: 11
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
