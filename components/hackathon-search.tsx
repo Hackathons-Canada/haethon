@@ -37,9 +37,9 @@ const featurePopoverId = "hackathon-feature-popover";
 type OpenPopover = "countries" | "date" | "format" | "features" | null;
 
 const formatOptions: { label: string; value: HackathonFormatFilter; detail: string }[] = [
-  { label: "Any format", value: "any", detail: "Show online and in-person events" },
+  { label: "Any format", value: "any", detail: "Show online and in person events" },
   { label: "Online", value: "online", detail: "Remote hackathons you can join anywhere" },
-  { label: "In person", value: "in_person", detail: "Venue-based hackathons and local events" },
+  { label: "In person", value: "in_person", detail: "Venue based hackathons and local events" },
 ];
 
 function buildSearchParams(

@@ -132,7 +132,7 @@ const leftPolaroids = [
   },
   {
     src: "/photos/swag.png",
-    alt: "Hackathon stickers, lanyards, and a sticker-covered laptop",
+    alt: "Hackathon stickers, lanyards, and a sticker covered laptop",
     caption: "swag haul",
     className:
       "absolute left-[-14%] top-[56%] z-[2] hidden w-[118px] rotate-[7deg] md:block md:left-[-8%] md:w-[145px] lg:left-[-4%] lg:w-[168px] xl:left-[-1%] xl:w-[188px]",
@@ -196,7 +196,7 @@ const rightPolaroids = [
   },
   {
     src: "/photos/sushi.png",
-    alt: "Hackers grabbing sushi at a late-night event buffet",
+    alt: "Hackers grabbing sushi at a late night event buffet",
     caption: "midnight fuel",
     className:
       "absolute right-[-16%] top-[54%] z-[1] hidden w-[120px] rotate-[-6deg] md:block md:right-[-10%] md:w-[148px] lg:right-[-5%] lg:w-[170px] xl:right-[-2%] xl:w-[190px]",
@@ -208,7 +208,7 @@ const rightPolaroids = [
   },
   {
     src: "/photos/atrium-wide.png",
-    alt: "A multi-level university atrium during a community event",
+    alt: "A multi level university atrium during a community event",
     caption: "the venue",
     className:
       "absolute bottom-[1%] right-[-15%] z-[3] hidden w-[130px] rotate-[-10deg] md:block md:right-[-9%] md:w-[152px] lg:bottom-[3%] lg:right-[-4%] lg:w-[178px] xl:right-[-1%] xl:w-[198px]",

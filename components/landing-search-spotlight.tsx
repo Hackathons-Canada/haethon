@@ -20,7 +20,7 @@ import { regionPresets } from "@/lib/hackathons/region-presets";
 const backdropHackathons: HackathonCardData[] = [
   {
     country: "Canada",
-    date: "Sep 18–20, 2026",
+    date: "Sep 18-20, 2026",
     id: "spotlight-hack-the-north",
     image: "/photos/hack-the-north-logo.png",
     isSaved: true,
@@ -31,7 +31,7 @@ const backdropHackathons: HackathonCardData[] = [
   },
   {
     country: "United States",
-    date: "Sep 12–13, 2026",
+    date: "Sep 12-13, 2026",
     id: "spotlight-hackmit",
     image: "/photos/hackmit-logo.png",
     isSaved: false,
@@ -42,7 +42,7 @@ const backdropHackathons: HackathonCardData[] = [
   },
   {
     country: "Canada",
-    date: "Oct 3–4, 2026",
+    date: "Oct 3-4, 2026",
     id: "spotlight-conuhacks",
     image: "/photos/konyuhack-logo.png",
     isSaved: false,
@@ -53,7 +53,7 @@ const backdropHackathons: HackathonCardData[] = [
   },
   {
     country: "United States",
-    date: "Oct 23–25, 2026",
+    date: "Oct 23-25, 2026",
     id: "spotlight-xai",
     image: "/photos/xai-logo.png",
     isSaved: false,
@@ -64,7 +64,7 @@ const backdropHackathons: HackathonCardData[] = [
   },
   {
     country: "United States",
-    date: "Nov 6–8, 2026",
+    date: "Nov 6-8, 2026",
     id: "spotlight-hackgt",
     image: "/photos/hackgt-logo.png",
     isSaved: false,
@@ -75,7 +75,7 @@ const backdropHackathons: HackathonCardData[] = [
   },
   {
     country: "United States",
-    date: "Jan 16–17, 2027",
+    date: "Jan 16-17, 2027",
     id: "spotlight-nvidia",
     image: "/photos/nvidia-logo.png",
     isSaved: true,

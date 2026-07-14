@@ -512,7 +512,7 @@ export function AccountProfileForm({ displayName, profile }: ProfileFormProps) {
             <div className="sm:col-span-2">
               <label className={labelClassName}>Skills</label>
               <p className="mb-2 text-xs text-navy/55 dark:text-wheat/55">
-                Pick the languages and frameworks you know — select as many as you like.
+                Pick the languages and frameworks you know, and select as many as you like.
               </p>
               <SkillsField value={skillsDraft} onChange={setSkillsDraft} />
             </div>

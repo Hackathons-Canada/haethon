@@ -328,7 +328,7 @@ export default async function AccountPage() {
                         ) : null}
                         {/* Provenance chip, kept legible over the image. */}
                         <span className="absolute right-3 top-3 rounded-full bg-black/55 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-sm">
-                          {item.tier === "verified" ? "Verified" : "Self-reported"}
+                          {item.tier === "verified" ? "Verified" : "Self reported"}
                         </span>
                       </div>
 

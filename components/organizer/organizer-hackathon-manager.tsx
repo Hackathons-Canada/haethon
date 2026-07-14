@@ -58,7 +58,7 @@ function formatDateRange(startsAt: string | null, endsAt: string | null) {
   const options: Intl.DateTimeFormatOptions = { month: "short", day: "numeric", year: "numeric" };
   const start = new Date(startsAt).toLocaleDateString("en-US", options);
 
-  return endsAt ? `${start} – ${new Date(endsAt).toLocaleDateString("en-US", options)}` : start;
+  return endsAt ? `${start} - ${new Date(endsAt).toLocaleDateString("en-US", options)}` : start;
 }
 
 function CheckinCodePanel({ hackathonId }: { hackathonId: string }) {
@@ -294,8 +294,8 @@ function AttendeesPanel({ hackathonId }: { hackathonId: string }) {
         Attendees
       </h3>
       <p className="mt-2 text-sm leading-6 text-navy/55 dark:text-wheat/55">
-        Hackers who checked in or marked this hackathon as attended. Select self-reported attendees you can vouch for and
-        mark them as organizer-verified.
+        Hackers who checked in or marked this hackathon as attended. Select self reported attendees you can vouch for and
+        mark them as organizer verified.
       </p>
 
       {status === "loading" ? (
@@ -329,7 +329,7 @@ function AttendeesPanel({ hackathonId }: { hackathonId: string }) {
                     </td>
                     <td className="py-2.5 pr-4 font-semibold text-navy dark:text-wheat">{attendee.name}</td>
                     <td className="py-2.5 pr-4 text-navy/70 dark:text-wheat/70">{attendee.email}</td>
-                    <td className="py-2.5 pr-4 capitalize text-navy/70 dark:text-wheat/70">{attendee.applicationStatus ?? "—"}</td>
+                    <td className="py-2.5 pr-4 capitalize text-navy/70 dark:text-wheat/70">{attendee.applicationStatus ?? "-"}</td>
                     <td className="py-2.5">
                       <AttendeeTierBadge tier={attendee.tier} />
                     </td>
@@ -354,7 +354,7 @@ function AttendeesPanel({ hackathonId }: { hackathonId: string }) {
                 onClick={() => setSelected(new Set(selectable.map((attendee) => attendee.userId)))}
                 type="button"
               >
-                Select all self-reported
+                Select all self reported
               </button>
             ) : null}
           </div>

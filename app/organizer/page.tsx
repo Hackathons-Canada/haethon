@@ -22,7 +22,7 @@ export default async function OrganizerHackathonsPage() {
           <div>
             <h1 className="font-serif text-4xl font-semibold tracking-[-0.02em] text-navy dark:text-wheat">My hackathons</h1>
             <p className="mt-2 max-w-3xl text-base leading-7 text-navy/55 dark:text-wheat/55">
-              The hackathons you organize. Edit the public details, manage attendance check-in codes, and verify
+              The hackathons you organize. Edit the public details, manage attendance check in codes, and verify
               attendees.
             </p>
           </div>

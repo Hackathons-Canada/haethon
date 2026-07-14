@@ -182,7 +182,7 @@ export function HackathonNotificationPreferences({
                   Hey, nothing&apos;s going to show up for now.
                 </h2>
                 <p className="mt-2 text-sm leading-5 text-navy/60 dark:text-wheat/60">
-                  You can have up to {EMAIL_NOTIFICATION_LIMIT} email notifications at a time — turn one off to make
+                  You can have up to {EMAIL_NOTIFICATION_LIMIT} email notifications at a time. Turn one off to make
                   room for this one.
                 </p>
                 <div className="mt-6 flex items-center justify-end">

@@ -37,12 +37,12 @@ function StatusCell({ tier, isWinner }: { tier: AttendanceTrustTier | null; isWi
   if (tier === "self_reported") {
     return (
       <span className="rounded-full border border-navy/10 dark:border-white/10 px-2 py-0.5 text-xs font-semibold text-navy/55 dark:text-wheat/55">
-        Self-reported
+        Self reported
       </span>
     );
   }
 
-  return <span className="text-sm text-navy/40 dark:text-wheat/40">—</span>;
+  return <span className="text-sm text-navy/40 dark:text-wheat/40">-</span>;
 }
 
 // Column headers mirror the Notion database layout: a muted label preceded by a
@@ -106,7 +106,7 @@ export function AttendedHackathonsTable({ rows }: { rows: AttendedHackathonRow[]
                       {row.name}
                     </span>
                   </td>
-                  <td className="py-3 pr-4 text-sm text-navy/60 dark:text-wheat/60">{row.date ?? "—"}</td>
+                  <td className="py-3 pr-4 text-sm text-navy/60 dark:text-wheat/60">{row.date ?? "-"}</td>
                   <td className="py-3 pr-4 text-sm text-navy/60 dark:text-wheat/60">{row.location}</td>
                   <td className="py-3">
                     <StatusCell isWinner={row.isWinner} tier={row.tier} />

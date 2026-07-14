@@ -24,7 +24,7 @@ function formatDate(value: Date | string) {
   const date = value instanceof Date ? value : new Date(value);
 
   return Number.isNaN(date.getTime())
-    ? "—"
+    ? "-"
     : date.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
 }
 
@@ -45,7 +45,7 @@ export default async function AdminSubmissionsPage() {
           <div>
             <h1 className="font-serif text-4xl font-semibold tracking-[-0.02em] text-navy dark:text-wheat">Hackathon requests</h1>
             <p className="mt-2 max-w-3xl text-base leading-7 text-navy/55 dark:text-wheat/55">
-              Hackathons submitted through the public form. Community submitters only give us a name and link — fill in the
+              Hackathons submitted through the public form. Community submitters only give us a name and link. Fill in the
               date, province, location, and the rest, then approve to publish or deny with a reason.
             </p>
           </div>

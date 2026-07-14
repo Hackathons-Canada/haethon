@@ -468,7 +468,7 @@ function ReminderControl({ hackathonId, statusLabel, options: initialOptions }: 
             </div>
           ) : (
             <p className="mt-2 px-1 pb-1 text-xs text-navy/55 dark:text-wheat/55">
-              No reminders are available yet — we&apos;ll offer them once this hackathon&apos;s key dates are confirmed.
+              No reminders are available yet. We&apos;ll offer them once this hackathon&apos;s key dates are confirmed.
             </p>
           )}
         </div>

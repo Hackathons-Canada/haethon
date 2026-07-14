@@ -34,7 +34,7 @@ const backdropColumns: BackdropColumn[] = [
       {
         card: {
           country: "Canada",
-          date: "Oct 3–4, 2026",
+          date: "Oct 3-4, 2026",
           id: "pipeline-conuhacks",
           image: "/photos/konyuhack-logo.png",
           isSaved: true,
@@ -61,7 +61,7 @@ const backdropColumns: BackdropColumn[] = [
       {
         card: {
           country: "United States",
-          date: "Jan 16–17, 2027",
+          date: "Jan 16-17, 2027",
           id: "pipeline-anthropic",
           image: "/photos/anthropic-logo.png",
           isSaved: true,
@@ -87,7 +87,7 @@ const backdropColumns: BackdropColumn[] = [
       {
         card: {
           country: "United States",
-          date: "Sep 12–13, 2026",
+          date: "Sep 12-13, 2026",
           id: "pipeline-hackmit",
           image: "/photos/hackmit-logo.png",
           isSaved: true,
@@ -108,7 +108,7 @@ const backdropColumns: BackdropColumn[] = [
       {
         card: {
           country: "United States",
-          date: "Oct 23–25, 2026",
+          date: "Oct 23-25, 2026",
           id: "pipeline-xai",
           image: "/photos/xai-logo.png",
           isSaved: false,
@@ -134,7 +134,7 @@ const backdropColumns: BackdropColumn[] = [
       {
         card: {
           country: "United States",
-          date: "Feb 14–16, 2027",
+          date: "Feb 14-16, 2027",
           id: "pipeline-treehacks",
           image: "/photos/treehacks-logo.png",
           isSaved: true,
@@ -161,7 +161,7 @@ const backdropColumns: BackdropColumn[] = [
       {
         card: {
           country: "United States",
-          date: "Nov 6–8, 2026",
+          date: "Nov 6-8, 2026",
           id: "pipeline-hackgt",
           image: "/photos/hackgt-logo.png",
           isSaved: false,
@@ -310,7 +310,7 @@ function SpotlightReminderCard() {
               Hack the North
             </h3>
             <p className="mt-2 text-[15px] font-semibold leading-5 text-wheat/55">
-              Sep 18–20, 2026
+              Sep 18-20, 2026
             </p>
             <p className="mt-1 truncate text-[15px] font-semibold leading-5 text-wheat/55">
               <span className="underline decoration-[#D9043D] underline-offset-2">Canada</span>

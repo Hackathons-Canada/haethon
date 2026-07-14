@@ -7,9 +7,9 @@ import type { AttendanceAnomalyFinding, AttendanceAnomalyType } from "@/lib/hack
 
 const TYPE_LABELS: Record<AttendanceAnomalyType, string> = {
   high_volume: "High volume",
-  same_day_overlap: "Same-day in-person overlap",
+  same_day_overlap: "Same day in person overlap",
   post_signup_burst: "Claim burst after signup",
-  late_claim_ratio: "High late-claim ratio",
+  late_claim_ratio: "High late claim ratio",
 };
 
 const TYPE_ORDER: AttendanceAnomalyType[] = ["same_day_overlap", "post_signup_burst", "high_volume", "late_claim_ratio"];
@@ -132,7 +132,7 @@ export function AttendanceAnomalyManager({ findings }: { findings: AttendanceAno
   if (!findings.length) {
     return (
       <p className="rounded-xl border border-navy/10 dark:border-white/10 bg-white dark:bg-white/[0.06] p-6 text-sm text-navy/55 dark:text-wheat/55">
-        No attendance anomalies detected. Self-reported claims currently look statistically normal.
+        No attendance anomalies detected. Self reported claims currently look statistically normal.
       </p>
     );
   }

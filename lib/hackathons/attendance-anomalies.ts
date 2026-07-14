@@ -325,7 +325,7 @@ export function evaluateUserAttendanceAnomalies(input: {
     findings.push({
       type: "high_volume",
       severity: atCap ? "high" : "medium",
-      summary: `${highVolume.totalCount} self-reported hackathons (${highVolume.inPersonCount} in-person) between ${highVolume.windowStart} and ${highVolume.windowEnd} — caps are ${MAX_IN_PERSON_HACKATHONS_PER_WINDOW} in-person / ${MAX_TOTAL_HACKATHONS_PER_WINDOW} total per ${ATTENDANCE_VOLUME_WINDOW_DAYS} days.`,
+      summary: `${highVolume.totalCount} self reported hackathons (${highVolume.inPersonCount} in person) between ${highVolume.windowStart} and ${highVolume.windowEnd}. Caps are ${MAX_IN_PERSON_HACKATHONS_PER_WINDOW} in person / ${MAX_TOTAL_HACKATHONS_PER_WINDOW} total per ${ATTENDANCE_VOLUME_WINDOW_DAYS} days.`,
       hackathons: highVolume.hackathons,
     });
   }
@@ -334,8 +334,8 @@ export function evaluateUserAttendanceAnomalies(input: {
     findings.push({
       type: "same_day_overlap",
       severity: "high",
-      summary: `Attendance recorded at ${overlap.hackathons.length} in-person hackathons on ${overlap.day}: ${overlap.hackathons
-        .map((ref) => `${ref.name}${ref.selfReported ? " (self-reported)" : " (verified)"}`)
+      summary: `Attendance recorded at ${overlap.hackathons.length} in person hackathons on ${overlap.day}: ${overlap.hackathons
+        .map((ref) => `${ref.name}${ref.selfReported ? " (self reported)" : " (verified)"}`)
         .join(", ")}.`,
       hackathons: overlap.hackathons.map(({ id, name }) => ({ id, name })),
     });

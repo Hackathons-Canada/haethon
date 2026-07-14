@@ -175,7 +175,7 @@ export function HackathonFixJsonImporter() {
       {preview.length ? (
         <div className="overflow-hidden rounded-xl border border-navy/10 dark:border-white/10">
           <div className="grid grid-cols-[1fr_0.75fr_0.9fr] gap-3 border-b border-navy/10 dark:border-white/10 bg-ivory dark:bg-white/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-navy/55 dark:text-wheat/55">
-            <span>Pre-populated event</span>
+            <span>Prepopulated event</span>
             <span>Source</span>
             <span>Reason</span>
           </div>

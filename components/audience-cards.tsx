@@ -57,7 +57,7 @@ function HackersGraphic({ className }: { className?: string }) {
             ConUHacks XI
           </p>
           <p className="truncate text-[0.62rem] text-wheat/40">
-            Montreal, QC · Oct 3–4
+            Montreal, QC · Oct 3-4
           </p>
         </div>
         <Bookmark className="h-3.5 w-3.5 flex-none text-wheat/30" />
@@ -81,7 +81,7 @@ function HackersGraphic({ className }: { className?: string }) {
             UofTHacks 13
           </p>
           <p className="truncate text-[0.62rem] text-wheat/40">
-            Toronto, ON · Jan 17–19
+            Toronto, ON · Jan 17-19
           </p>
         </div>
         <Bookmark className="h-3.5 w-3.5 flex-none text-wheat/30" />
@@ -189,11 +189,11 @@ const audiences: Audience[] = [
     category: "Hackers",
     title: "Find events & your people",
     description:
-      "Every hackathon in one feed — then talk it through with thousands of builders.",
+      "Every hackathon in one feed, then talk it through with thousands of builders.",
     glow: "radial-gradient(ellipse 75% 55% at 80% 0%, rgb(70 120 110 / 0.22), transparent 68%), radial-gradient(ellipse 55% 45% at 10% 95%, rgb(45 74 34 / 0.2), transparent 65%)",
     Graphic: HackersGraphic,
     points: [
-      "One home for hackathons — browse, save the ones you care about, and never miss a deadline.",
+      "One home for hackathons: browse, save the ones you care about, and never miss a deadline.",
       "Hop into our Discord to swap ideas, find teammates, and hang out with 5,000+ hackers.",
       "Get a direct line to the organizers running each event.",
     ],
@@ -214,8 +214,8 @@ const audiences: Audience[] = [
     Graphic: OrganizersGraphic,
     points: [
       "Publish your hackathon to thousands of active builders already looking for their next event.",
-      "Partner with us and we'll amplify you across our socials — more views, more applications.",
-      "Lean on the guides and hard-won lessons from running our own hackathons.",
+      "Partner with us and we'll amplify you across our socials: more views, more applications.",
+      "Lean on the guides and hard won lessons from running our own hackathons.",
     ],
     cta: {
       label: "Explore hackathons",
@@ -228,12 +228,12 @@ const audiences: Audience[] = [
     category: "Corporate",
     title: "Run it with us",
     description:
-      "Want a custom hackathon for your company? We've done this before — let's build yours.",
+      "Want a custom hackathon for your company? We've done this before, so let's build yours.",
     glow: "radial-gradient(ellipse 80% 40% at 50% 0%, rgb(114 28 36 / 0.22), transparent 68%), radial-gradient(ellipse 55% 40% at 85% 90%, rgb(70 120 110 / 0.18), transparent 64%), radial-gradient(ellipse 45% 35% at 10% 55%, rgb(29 42 68 / 0.24), transparent 60%)",
     Graphic: CorporateGraphic,
     points: [
-      "End-to-end custom hackathons, designed and run together with your team.",
-      "Proven experience — we host our own events, so you're not starting from scratch.",
+      "End to end custom hackathons, designed and run together with your team.",
+      "Proven experience: we host our own events, so you're not starting from scratch.",
       "Send a quick inquiry and we'll take it from there.",
     ],
     cta: {

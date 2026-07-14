@@ -28,7 +28,7 @@ import {
 
 export const metadata: Metadata = {
   title: "My Hackathons | Hackathons North America",
-  description: "Track where you stand with every hackathon — from interested to accepted.",
+  description: "Track where you stand with every hackathon, from interested to accepted.",
 };
 
 type PipelineRow = {
@@ -217,7 +217,7 @@ export default async function MyHackathonsPage() {
           <div className="mx-auto mt-10 w-full max-w-[980px] rounded-xl border border-navy/10 dark:border-white/10 bg-ivory dark:bg-white/5 p-8 text-center">
             <p className="text-base font-semibold text-navy dark:text-wheat">Nothing in your pipeline yet.</p>
             <p className="mt-2 text-sm text-navy/55 dark:text-wheat/55">
-              Browse the database and mark hackathons you&apos;re interested in — deadlines and reminders will show up
+              Browse the database and mark hackathons you&apos;re interested in. Deadlines and reminders will show up
               here.
             </p>
             <Link

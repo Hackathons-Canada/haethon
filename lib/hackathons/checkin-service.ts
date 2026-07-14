@@ -135,7 +135,7 @@ export async function rotateCheckinCode(input: { hackathonId: string; createdByU
     }
   }
 
-  throw new Error("Unable to create a check-in code.");
+  throw new Error("Unable to create a check in code.");
 }
 
 /**

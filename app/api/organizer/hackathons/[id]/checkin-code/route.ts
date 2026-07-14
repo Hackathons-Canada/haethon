@@ -42,7 +42,7 @@ export async function GET(_request: Request, context: RouteContext) {
     });
   } catch (error) {
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Could not load the check-in code." },
+      { error: error instanceof Error ? error.message : "Could not load the check in code." },
       { status: 500 }
     );
   }

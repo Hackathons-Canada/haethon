@@ -50,14 +50,14 @@ export function evaluateCheckinWindow(input: {
   if (!input.startsAt || !input.endsAt) {
     return {
       allowed: false,
-      error: "This hackathon has no dates on record, so check-in isn't available.",
+      error: "This hackathon has no dates on record, so check in isn't available.",
     };
   }
 
   const now = input.now ?? new Date();
 
   if (now < input.startsAt) {
-    return { allowed: false, error: "Check-in opens when the hackathon starts." };
+    return { allowed: false, error: "Check in opens when the hackathon starts." };
   }
 
   const windowClosesAt = new Date(input.endsAt.getTime() + TIMELY_ATTENDANCE_CLAIM_WINDOW_DAYS * MS_PER_DAY);
@@ -65,7 +65,7 @@ export function evaluateCheckinWindow(input: {
   if (now > windowClosesAt) {
     return {
       allowed: false,
-      error: `Check-in closed ${TIMELY_ATTENDANCE_CLAIM_WINDOW_DAYS} days after the hackathon ended.`,
+      error: `Check in closed ${TIMELY_ATTENDANCE_CLAIM_WINDOW_DAYS} days after the hackathon ended.`,
     };
   }
 

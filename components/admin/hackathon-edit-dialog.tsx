@@ -357,7 +357,7 @@ export function HackathonEditDialog({
                   className={inputClassName}
                 />
                 <p id={`${item.id}-voteDisplayOffset-note`} className="mt-1 text-xs leading-5 text-rust dark:text-[#e4a3ab]">
-                  Beta testing only — this changes the displayed upvote/downvote total, not real votes. Remove this before production.
+                  Beta testing only: this changes the displayed upvote/downvote total, not real votes. Remove this before production.
                 </p>
               </div>
               <label className="flex items-center gap-2 rounded-xl border border-navy/10 dark:border-white/10 bg-ivory dark:bg-white/5 px-3 py-2 text-sm font-semibold text-navy dark:text-wheat">

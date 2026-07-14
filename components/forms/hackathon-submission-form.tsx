@@ -200,7 +200,7 @@ export function HackathonSubmissionForm() {
         {submitterType === "community" ? (
           <p className="text-sm leading-6 text-navy/55 dark:text-wheat/55">
             That’s all we need. Our team finds the date, province, location, and everything else before the hackathon goes
-            live — you just point us to it.
+            live. You just point us to it.
           </p>
         ) : null}
 

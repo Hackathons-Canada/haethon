@@ -122,7 +122,7 @@ export function parseSocialInput(key: SocialPlatformKey, raw: string): SocialPar
     if (!hostMatches(url.hostname, platform.hosts)) {
       return {
         ok: false,
-        error: `That link isn't a ${platform.label} profile — it should look like ${platform.prefix}your-handle.`,
+        error: `That link isn't a ${platform.label} profile. It should look like ${platform.prefix}your-handle.`,
       };
     }
 

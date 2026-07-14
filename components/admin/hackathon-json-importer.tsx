@@ -295,7 +295,7 @@ export function HackathonJsonImporter() {
                       {pendingDuplicate.matchedName ?? "an existing hackathon"}
                     </span>{" "}
                     on both name and start date (match {pendingDuplicate.duplicateScore.toFixed(2)}). Import it as a
-                    separate hackathon anyway, or skip it — nothing is queued either way.
+                    separate hackathon anyway, or skip it. Nothing is queued either way.
                   </p>
                 </div>
                 <div className="mt-5 grid gap-3">

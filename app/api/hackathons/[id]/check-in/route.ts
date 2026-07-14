@@ -77,7 +77,7 @@ export async function POST(request: Request, context: RouteContext) {
 
   if (isRateLimited(attemptKey, now.getTime())) {
     return NextResponse.json(
-      { error: "Too many check-in attempts. Try again in a few minutes." },
+      { error: "Too many check in attempts. Try again in a few minutes." },
       { status: 429 }
     );
   }
@@ -89,7 +89,7 @@ export async function POST(request: Request, context: RouteContext) {
   if (!activeCode || activeCode.code !== normalizeCheckinCode(parsed.data.code)) {
     recordFailedAttempt(attemptKey, now.getTime());
 
-    return NextResponse.json({ error: "That check-in code isn't valid for this hackathon." }, { status: 422 });
+    return NextResponse.json({ error: "That check in code isn't valid for this hackathon." }, { status: 422 });
   }
 
   failedAttempts.delete(attemptKey);

@@ -20,12 +20,12 @@ const coveragePillars = [
   {
     Icon: Rss,
     title: "Sourced from everywhere",
-    body: "We pull hackathons from dev posts, LinkedIn, Luma, and MLH — if an event is announced somewhere, it lands here.",
+    body: "We pull hackathons from dev posts, LinkedIn, Luma, and MLH. If an event is announced somewhere, it lands here.",
   },
   {
     Icon: Users,
     title: "Built by 5,000+ of us",
-    body: "Our 5,000-strong community — from first-time hackers to seasoned organizers — can add their own hackathon with a simple form.",
+    body: "Our 5,000 strong community, from first time hackers to seasoned organizers, can add their own hackathon with a simple form.",
   },
   {
     Icon: ShieldCheck,
@@ -126,7 +126,7 @@ export default function Home() {
               Hackathons across the globe
             </h2>
             <p className="mt-4 max-w-[32rem] text-base leading-relaxed text-navy/55 dark:text-wheat/55">
-              One home for every event — sourced from across the web, submitted
+              One home for every event: sourced from across the web, submitted
               by the community, and vetted by real people.
             </p>
           </div>
@@ -171,7 +171,7 @@ export default function Home() {
               <p className="max-w-[32rem] text-base leading-relaxed text-navy/55 dark:text-wheat/55 sm:text-lg">
                 Search hackathons by country, filter by date and format, and
                 surface the events that reimburse your travel. Find the
-                hackathon you actually want to attend in your area — and never
+                hackathon you actually want to attend in your area, and never
                 miss a single one.
               </p>
               <Link
@@ -212,7 +212,7 @@ export default function Home() {
                 Choose email reminders that land a week before applications
                 open, a day before they open, and a day before the hackathon
                 starts. Then follow the status of every hackathon you&apos;ve
-                applied to — interested, applied, accepted — on one board.
+                applied to (interested, applied, accepted) on one board.
               </p>
               <Link
                 href="/my"

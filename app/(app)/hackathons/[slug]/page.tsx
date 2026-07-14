@@ -494,8 +494,8 @@ export default async function HackathonDetailPage({ params }: PageProps) {
         <section className="mt-8 rounded-xl border border-navy/10 dark:border-white/10 bg-ivory dark:bg-white/5 p-5">
           <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-rust">Your status</h2>
           <p className="mt-2 text-sm text-navy/55 dark:text-wheat/55">
-            Set where you are with this hackathon and we&apos;ll remind you about the right deadlines — applications,
-            acceptance, and check-in.
+            Set where you are with this hackathon and we&apos;ll remind you about the right deadlines: applications,
+            acceptance, and check in.
           </p>
           <div className="mt-4">
             {user ? (

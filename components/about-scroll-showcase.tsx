@@ -68,7 +68,7 @@ const companies: readonly Company[] = [
     name: "Corporate",
     heading: "A direct line to the people who build.",
     description:
-      "We help companies reach hackers through events, challenges, and recruiting — sponsorship that lands in the room instead of a logo on a banner.",
+      "We help companies reach hackers through events, challenges, and recruiting. It's sponsorship that lands in the room instead of a logo on a banner.",
     images: [
       {
         src: "/photos/corporate-catering.png",

@@ -14,8 +14,8 @@ export default async function AdminAttendanceAnomaliesPage() {
           <div>
             <h1 className="font-serif text-4xl font-semibold tracking-[-0.02em] text-navy dark:text-wheat">Attendance anomalies</h1>
             <p className="mt-2 max-w-3xl text-base leading-7 text-navy/55 dark:text-wheat/55">
-              Statistical outliers in self-reported attendance. Verify a claim to mark its days admin-verified, or revoke it
-              to remove the self-reported days and reset the status to interested.
+              Statistical outliers in self reported attendance. Verify a claim to mark its days admin verified, or revoke it
+              to remove the self reported days and reset the status to interested.
             </p>
           </div>
           <div className="rounded-xl border border-navy/10 dark:border-white/10 bg-ivory dark:bg-white/5 px-4 py-3 text-sm font-semibold text-navy dark:text-wheat">
