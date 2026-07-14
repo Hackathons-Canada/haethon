@@ -48,7 +48,7 @@ export function AppSidebar({
   return (
     <motion.aside
       animate={{ opacity: 1, x: 0 }}
-      className="z-40 border-b border-navy/10 bg-white/75 backdrop-blur-xl dark:border-white/10 dark:bg-[#141414]/60 lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:shrink-0 lg:border-b-0 lg:border-r"
+      className="z-40 border-b border-navy/10 bg-white/75 backdrop-blur-xl dark:border-white/10 dark:bg-[#141414]/60 lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-64 lg:shrink-0 lg:flex-col lg:border-b-0 lg:border-r"
       initial={prefersReducedMotion ? false : { opacity: 0, x: "-1.75rem" }}
       transition={{ delay: 0.3, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
     >
@@ -89,20 +89,20 @@ export function AppSidebar({
         })}
       </nav>
 
-      <div className="px-3 pb-3 lg:px-3">
+      <div className="mt-auto px-3 pb-3">
         <Link
-          className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full bg-[#5865F2] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#4752c4]"
+          className="inline-flex min-h-10 w-full shrink-0 items-center gap-3 rounded-full px-3 text-sm font-semibold text-navy/70 transition-colors hover:bg-ivory hover:text-navy dark:text-wheat/70 dark:hover:bg-white/10 dark:hover:text-wheat"
           href="https://discord.gg/wcNfUUVgqe"
           rel="noreferrer"
           target="_blank"
         >
+          <DiscordIcon className="size-4" />
           Join our Discord
-          <DiscordIcon className="h-4 w-auto" />
         </Link>
       </div>
 
       {!isSignedIn ? (
-        <div className="hidden px-5 pb-6 lg:absolute lg:bottom-0 lg:left-0 lg:right-0 lg:block">
+        <div className="hidden px-5 pb-6 lg:block">
           <Link
             className="inline-flex rounded-full min-h-10 w-full items-center justify-center border border-cabernet dark:border-[#e4a3ab]/50 px-4 font-mono text-xs font-medium uppercase tracking-[0.14em] text-cabernet dark:text-[#e4a3ab] transition-colors hover:bg-cabernet hover:text-wheat"
             href="/sign-in"

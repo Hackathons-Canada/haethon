@@ -1,6 +1,7 @@
 "use client";
 
 import type { CSSProperties } from "react";
+import Image from "next/image";
 import { motion, useReducedMotion } from "motion/react";
 import { BellPlus, Check, ChevronDown } from "lucide-react";
 
@@ -35,6 +36,7 @@ const backdropColumns: BackdropColumn[] = [
           country: "Canada",
           date: "Oct 3–4, 2026",
           id: "pipeline-conuhacks",
+          image: "/photos/konyuhack-logo.png",
           isSaved: true,
           location: "Montreal, QC",
           name: "ConUHacks XI",
@@ -58,16 +60,17 @@ const backdropColumns: BackdropColumn[] = [
       },
       {
         card: {
-          country: "Canada",
+          country: "United States",
           date: "Jan 16–17, 2027",
-          id: "pipeline-nwhacks",
+          id: "pipeline-anthropic",
+          image: "/photos/anthropic-logo.png",
           isSaved: true,
-          location: "Vancouver, BC",
-          name: "nwHacks",
+          location: "San Francisco, CA",
+          name: "Anthropic Hackathon",
           userVote: 0,
           voteScore: 76,
         },
-        reminder: backdropReminder("pipeline-nwhacks", "Interested", [
+        reminder: backdropReminder("pipeline-anthropic", "Interested", [
           {
             type: "application_week_before",
             label: "1 week before applications open",
@@ -86,6 +89,7 @@ const backdropColumns: BackdropColumn[] = [
           country: "United States",
           date: "Sep 12–13, 2026",
           id: "pipeline-hackmit",
+          image: "/photos/hackmit-logo.png",
           isSaved: true,
           location: "Cambridge, MA",
           name: "HackMIT",
@@ -105,14 +109,15 @@ const backdropColumns: BackdropColumn[] = [
         card: {
           country: "United States",
           date: "Oct 23–25, 2026",
-          id: "pipeline-calhacks",
+          id: "pipeline-xai",
+          image: "/photos/xai-logo.png",
           isSaved: false,
-          location: "Berkeley, CA",
-          name: "Cal Hacks 13.0",
+          location: "San Francisco, CA",
+          name: "xAI Hackathon",
           userVote: 0,
           voteScore: 141,
         },
-        reminder: backdropReminder("pipeline-calhacks", "Applied", [
+        reminder: backdropReminder("pipeline-xai", "Applied", [
           {
             type: "hackathon_week_before",
             label: "1 week before",
@@ -131,6 +136,7 @@ const backdropColumns: BackdropColumn[] = [
           country: "United States",
           date: "Feb 14–16, 2027",
           id: "pipeline-treehacks",
+          image: "/photos/treehacks-logo.png",
           isSaved: true,
           location: "Stanford, CA",
           name: "TreeHacks",
@@ -157,6 +163,7 @@ const backdropColumns: BackdropColumn[] = [
           country: "United States",
           date: "Nov 6–8, 2026",
           id: "pipeline-hackgt",
+          image: "/photos/hackgt-logo.png",
           isSaved: false,
           location: "Atlanta, GA",
           name: "HackGT",
@@ -289,8 +296,14 @@ function SpotlightReminderCard() {
         />
 
         <div className="flex items-start gap-3">
-          <div className="grid size-14 shrink-0 place-items-center overflow-hidden rounded-xl bg-[rgb(var(--hackathon-accent-rgb)/0.92)] px-2 text-center text-lg font-semibold text-white">
-            HT
+          <div className="relative grid size-14 shrink-0 place-items-center overflow-hidden rounded-xl bg-[radial-gradient(120%_120%_at_30%_20%,#d9c3a5_0%,#c4a882_55%,#b0946a_100%)]">
+            <Image
+              alt="Hack the North logo"
+              className="object-contain"
+              fill
+              sizes="56px"
+              src="/photos/hack-the-north-logo.png"
+            />
           </div>
           <div className="min-w-0 pt-1">
             <h3 className="line-clamp-2 text-lg font-semibold leading-6 text-wheat">

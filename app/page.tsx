@@ -4,6 +4,7 @@ import { HeroHeadline } from "@/components/hero-headline";
 import { HeroAurora } from "@/components/hero-inuksuk";
 import { HeroPolaroids } from "@/components/hero-polaroids";
 import { HeroTypewriterSpan } from "@/components/hero-typewriter-span";
+import { AudienceCards } from "@/components/audience-cards";
 import { ShieldCheck, Rss, Users } from "lucide-react";
 
 import {
@@ -30,24 +31,6 @@ const coveragePillars = [
     Icon: ShieldCheck,
     title: "Approved by admins",
     body: "Every hackathon is read over and approved by an admin before it's published, so a bad event never slips through.",
-  },
-];
-
-const audiences = [
-  {
-    label: "Hackers",
-    title: "Find and follow events",
-    body: "Discover hackathons, save the ones you care about, and keep every deadline in one feed.",
-  },
-  {
-    label: "Organizers",
-    title: "Publish and grow",
-    body: "List your event to reach more builders, and tap HNA's network for advice and reach.",
-  },
-  {
-    label: "Hosts",
-    title: "Run it with us",
-    body: "Partner with HNA to host end to end — or use our playbooks to run your own.",
   },
 ];
 
@@ -269,26 +252,7 @@ export default function Home() {
             </h2>
           </div>
 
-          <div className="mt-10 grid gap-4 sm:mt-12 sm:grid-cols-3 sm:gap-5">
-            {audiences.map((audience, i) => (
-              <div
-                key={audience.label}
-                className={`rounded-[1.5rem] border border-navy/10 bg-navy/[0.03] p-6 sm:rounded-[1.75rem] sm:p-7 dark:border-white/10 dark:bg-white/[0.04] ${
-                  i === 1 ? "sm:-rotate-1" : i === 2 ? "sm:rotate-1" : ""
-                }`}
-              >
-                <p className="text-[0.7rem] font-medium tracking-[0.04em] text-rust">
-                  {audience.label}
-                </p>
-                <h3 className="mt-3 text-lg font-semibold tracking-tight text-navy sm:text-xl dark:text-wheat">
-                  {audience.title}
-                </h3>
-                <p className="mt-2.5 text-[0.95rem] leading-relaxed text-navy/55 dark:text-wheat/55">
-                  {audience.body}
-                </p>
-              </div>
-            ))}
-          </div>
+          <AudienceCards />
         </div>
       </section>
 

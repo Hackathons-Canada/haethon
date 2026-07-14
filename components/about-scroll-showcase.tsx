@@ -1,15 +1,59 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
-const companies = [
+type CompanyImage = {
+  src: string;
+  alt: string;
+  // Intrinsic pixel size, so the stacked image reserves its true aspect-ratio
+  // space (fills the window width, natural height) before the file loads.
+  width: number;
+  height: number;
+};
+
+type Company = {
+  id: string;
+  name: string;
+  heading: string;
+  description: string;
+  // Optional photos, rendered by count:
+  //   3 photos -> "trio": [0] fills the tall portrait slot on the left, [1]
+  //     and [2] stack as landscape shots on the right.
+  //   4 photos -> "grid": a 2x2 grid of landscape shots.
+  images?: readonly CompanyImage[];
+  // "browser" replaces the photo area with a single browser-window card.
+  showcase?: "browser";
+};
+
+const companies: readonly Company[] = [
   {
     id: "hack-canada",
     name: "HC25",
     heading: "Canada's flagship student hackathon.",
     description:
       "A weekend where hundreds of builders ship real projects, backed by mentors, hardware, and a community that keeps going long after the closing ceremony.",
+    images: [
+      {
+        src: "/photos/hc25-hallway.png",
+        alt: "Hackers lining the hallway between sessions at HC25.",
+        width: 1440,
+        height: 2160,
+      },
+      {
+        src: "/photos/hc25-collab.png",
+        alt: "Three hackers laughing around a laptop at HC25.",
+        width: 2326,
+        height: 1548,
+      },
+      {
+        src: "/photos/hc25-crowd.png",
+        alt: "A packed room of hackers during an HC25 ceremony.",
+        width: 2160,
+        height: 1440,
+      },
+    ],
   },
   {
     id: "hackathons-north-america",
@@ -17,6 +61,7 @@ const companies = [
     heading: "Every hackathon on the continent, in one place.",
     description:
       "HNA maps hackathons across North America so hackers can find, track, and commit to their next build without digging through scattered forms and Discord servers.",
+    showcase: "browser",
   },
   {
     id: "corporate",
@@ -24,8 +69,34 @@ const companies = [
     heading: "A direct line to the people who build.",
     description:
       "We help companies reach hackers through events, challenges, and recruiting — sponsorship that lands in the room instead of a logo on a banner.",
+    images: [
+      {
+        src: "/photos/corporate-catering.png",
+        alt: "A hacker serving themselves from a spread of catered sushi.",
+        width: 2586,
+        height: 1724,
+      },
+      {
+        src: "/photos/corporate-celebration.png",
+        alt: "Two hackers cheering during a sponsor prize reveal.",
+        width: 2586,
+        height: 1724,
+      },
+      {
+        src: "/photos/corporate-conversation.png",
+        alt: "Two hackers chatting during a networking break.",
+        width: 2586,
+        height: 1724,
+      },
+      {
+        src: "/photos/corporate-group.png",
+        alt: "The full crowd posing with oversized prize cheques.",
+        width: 2586,
+        height: 1724,
+      },
+    ],
   },
-] as const;
+];
 
 // Height of a single name row in the centered scrolling list.
 const NAME_ROW = "8rem";
@@ -63,10 +134,51 @@ function TechPanel({ activeIndex }: { activeIndex: number }) {
   );
 }
 
-// A single placeholder tile used inside the right-hand image trio.
-function ImageTile({ label }: { label: string }) {
+// A single full-width photo in the scrolling stack. The image fills the window
+// width; its intrinsic width/height keep the natural aspect ratio (no crop, no
+// squish) and reserve the correct height before the file loads.
+function StripImage({ image }: { image: CompanyImage }) {
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center gap-1 overflow-hidden rounded-2xl border border-navy/10 bg-navy/[0.04] dark:border-wheat/10 dark:bg-wheat/[0.06]">
+    <Image
+      alt={image.alt}
+      className="h-auto w-full rounded-2xl border border-navy/10 dark:border-wheat/10"
+      height={image.height}
+      sizes="(max-width: 1024px) 90vw, 24vw"
+      src={image.src}
+      width={image.width}
+    />
+  );
+}
+
+// A single card styled like a browser window, filling the whole photo area.
+// Used for the HNA section — the product the visitor is already looking at.
+function BrowserShowcase() {
+  return (
+    <div className="flex h-full w-full flex-col overflow-hidden rounded-2xl border border-navy/10 bg-white shadow-[0_20px_50px_-30px_rgba(20,24,40,0.55)] dark:border-wheat/10 dark:bg-navy">
+      {/* Browser chrome: traffic-light dots + address bar */}
+      <div className="flex items-center gap-2 border-b border-navy/10 bg-navy/[0.04] px-4 py-3 dark:border-wheat/10 dark:bg-wheat/[0.06]">
+        <span className="size-3 rounded-full bg-[#ff5f57]" />
+        <span className="size-3 rounded-full bg-[#febc2e]" />
+        <span className="size-3 rounded-full bg-[#28c840]" />
+        <div className="ml-3 flex-1 truncate rounded-md bg-navy/[0.06] px-3 py-1 text-center font-mono text-[0.7rem] text-navy/50 dark:bg-wheat/[0.08] dark:text-wheat/50">
+          hna.dev
+        </div>
+      </div>
+
+      {/* Page body */}
+      <div className="flex flex-1 items-center justify-center px-6 py-8">
+        <p className="text-center font-serif text-2xl font-medium leading-tight tracking-tight text-navy sm:text-3xl lg:text-4xl dark:text-wheat">
+          You are on it right now.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// Placeholder fallback for sections without photos or a browser card yet.
+function PlaceholderPanel({ label }: { label: string }) {
+  return (
+    <div className="flex h-full w-full flex-col items-center justify-center gap-1 rounded-2xl border border-navy/10 bg-navy/[0.04] dark:border-wheat/10 dark:bg-wheat/[0.06]">
       <span className="font-mono text-[0.55rem] font-medium uppercase tracking-[0.16em] text-navy/40 dark:text-wheat/40">
         Placeholder
       </span>
@@ -77,28 +189,57 @@ function ImageTile({ label }: { label: string }) {
   );
 }
 
-// Right column: a group of three placeholder images (one tall, two stacked)
-// that crossfades to the active section.
-function ImageTrio({ activeIndex }: { activeIndex: number }) {
+type ImageWindowProps = {
+  activeIndex: number;
+  // Vertical offset (px, negative) applied to the active section's stack so it
+  // scrubs through the window as the user scrolls within that section.
+  imageOffset: number;
+  registerStrip: (index: number, element: HTMLDivElement | null) => void;
+  windowRef: React.RefObject<HTMLDivElement | null>;
+};
+
+// Right column: a fixed-height window. Each section stacks its photos at full
+// width / natural height; the active section's stack translates vertically so
+// the photos scrub through the window as the user scrolls. Sections crossfade.
+function ImageWindow({
+  activeIndex,
+  imageOffset,
+  registerStrip,
+  windowRef,
+}: ImageWindowProps) {
   return (
-    <figure className="relative aspect-[3/4] w-full">
+    <figure
+      className="relative h-[60vh] w-full overflow-hidden lg:h-[72vh]"
+      ref={windowRef}
+    >
       {companies.map((company, index) => {
         const isActive = index === activeIndex;
+        const images = company.images;
 
         return (
           <div
-            className={`absolute inset-0 grid grid-cols-2 grid-rows-2 gap-3 transition-[opacity,transform,visibility] duration-[600ms] ease-out motion-reduce:transition-none ${
-              isActive
-                ? "visible scale-100 opacity-100"
-                : "invisible scale-[1.03] opacity-0"
+            className={`absolute inset-0 transition-opacity duration-500 ease-out motion-reduce:transition-none ${
+              isActive ? "opacity-100" : "invisible opacity-0"
             }`}
             key={company.id}
           >
-            <div className="row-span-2">
-              <ImageTile label={company.name} />
-            </div>
-            <ImageTile label={company.name} />
-            <ImageTile label={company.name} />
+            {company.showcase === "browser" ? (
+              <BrowserShowcase />
+            ) : images ? (
+              <div
+                className="absolute inset-x-0 top-0 flex flex-col gap-3 will-change-transform"
+                ref={(element) => registerStrip(index, element)}
+                style={{
+                  transform: `translateY(${isActive ? imageOffset : 0}px)`,
+                }}
+              >
+                {images.map((image) => (
+                  <StripImage image={image} key={image.src} />
+                ))}
+              </div>
+            ) : (
+              <PlaceholderPanel label={company.name} />
+            )}
           </div>
         );
       })}
@@ -114,7 +255,14 @@ const REVEAL_END = 0.28;
 export function AboutScrollShowcase() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [reveal, setReveal] = useState(0);
+  const [imageOffset, setImageOffset] = useState(0);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const windowRef = useRef<HTMLDivElement | null>(null);
+  const stripRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  const registerStrip = (index: number, element: HTMLDivElement | null) => {
+    stripRefs.current[index] = element;
+  };
 
   useEffect(() => {
     let frame = 0;
@@ -135,13 +283,36 @@ export function AboutScrollShowcase() {
       }
 
       const progress = Math.min(Math.max(-rect.top / scrollable, 0), 1);
+
+      // Split overall progress into a whole-number section index plus the
+      // fractional progress *within* that section (0 -> first image, 1 -> last).
+      const rawSection = progress * companies.length;
       const nextIndex = Math.min(
         companies.length - 1,
-        Math.floor(progress * companies.length)
+        Math.floor(rawSection)
       );
+      const intraProgress = Math.min(Math.max(rawSection - nextIndex, 0), 1);
 
       setActiveIndex((currentIndex) =>
         currentIndex === nextIndex ? currentIndex : nextIndex
+      );
+
+      // Translate the active section's photo stack so it scrubs through the
+      // window: from the top of the stack (0) to its bottom edge (-overflow).
+      const strip = stripRefs.current[nextIndex];
+      const windowEl = windowRef.current;
+      let nextOffset = 0;
+
+      if (strip && windowEl) {
+        const overflow = Math.max(
+          0,
+          strip.scrollHeight - windowEl.clientHeight
+        );
+        nextOffset = Math.round(-intraProgress * overflow);
+      }
+
+      setImageOffset((currentOffset) =>
+        currentOffset === nextOffset ? currentOffset : nextOffset
       );
 
       const nextReveal = Math.min(
@@ -181,10 +352,11 @@ export function AboutScrollShowcase() {
 
     const rect = wrapper.getBoundingClientRect();
     const scrollable = rect.height - window.innerHeight;
+    // Land just inside the section so its photo stack starts at the top.
     const target =
       window.scrollY +
       rect.top +
-      ((index + 0.5) / companies.length) * scrollable;
+      ((index + 0.02) / companies.length) * scrollable;
 
     setActiveIndex(index);
     window.scrollTo({ top: target, behavior: "smooth" });
@@ -274,7 +446,7 @@ export function AboutScrollShowcase() {
               </nav>
             </div>
 
-            {/* Right image */}
+            {/* Right image window */}
             <div
               className="order-3"
               style={{
@@ -282,7 +454,12 @@ export function AboutScrollShowcase() {
                 transform: `translateY(${(1 - reveal) * 24}px)`,
               }}
             >
-              <ImageTrio activeIndex={activeIndex} />
+              <ImageWindow
+                activeIndex={activeIndex}
+                imageOffset={imageOffset}
+                registerStrip={registerStrip}
+                windowRef={windowRef}
+              />
             </div>
           </div>
         </div>
