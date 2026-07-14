@@ -26,9 +26,9 @@ jobs:
       - name: Set up pnpm
         uses: pnpm/action-setup@v6
         with:
-          # Accept the action's bundled pnpm 11 instead of forcing its
-          # self-installer to replace 11.x with another 11.x release.
-          version: 11
+          # pnpm 11.12.0+ currently crashes in action-setup's self-update path.
+          # Keep this exact until https://github.com/pnpm/pnpm/issues/12959 lands.
+          version: 11.10.0
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
@@ -80,7 +80,8 @@ jobs:
       - name: Set up pnpm
         uses: pnpm/action-setup@v6
         with:
-          version: 11
+          # Keep deployment on the same known-good pnpm release as CI.
+          version: 11.10.0
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
