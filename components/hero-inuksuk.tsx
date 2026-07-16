@@ -27,119 +27,123 @@ const stars = [
   { top: "58%", left: "34%", size: 1.5, delay: 3.4, duration: 5.2, max: 0.5 },
 ] as const;
 
+/* Vertical light shafts, blurred into soft aurora rays. Two different stripe
+   periods so the layers shimmer against each other as they drift. */
+const raysA =
+  "repeating-linear-gradient(90deg, transparent 0px, transparent 22px, rgb(134 227 190 / 0.5) 32px, transparent 42px, transparent 78px, rgb(99 194 166 / 0.36) 90px, transparent 104px)";
+const raysB =
+  "repeating-linear-gradient(90deg, transparent 0px, transparent 38px, rgb(99 194 166 / 0.42) 50px, transparent 64px, transparent 108px, rgb(134 227 190 / 0.3) 118px, transparent 136px)";
+/* Confines the shafts to the arc of the ribbon and feathers every edge. */
+const rayMask =
+  "radial-gradient(115% 80% at 50% 24%, black 30%, transparent 74%)";
+
 /* The landing hero is locked to the night-sky look — no theme branching. */
 export function HeroAurora() {
   const prefersReducedMotion = useReducedMotion();
+  const still = prefersReducedMotion ?? false;
 
   return (
     <div
       aria-hidden="true"
       className="pointer-events-none absolute inset-0 overflow-hidden"
     >
-      {/* Base wash — deep night sky. */}
+      {/* Night base — deep blue-black overhead settling into the page tone. */}
       <div
         className="absolute inset-0"
         style={{
           background:
-            "radial-gradient(120% 85% at 50% 0%, rgb(16 23 34 / 0.85) 0%, transparent 72%)",
+            "linear-gradient(180deg, #0a1220 0%, #0e151e 42%, #141414 80%)",
         }}
       />
 
-      {/* Main aurora cluster, biased to the upper right. */}
+      {/* Main aurora ribbon — one arc across the upper sky, green core with a
+          teal tail that cools off toward violet before it fades. */}
       <motion.div
-        className="absolute -right-[8%] top-[-10%] h-[120%] w-[78%] opacity-90"
+        className="absolute inset-x-[-14%] top-[-6%] h-[48%] rotate-[-7deg]"
         animate={
-          prefersReducedMotion
+          still
             ? undefined
-            : { x: ["0%", "2%", "-1%", "0%"], scale: [1, 1.03, 0.99, 1] }
+            : {
+                x: ["0%", "1.5%", "-1%", "0%"],
+                y: ["0%", "2.5%", "-1.5%", "0%"],
+                opacity: [0.85, 1, 0.9, 0.85],
+              }
         }
         transition={
-          prefersReducedMotion
+          still
+            ? undefined
+            : { duration: 18, repeat: Infinity, ease: "easeInOut" }
+        }
+        style={{
+          background:
+            "linear-gradient(103deg, transparent 4%, rgb(88 156 142 / 0.3) 22%, rgb(99 194 166 / 0.42) 40%, rgb(134 227 190 / 0.4) 52%, rgb(88 156 142 / 0.3) 66%, rgb(150 110 180 / 0.2) 80%, transparent 94%)",
+          filter: "blur(36px)",
+        }}
+      />
+
+      {/* Aurora rays — vertical shafts of light drifting through the ribbon.
+          The two layers move against each other so the curtain shimmers. */}
+      <motion.div
+        className="absolute inset-x-[-12%] top-[-8%] h-[56%] rotate-[-7deg]"
+        animate={
+          still ? undefined : { x: ["0%", "2%", "-1.5%", "0%"], opacity: [0.55, 0.8, 0.6, 0.55] }
+        }
+        transition={
+          still
             ? undefined
             : { duration: 16, repeat: Infinity, ease: "easeInOut" }
         }
         style={{
-          background:
-            "radial-gradient(ellipse 60% 50% at 70% 40%, rgb(45 74 34 / 0.55), transparent 68%), radial-gradient(ellipse 50% 45% at 88% 55%, rgb(70 120 110 / 0.35), transparent 65%), radial-gradient(ellipse 45% 40% at 55% 30%, rgb(114 28 36 / 0.32), transparent 70%), radial-gradient(ellipse 40% 35% at 80% 20%, rgb(179 84 30 / 0.22), transparent 65%), radial-gradient(ellipse 35% 30% at 40% 70%, rgb(29 42 68 / 0.4), transparent 60%)",
-          filter: "blur(40px)",
+          background: raysA,
+          filter: "blur(10px)",
+          maskImage: rayMask,
+          WebkitMaskImage: rayMask,
+          opacity: still ? 0.6 : undefined,
+        }}
+      />
+      <motion.div
+        className="absolute inset-x-[-12%] top-[-8%] h-[56%] rotate-[-7deg]"
+        animate={
+          still ? undefined : { x: ["0%", "-2%", "1.5%", "0%"], opacity: [0.4, 0.65, 0.45, 0.4] }
+        }
+        transition={
+          still
+            ? undefined
+            : { duration: 21, repeat: Infinity, ease: "easeInOut", delay: 2 }
+        }
+        style={{
+          background: raysB,
+          filter: "blur(12px)",
+          maskImage: rayMask,
+          WebkitMaskImage: rayMask,
+          opacity: still ? 0.45 : undefined,
         }}
       />
 
-      {/* Counter-glow on the upper left so the composition doesn't lean. */}
+      {/* Violet under-fringe — the magenta lower border real aurora carries. */}
       <motion.div
-        className="absolute -left-[12%] top-[-8%] h-[90%] w-[55%] opacity-70"
-        animate={
-          prefersReducedMotion
-            ? undefined
-            : { x: ["0%", "-2%", "1%", "0%"], scale: [1, 1.04, 0.98, 1] }
-        }
+        className="absolute inset-x-[-8%] top-[26%] h-[16%] rotate-[-7deg]"
+        animate={still ? undefined : { opacity: [0.5, 0.8, 0.55, 0.5] }}
         transition={
-          prefersReducedMotion
+          still
             ? undefined
-            : { duration: 19, repeat: Infinity, ease: "easeInOut", delay: 2 }
+            : { duration: 13, repeat: Infinity, ease: "easeInOut", delay: 1 }
         }
         style={{
           background:
-            "radial-gradient(ellipse 55% 45% at 30% 35%, rgb(70 120 110 / 0.3), transparent 66%), radial-gradient(ellipse 45% 40% at 15% 60%, rgb(45 74 34 / 0.35), transparent 68%), radial-gradient(ellipse 38% 32% at 42% 22%, rgb(29 42 68 / 0.42), transparent 62%)",
+            "linear-gradient(180deg, rgb(168 120 190 / 0.2) 0%, rgb(114 28 36 / 0.1) 45%, transparent 85%)",
+          filter: "blur(32px)",
+          opacity: still ? 0.6 : undefined,
+        }}
+      />
+
+      {/* Faint teal pool low on the left so the sky has depth below the arc. */}
+      <div
+        className="absolute -left-[10%] top-[34%] h-[50%] w-[48%]"
+        style={{
+          background:
+            "radial-gradient(ellipse 55% 45% at 35% 40%, rgb(70 130 120 / 0.22), transparent 68%)",
           filter: "blur(44px)",
-        }}
-      />
-
-      {/* Slow conic swirl — the sky "turning". */}
-      <motion.div
-        className="absolute right-0 top-[5%] h-[90%] w-[58%] opacity-75"
-        animate={
-          prefersReducedMotion
-            ? undefined
-            : { rotate: [0, 3, -2, 0], opacity: [0.55, 0.8, 0.6, 0.55] }
-        }
-        transition={
-          prefersReducedMotion
-            ? undefined
-            : { duration: 14, repeat: Infinity, ease: "easeInOut" }
-        }
-        style={{
-          background:
-            "conic-gradient(from 200deg at 72% 42%, transparent 0deg, rgb(45 74 34 / 0.32) 50deg, rgb(90 140 130 / 0.22) 110deg, rgb(29 42 68 / 0.28) 170deg, rgb(114 28 36 / 0.14) 230deg, transparent 290deg)",
-          filter: "blur(52px)",
-        }}
-      />
-
-      {/* Aurora curtains — tall skewed bands that breathe vertically. */}
-      <motion.div
-        className="absolute left-[16%] top-[-12%] h-[68%] w-[13%] -skew-x-12 opacity-60"
-        animate={
-          prefersReducedMotion
-            ? undefined
-            : { y: ["0%", "6%", "-3%", "0%"], opacity: [0.4, 0.65, 0.45, 0.4] }
-        }
-        transition={
-          prefersReducedMotion
-            ? undefined
-            : { duration: 11, repeat: Infinity, ease: "easeInOut", delay: 1 }
-        }
-        style={{
-          background:
-            "linear-gradient(180deg, rgb(70 120 110 / 0.45) 0%, rgb(45 74 34 / 0.3) 45%, transparent 90%)",
-          filter: "blur(38px)",
-        }}
-      />
-      <motion.div
-        className="absolute right-[24%] top-[-10%] h-[62%] w-[11%] skew-x-12 opacity-55"
-        animate={
-          prefersReducedMotion
-            ? undefined
-            : { y: ["0%", "-5%", "4%", "0%"], opacity: [0.35, 0.6, 0.4, 0.35] }
-        }
-        transition={
-          prefersReducedMotion
-            ? undefined
-            : { duration: 13, repeat: Infinity, ease: "easeInOut", delay: 3.5 }
-        }
-        style={{
-          background:
-            "linear-gradient(180deg, rgb(114 28 36 / 0.32) 0%, rgb(70 120 110 / 0.28) 50%, transparent 88%)",
-          filter: "blur(42px)",
         }}
       />
 
@@ -148,7 +152,7 @@ export function HeroAurora() {
         <motion.span
           key={i}
           animate={
-            prefersReducedMotion
+            still
               ? undefined
               : { opacity: [0.2, star.max, 0.2], scale: [0.85, 1.2, 0.85] }
           }
@@ -173,12 +177,33 @@ export function HeroAurora() {
         />
       ))}
 
+      {/* A shooting star every so often — blink and you miss it. */}
+      {still ? null : (
+        <motion.span
+          className="absolute left-[16%] top-[9%] h-px w-[70px]"
+          animate={{ x: [0, 420], y: [0, 120], opacity: [0, 0.9, 0] }}
+          transition={{
+            duration: 1.4,
+            delay: 5,
+            repeat: Infinity,
+            repeatDelay: 13,
+            ease: "easeOut",
+          }}
+          style={{
+            rotate: 16,
+            background:
+              "linear-gradient(90deg, transparent, rgb(244 235 217 / 0.9))",
+            boxShadow: "0 0 8px rgb(244 235 217 / 0.4)",
+          }}
+        />
+      )}
+
       {/* Readability halo — quietly lifts the copy off the atmosphere. */}
       <div
         className="absolute inset-0"
         style={{
           background:
-            "radial-gradient(52% 42% at 50% 38%, rgb(20 20 20 / 0.5), transparent 72%)",
+            "radial-gradient(52% 42% at 50% 38%, rgb(16 19 22 / 0.55), transparent 72%)",
         }}
       />
 
@@ -186,7 +211,7 @@ export function HeroAurora() {
       <div className={`${filmGrainClassName} absolute inset-0 opacity-[0.08] mix-blend-overlay`} />
 
       {/* Settle into the page before the map section. */}
-      <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-page" />
+      <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-[#141414]" />
     </div>
   );
 }

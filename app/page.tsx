@@ -3,7 +3,6 @@ import Link from "next/link";
 import { HeroHeadline } from "@/components/hero-headline";
 import { HeroAurora } from "@/components/hero-inuksuk";
 import { HeroPolaroids } from "@/components/hero-polaroids";
-import { HeroTypewriterSpan } from "@/components/hero-typewriter-span";
 import { AudienceCards } from "@/components/audience-cards";
 import { ShieldCheck, Rss, Users } from "lucide-react";
 
@@ -42,7 +41,7 @@ export default function Home() {
     <main className="dark min-h-screen overflow-x-clip bg-[#141414] text-wheat">
       <PrimaryNav />
 
-      <section className="relative isolate min-h-[min(110svh,980px)] overflow-hidden pb-28 pt-28 sm:pb-32 sm:pt-32">
+      <section className="relative isolate overflow-hidden pb-16 pt-24 sm:min-h-[min(110svh,980px)] sm:pb-32 sm:pt-32">
         <HeroAurora />
 
         <HeroPolaroids />
@@ -51,12 +50,9 @@ export default function Home() {
           <HeroHeadline />
 
           <LandingReveal delay={0.45}>
-            <p
-              aria-label="Search hundreds of upcoming hackathons, build your profile, and never miss another application deadline."
-              className="mt-6 max-w-[34rem] text-base leading-relaxed text-navy/60 sm:text-lg dark:text-wheat/65"
-            >
-              Search hundreds of upcoming hackathons, build your profile, and{" "}
-              <HeroTypewriterSpan className="text-rust" />
+            <p className="mt-6 max-w-[34rem] text-base leading-relaxed text-navy/60 sm:text-lg dark:text-wheat/65">
+              Search hundreds of upcoming hackathons, build your profile, and
+              never miss another application deadline.
             </p>
           </LandingReveal>
 
@@ -64,7 +60,7 @@ export default function Home() {
             <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
               <Link
                 href="/hackathons"
-                className="group relative inline-flex min-h-11 items-center justify-center gap-2 overflow-hidden rounded-full bg-cabernet px-6 text-sm font-semibold text-wheat shadow-[0_12px_32px_-12px_rgba(114,28,36,0.6)] transition duration-300 hover:-translate-y-0.5 hover:bg-[#5c151c] hover:shadow-[0_18px_40px_-12px_rgba(114,28,36,0.7)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cabernet active:translate-y-0 after:pointer-events-none after:absolute after:inset-0 after:bg-[linear-gradient(115deg,transparent_32%,rgb(255_255_255_/_0.32)_48%,rgb(255_255_255_/_0.08)_54%,transparent_68%)] after:content-[''] after:translate-x-[-130%] after:transition-transform after:duration-[750ms] after:ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:after:translate-x-[130%] group-focus-visible:after:translate-x-[130%] dark:bg-wheat dark:text-[#141414] dark:shadow-[0_12px_32px_-12px_rgba(244,235,217,0.35)] dark:hover:bg-white dark:hover:shadow-[0_18px_40px_-12px_rgba(244,235,217,0.45)] dark:focus-visible:outline-wheat motion-reduce:after:hidden"
+                className="group inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-cabernet px-6 text-sm font-semibold text-wheat shadow-[0_12px_32px_-12px_rgba(114,28,36,0.6)] transition duration-300 hover:-translate-y-0.5 hover:bg-[#5c151c] hover:shadow-[0_18px_40px_-12px_rgba(114,28,36,0.7)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cabernet active:translate-y-0 dark:bg-wheat dark:text-[#141414] dark:shadow-[0_12px_32px_-12px_rgba(244,235,217,0.35)] dark:hover:bg-white dark:hover:shadow-[0_18px_40px_-12px_rgba(244,235,217,0.45)] dark:focus-visible:outline-wheat"
               >
                 Open App
                 <span
@@ -87,7 +83,7 @@ export default function Home() {
           </LandingReveal>
         </div>
 
-        <div className="relative z-10 mx-auto mt-12 grid max-w-[360px] grid-cols-2 gap-2 sm:mt-14 sm:hidden">
+        <div className="relative z-10 mx-auto mt-14 grid max-w-[360px] grid-cols-2 gap-3 px-6 sm:hidden">
           {mobilePolaroids.map((shot, i) => (
             <PolaroidFrame
               key={`mobile-${shot.src}`}
@@ -96,10 +92,10 @@ export default function Home() {
               caption={shot.caption}
               className={`w-full ${
                 [
-                  "rotate-[-8deg] translate-y-1",
-                  "rotate-[7deg] -translate-y-2",
-                  "rotate-[10deg] -translate-x-1",
-                  "rotate-[-6deg] translate-y-2",
+                  "rotate-[-4deg] translate-y-1",
+                  "rotate-[3deg] -translate-y-1",
+                  "rotate-[4deg]",
+                  "rotate-[-3deg] translate-y-1",
                 ][i]
               }`}
               width={shot.width}
