@@ -124,13 +124,13 @@ export function MyPipelineBoard({ columns: initialColumns }: { columns: Pipeline
   }
 
   return (
-    <div className="mt-10 flex items-start gap-5 overflow-x-auto pb-4">
+    <div className="mt-10 flex items-stretch gap-5 overflow-x-auto pb-4">
       {columns.map((column) => {
         const isDropTarget = Boolean(dragging) && dragging?.from !== column.stage && overStage === column.stage;
 
         return (
           <section
-            className={`w-[320px] shrink-0 rounded-2xl border bg-ivory dark:bg-white/5 p-3 transition-colors ${
+            className={`flex w-[320px] shrink-0 flex-col rounded-2xl border bg-ivory dark:bg-white/5 p-3 transition-colors ${
               isDropTarget
                 ? "border-cabernet dark:border-[#e4a3ab]/60 bg-cabernet/5 dark:bg-[#e4a3ab]/10"
                 : "border-navy/10 dark:border-white/10"
@@ -159,7 +159,7 @@ export function MyPipelineBoard({ columns: initialColumns }: { columns: Pipeline
               <span className="text-sm font-semibold text-navy/45 dark:text-wheat/45">{column.cards.length}</span>
             </div>
 
-            <div className="mt-2 space-y-3">
+            <div className="mt-2 flex-1 space-y-3">
               {column.cards.map((item) => (
                 <div
                   className={`cursor-grab active:cursor-grabbing ${

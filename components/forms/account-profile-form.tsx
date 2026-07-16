@@ -397,7 +397,7 @@ export function AccountProfileForm({ firstName, lastName, profile }: ProfileForm
           >
           <form
             onSubmit={onSubmit}
-            className="flex max-h-full w-full max-w-3xl flex-col rounded-xl border border-navy/10 dark:border-white/10 bg-white dark:bg-white/[0.06] text-left shadow-2xl"
+            className="flex max-h-full w-full max-w-3xl flex-col rounded-xl border border-navy/10 dark:border-white/10 bg-white dark:bg-[#1b1b1b] text-left shadow-2xl"
           >
             <div className="flex shrink-0 items-center justify-between gap-3 px-6 pt-6 pb-4">
               <h2 className={headingClassName}>Edit profile</h2>
