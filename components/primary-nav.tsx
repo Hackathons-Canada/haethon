@@ -52,12 +52,13 @@ export function PrimaryNav({ activeHref }: PrimaryNavProps) {
 
         <div className="flex shrink-0 items-center gap-2">
           <Link
-            className="inline-flex items-center gap-2 rounded-full bg-[#5865F2] px-4 py-2 text-[0.8rem] font-semibold text-white transition-colors hover:bg-[#4752c4] sm:px-5"
+            className="inline-flex items-center gap-2 rounded-full bg-[#5865F2] px-3.5 py-2 text-[0.8rem] font-semibold text-white transition-colors hover:bg-[#4752c4] sm:px-5"
             href="https://discord.gg/wcNfUUVgqe"
             rel="noreferrer"
             target="_blank"
           >
-            Join our Discord
+            <span className="hidden sm:inline">Join our Discord</span>
+            <span className="sm:hidden">Discord</span>
             <DiscordIcon className="h-4 w-auto" />
           </Link>
           <Link
