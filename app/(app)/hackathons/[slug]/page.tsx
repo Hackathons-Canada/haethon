@@ -44,12 +44,11 @@ import {
 } from "@/lib/db/schema";
 import { formatDateRange, formatDuration, formatLocation } from "@/lib/hackathons/card-format";
 import {
-  computeSelectableReminderPlan,
+  computeSelectableReminderOffers,
   getSelectableReminderTypesForStatus,
   selectableReminderTypes,
 } from "@/lib/hackathons/reminder-plan";
 import { formatReminderDate, reminderTypeLabels } from "@/lib/hackathons/reminder-labels";
-import { countPendingEmailReminders } from "@/lib/hackathons/reminders";
 
 const publicStatuses = ["upcoming", "live", "completed"] as const;
 
@@ -244,7 +243,7 @@ export default async function HackathonDetailPage({ params }: PageProps) {
 
   const { hackathon, tagRows, discordChannelLink } = pageData;
 
-  const [[tracked], upcomingReminders, notificationPreferenceRows, pendingElsewhereCount] = await Promise.all([
+  const [[tracked], upcomingReminders, notificationPreferenceRows] = await Promise.all([
     user
       ? db
           .select({ applicationStatus: userHackathons.applicationStatus })
@@ -280,9 +279,6 @@ export default async function HackathonDetailPage({ params }: PageProps) {
             )
           )
       : Promise.resolve([]),
-    user
-      ? countPendingEmailReminders({ userId: user.id, excludeHackathonId: hackathon.id })
-      : Promise.resolve(0),
   ]);
 
   const applyUrl = hackathon.applicationUrl ?? hackathon.websiteUrl;
@@ -293,7 +289,7 @@ export default async function HackathonDetailPage({ params }: PageProps) {
     hackathon.highSchoolersOnly ? "High school only" : null,
     ...tagRows.map((tag) => tag.name),
   ].filter(Boolean) as string[];
-  const selectableReminderPlan = computeSelectableReminderPlan(
+  const selectableReminderOffers = computeSelectableReminderOffers(
     {
       startsAt: hackathon.startsAt,
       endsAt: hackathon.endsAt,
@@ -313,17 +309,19 @@ export default async function HackathonDetailPage({ params }: PageProps) {
     }
   }
 
-  // Only show a notification control when its source date is known and the
-  // reminder can still be delivered. This keeps a missing application window
-  // from looking like a selectable "Date TBA" reminder, while the event
-  // reminders continue to be calculated from the hackathon start date.
+  // Only show a notification control while its reminder can still be
+  // delivered. Countdown reminders need their source date to be known; "the
+  // moment applications open" is the exception — it stays selectable with a
+  // TBA date while the opening is unconfirmed, since the daily cron emails
+  // once the date is set and arrives.
   const availableReminderTypes = new Set(getSelectableReminderTypesForStatus(tracked?.applicationStatus ?? null));
-  const notificationPreferences = selectableReminderPlan
+  const notificationPreferences = selectableReminderOffers
     .filter(({ type }) => availableReminderTypes.has(type))
     .map(({ type, scheduledFor }) => ({
       type,
       enabled: enabledByType.get(type) ?? false,
-      scheduledFor: scheduledFor.toISOString(),
+      scheduledFor: scheduledFor ? scheduledFor.toISOString() : null,
+      upcoming: true,
     }));
 
   return (
@@ -518,7 +516,6 @@ export default async function HackathonDetailPage({ params }: PageProps) {
             <HackathonNotificationPreferences
               hackathonId={hackathon.id}
               initialPreferences={notificationPreferences}
-              pendingElsewhereCount={pendingElsewhereCount}
             />
           ) : null}
           {upcomingReminders.length ? (

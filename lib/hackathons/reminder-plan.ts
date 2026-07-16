@@ -13,14 +13,8 @@ export type ReminderType =
   | "application_week_before"
   | "application_day_before";
 
-/**
- * Account-wide cap on pending email notifications. Anything a hacker tries to
- * enable past this is refused (and the UI explains nothing more would be
- * delivered) until existing reminders send or get turned off.
- */
-export const EMAIL_NOTIFICATION_LIMIT = 6;
-
 export const selectableReminderTypes = [
+  "application_open",
   "application_week_before",
   "application_day_before",
   "hackathon_week_before",
@@ -28,6 +22,22 @@ export const selectableReminderTypes = [
 ] as const satisfies readonly ReminderType[];
 
 export type SelectableReminderType = (typeof selectableReminderTypes)[number];
+
+/**
+ * Delivery split: immediate types are time-critical, so each one goes out as
+ * its own email on the day it is due. Digest types are heads-ups that ride the
+ * shared Monday digest covering the coming week (alongside country alerts).
+ */
+export const immediateReminderTypes = [
+  "application_open",
+  "application_day_before",
+  "hackathon_day_before",
+] as const satisfies readonly SelectableReminderType[];
+
+export const digestReminderTypes = [
+  "application_week_before",
+  "hackathon_week_before",
+] as const satisfies readonly SelectableReminderType[];
 
 export type SelectableReminderPlanEntry = {
   type: SelectableReminderType;
@@ -54,7 +64,9 @@ export function getSelectableReminderTypesForStatus(
     return ["hackathon_week_before", "hackathon_day_before"];
   }
 
-  return applicationStatus === "interested" ? ["application_week_before", "application_day_before"] : [];
+  return applicationStatus === "interested"
+    ? ["application_week_before", "application_day_before", "application_open"]
+    : [];
 }
 
 const DAY_MS = 86_400_000;
@@ -85,6 +97,7 @@ export function computeSelectableReminderSchedule(
   if (dates.applicationOpensAt) {
     push("application_week_before", daysBefore(dates.applicationOpensAt, 7));
     push("application_day_before", daysBefore(dates.applicationOpensAt, 1));
+    push("application_open", dates.applicationOpensAt);
   }
 
   if (dates.startsAt) {
@@ -104,4 +117,32 @@ export function computeSelectableReminderPlan(
   now = new Date()
 ): SelectableReminderPlanEntry[] {
   return computeSelectableReminderSchedule(dates).filter((entry) => entry.scheduledFor > now);
+}
+
+export type SelectableReminderOffer = {
+  type: SelectableReminderType;
+  /* null while the anchor date is unconfirmed — the reminder can still be
+     enabled, it just cannot be scheduled yet. */
+  scheduledFor: Date | null;
+};
+
+/**
+ * The reminder choices to present in the UI. This is the deliverable plan plus
+ * "the moment applications open" while the opening date is unconfirmed: hackers
+ * can opt in before the date is known, and the daily cron emails them once the
+ * date is set and arrives. Once applications are already open there is no
+ * moment left to announce, so the option disappears with the rest of the past
+ * entries.
+ */
+export function computeSelectableReminderOffers(
+  dates: HackathonDatesInput | null,
+  now = new Date()
+): SelectableReminderOffer[] {
+  const offers: SelectableReminderOffer[] = computeSelectableReminderPlan(dates, now);
+
+  if (!dates?.applicationOpensAt) {
+    offers.unshift({ type: "application_open", scheduledFor: null });
+  }
+
+  return offers;
 }

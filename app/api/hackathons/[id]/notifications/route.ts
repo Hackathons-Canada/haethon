@@ -4,13 +4,14 @@ import { NextResponse } from "next/server";
 import { getCurrentUserContext } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { hackathons, userHackathons } from "@/lib/db/schema";
-import { EMAIL_NOTIFICATION_LIMIT } from "@/lib/hackathons/reminder-plan";
 import {
+  computePlannedEmailReminderEntries,
   countPendingEmailReminders,
-  countPlannedEmailReminders,
   setUserHackathonNotificationPreferences,
   syncRemindersForUserHackathon,
 } from "@/lib/hackathons/reminders";
+import { getCommittedEmailEvents } from "@/lib/notifications/email-budget";
+import { findWeekOverEmailLimit } from "@/lib/notifications/email-week";
 import { hackathonNotificationPreferencesSchema } from "@/lib/validations/hackathon";
 
 type RouteContext = {
@@ -37,23 +38,31 @@ export async function PATCH(request: Request, context: RouteContext) {
     return NextResponse.json({ error: "Hackathon not found." }, { status: 404 });
   }
 
-  const [plannedCount, currentCount, elsewhereCount] = await Promise.all([
-    countPlannedEmailReminders({
+  const [plannedEntries, currentCount, committed] = await Promise.all([
+    computePlannedEmailReminderEntries({
       userId: userContext.user.id,
       hackathonId: id,
       preferences: parsed.data.preferences,
     }),
     countPendingEmailReminders({ userId: userContext.user.id, hackathonId: id }),
-    countPendingEmailReminders({ userId: userContext.user.id, excludeHackathonId: id }),
+    getCommittedEmailEvents({ userId: userContext.user.id, excludeHackathonId: id }),
   ]);
 
   // Only changes that add sends are refused, so anyone already past the cap
-  // can still turn reminders off.
-  if (plannedCount > currentCount && plannedCount + elsewhereCount > EMAIL_NOTIFICATION_LIMIT) {
-    return NextResponse.json(
-      { code: "notification_limit", error: "Email notification limit reached." },
-      { status: 409 }
-    );
+  // can still turn reminders off. The check books this hackathon's new plan
+  // against everything else already promised, week by calendar week.
+  if (plannedEntries.length > currentCount) {
+    const bookedEvents = [
+      ...committed.events,
+      ...plannedEntries.map((entry) => ({ type: entry.type, occursAt: entry.scheduledFor })),
+    ];
+
+    if (findWeekOverEmailLimit(bookedEvents, committed.hasCountryAlert)) {
+      return NextResponse.json(
+        { code: "notification_limit", error: "For now, you're limited to five emails per week." },
+        { status: 409 }
+      );
+    }
   }
 
   const [tracked] = await db

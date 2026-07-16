@@ -7,6 +7,10 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { hackathons, reminders, users } from "@/lib/db/schema";
 import { env } from "@/lib/env";
+import { immediateReminderTypes } from "@/lib/hackathons/reminder-plan";
+import { scheduleDueApplicationOpenReminders } from "@/lib/hackathons/reminders";
+import { countEmailsSentThisWeek } from "@/lib/notifications/email-budget";
+import { WEEKLY_EMAIL_LIMIT } from "@/lib/notifications/email-week";
 import { buildReminderEmail } from "@/lib/notifications/reminder-email";
 import { resend } from "@/lib/notifications/resend";
 import { buildUnsubscribeUrl, unsubscribeHeaders } from "@/lib/notifications/unsubscribe";
@@ -15,6 +19,11 @@ import { buildUnsubscribeUrl, unsubscribeHeaders } from "@/lib/notifications/uns
 // and the batch size are the same number.
 const BATCH_SIZE = 100;
 const CLAIM_LEASE_MS = 10 * 60 * 1000;
+/* Immediate reminders ("opens tomorrow", "the moment applications open") are
+   pointless days later — anything that stayed unsent this long is dropped
+   instead of arriving stale. createdAt is checked too so an application_open
+   row the sweep just inserted for a long-known date still goes out. */
+const STALE_AFTER_MS = 48 * 60 * 60 * 1000;
 
 export const maxDuration = 60;
 
@@ -28,6 +37,27 @@ export async function GET(request: Request) {
   }
 
   const now = new Date();
+
+  // "The moment applications open" reminders enabled before the opening date
+  // was confirmed have no scheduled row yet — sweep them in first so they go
+  // out in this same run once the date is known and has arrived.
+  await scheduleDueApplicationOpenReminders(now);
+
+  // Week-before reminders belong to the Monday digest; this cron only sends
+  // the time-critical immediate types, one email each, on their day.
+  const staleBefore = new Date(now.getTime() - STALE_AFTER_MS);
+  await db
+    .delete(reminders)
+    .where(
+      and(
+        isNull(reminders.sentAt),
+        eq(reminders.channel, "email"),
+        inArray(reminders.type, [...immediateReminderTypes]),
+        lt(reminders.scheduledFor, staleBefore),
+        lt(reminders.createdAt, staleBefore)
+      )
+    );
+
   const claimExpiredBefore = new Date(now.getTime() - CLAIM_LEASE_MS);
   const candidates = await db
     .select({ id: reminders.id })
@@ -38,6 +68,7 @@ export async function GET(request: Request) {
         isNull(reminders.sentAt),
         lte(reminders.scheduledFor, now),
         eq(reminders.channel, "email"),
+        inArray(reminders.type, [...immediateReminderTypes]),
         isNull(users.emailUnsubscribedAt),
         or(isNull(reminders.claimedAt), lt(reminders.claimedAt, claimExpiredBefore))
       )
@@ -90,8 +121,39 @@ export async function GET(request: Request) {
     return NextResponse.json({ data: { due: 0, sent: 0, failed: 0 } });
   }
 
+  // Weekly-limit backstop: subscribe-time enforcement should make this a
+  // no-op, but never send past five emails in a user's calendar week. Skipped
+  // rows stay pending and either send once the week resets or age out via the
+  // staleness sweep above.
+  const weeklyCounts = await countEmailsSentThisWeek([...new Set(due.map((reminder) => reminder.userId))], now);
+  const deliverable: typeof due = [];
+  const overflowIds: string[] = [];
+
+  for (const reminder of due) {
+    const used = weeklyCounts.get(reminder.userId) ?? 0;
+
+    if (used >= WEEKLY_EMAIL_LIMIT) {
+      overflowIds.push(reminder.id);
+    } else {
+      weeklyCounts.set(reminder.userId, used + 1);
+      deliverable.push(reminder);
+    }
+  }
+
+  if (overflowIds.length) {
+    Sentry.captureMessage("Daily reminders skipped rows past the weekly email limit.", {
+      level: "warning",
+      extra: { skipped: overflowIds.length },
+    });
+    await db.update(reminders).set({ claimedAt: null }).where(inArray(reminders.id, overflowIds));
+  }
+
+  if (!deliverable.length) {
+    return NextResponse.json({ data: { due: due.length, sent: 0, failed: 0, skipped: overflowIds.length } });
+  }
+
   const emails = await Promise.all(
-    due.map(async (reminder) => {
+    deliverable.map(async (reminder) => {
       const { subject, html, text } = await buildReminderEmail({
         type: reminder.type,
         firstName: reminder.firstName,
@@ -117,7 +179,7 @@ export async function GET(request: Request) {
   // after the DB update below fails) is deduplicated by Resend rather than
   // sending twice.
   const idempotencyKey = `reminders:${createHash("sha256")
-    .update(due.map((reminder) => reminder.id).join(","))
+    .update(deliverable.map((reminder) => reminder.id).join(","))
     .digest("hex")}`;
 
   const { data, error } = await resend.batch.send(emails, {
@@ -132,23 +194,23 @@ export async function GET(request: Request) {
     // Sentry and return 500 so Vercel records the cron run as failed instead
     // of it disappearing into a 200.
     Sentry.captureException(new Error(`Reminder batch send failed: ${error.message}`), {
-      extra: { due: due.length, idempotencyKey },
+      extra: { due: deliverable.length, idempotencyKey },
     });
     await db.update(reminders).set({ claimedAt: null }).where(inArray(reminders.id, claimedIds));
 
     return NextResponse.json(
-      { error: "Batch send failed.", data: { due: due.length, sent: 0, failed: due.length } },
+      { error: "Batch send failed.", data: { due: deliverable.length, sent: 0, failed: deliverable.length } },
       { status: 500 }
     );
   }
 
   const failedIndices = new Set((data && "errors" in data ? (data.errors ?? []) : []).map((entry) => entry.index));
-  const sentIds = due.filter((_, index) => !failedIndices.has(index)).map((reminder) => reminder.id);
+  const sentIds = deliverable.filter((_, index) => !failedIndices.has(index)).map((reminder) => reminder.id);
 
   if (failedIndices.size) {
     Sentry.captureMessage("Some reminder emails were rejected by Resend.", {
       level: "warning",
-      extra: { due: due.length, failed: failedIndices.size },
+      extra: { due: deliverable.length, failed: failedIndices.size },
     });
   }
 
@@ -162,18 +224,18 @@ export async function GET(request: Request) {
       Sentry.captureException(updateError, { extra: { sentIds: sentIds.length, idempotencyKey } });
 
       return NextResponse.json(
-        { error: "Sent but failed to record sentAt.", data: { due: due.length, sent: sentIds.length, failed: failedIndices.size } },
+        { error: "Sent but failed to record sentAt.", data: { due: deliverable.length, sent: sentIds.length, failed: failedIndices.size } },
         { status: 500 }
       );
     }
   }
 
-  const failedIds = due.filter((_, index) => failedIndices.has(index)).map((reminder) => reminder.id);
+  const failedIds = deliverable.filter((_, index) => failedIndices.has(index)).map((reminder) => reminder.id);
   if (failedIds.length) {
     await db.update(reminders).set({ claimedAt: null }).where(inArray(reminders.id, failedIds));
   }
 
   return NextResponse.json({
-    data: { due: due.length, sent: sentIds.length, failed: failedIndices.size },
+    data: { due: due.length, sent: sentIds.length, failed: failedIndices.size, skipped: overflowIds.length },
   });
 }

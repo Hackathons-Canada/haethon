@@ -14,6 +14,9 @@ const isPublicRoute = createRouteMatcher([
   "/api/geo",
   "/api/cron(.*)",
   "/api/email/unsubscribe(.*)",
+  // UploadThing calls this back server-to-server (signature-verified, no Clerk
+  // session). Uploads themselves are still admin-gated in the file router.
+  "/api/uploadthing(.*)",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {

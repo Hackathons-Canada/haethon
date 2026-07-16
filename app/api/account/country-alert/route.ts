@@ -6,14 +6,16 @@ import { getCurrentUserContext } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { countryAlertSubscriptions } from "@/lib/db/schema";
 import { normalizeCountrySelections } from "@/lib/hackathons/countries";
+import { getCommittedEmailEvents } from "@/lib/notifications/email-budget";
+import { findWeekOverEmailLimit } from "@/lib/notifications/email-week";
 
 const countryAlertSchema = z.object({
   country: z.string().min(1).max(120),
-  frequency: z.enum(["instant", "daily", "weekly"]),
 });
 
 /* Creates or replaces the caller's single country alert — the unique userId
-   column means saving a new country swaps the old one out. */
+   column means saving a new country swaps the old one out. Alerts are
+   weekly-only: their content rides the Monday digest email. */
 export async function PUT(request: Request) {
   const userContext = await getCurrentUserContext();
 
@@ -40,6 +42,20 @@ export async function PUT(request: Request) {
     .where(eq(countryAlertSubscriptions.userId, userContext.user.id))
     .limit(1);
 
+  // A new subscription reserves the weekly digest slot; refuse it when some
+  // week is already fully booked with five emails. Switching country on an
+  // existing subscription adds nothing, so it always goes through.
+  if (!existing) {
+    const committed = await getCommittedEmailEvents({ userId: userContext.user.id, now });
+
+    if (findWeekOverEmailLimit(committed.events, true)) {
+      return NextResponse.json(
+        { code: "notification_limit", error: "For now, you're limited to five emails per week." },
+        { status: 409 }
+      );
+    }
+  }
+
   // Switching country restarts the watermark at "now" so the subscriber is
   // alerted about future additions, not the new country's existing backlog.
   const resetWatermark = !existing || existing.country !== country;
@@ -49,20 +65,18 @@ export async function PUT(request: Request) {
     .values({
       userId: userContext.user.id,
       country,
-      frequency: parsed.data.frequency,
       lastNotifiedAt: now,
     })
     .onConflictDoUpdate({
       target: countryAlertSubscriptions.userId,
       set: {
         country,
-        frequency: parsed.data.frequency,
         updatedAt: now,
         ...(resetWatermark ? { lastNotifiedAt: now } : {}),
       },
     });
 
-  return NextResponse.json({ data: { country, frequency: parsed.data.frequency } });
+  return NextResponse.json({ data: { country } });
 }
 
 export async function DELETE() {

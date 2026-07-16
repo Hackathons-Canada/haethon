@@ -1,11 +1,12 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 
 import type { AdminHackathonListItem } from "@/components/admin/hackathon-admin-item";
 import { previewPayloadToCard } from "@/components/admin/hackathon-card-preview";
 import { CityCombobox } from "@/components/forms/city-combobox";
 import { HackathonCard } from "@/components/hackathon-card";
+import { useUploadThing } from "@/lib/uploadthing";
 
 const inputClassName =
   "w-full rounded-xl border border-navy/15 dark:border-white/15 bg-white dark:bg-white/[0.06] px-3 py-2 text-sm text-navy dark:text-wheat outline-none focus:border-cabernet focus:ring-2 focus:ring-cabernet/15";
@@ -60,9 +61,66 @@ export function HackathonCreateForm() {
   // Controlled so picking a city from the autocomplete fills them in one step.
   const [region, setRegion] = useState("");
   const [country, setCountry] = useState("");
+  // Controlled so a finished upload can drop its URL into the field.
+  const [imageUrl, setImageUrl] = useState("");
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
   // Remount key: form.reset() can't clear the combobox's internal state.
   const [formVersion, setFormVersion] = useState(0);
   const saving = status === "saving";
+
+  const { isUploading, startUpload } = useUploadThing("hackathonImage", {
+    onClientUploadComplete: (files) => {
+      const url = files[0]?.ufsUrl;
+
+      if (!url) {
+        setUploadError("Upload finished but no URL came back. Try again.");
+        return;
+      }
+
+      setImageUrl(url);
+      // Programmatic fills don't bubble a change event to the grid's preview
+      // handler, so the preview is updated directly.
+      setPreviewPayload((current) => ({ ...current, imageUrl: url }));
+    },
+    onUploadError: (error) => setUploadError(error.message),
+  });
+
+  /* Pasting an image anywhere on the page uploads it, so a screenshot goes
+     straight from Cmd+C to the form without touching the file picker. Pastes
+     that also carry text keep their default behavior inside other fields —
+     hijacking those would eat, say, a name copied from a web page. */
+  useEffect(() => {
+    function handlePaste(event: ClipboardEvent) {
+      const clipboard = event.clipboardData;
+      const file = Array.from(clipboard?.items ?? [])
+        .find((item) => item.kind === "file" && item.type.startsWith("image/"))
+        ?.getAsFile();
+
+      if (!file || isUploading) {
+        return;
+      }
+
+      const target = event.target;
+      const isTextEntry =
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        (target instanceof HTMLElement && target.isContentEditable);
+      const isImageField = target instanceof HTMLInputElement && target.name === "imageUrl";
+
+      if (isTextEntry && !isImageField && clipboard?.types.includes("text/plain")) {
+        return;
+      }
+
+      event.preventDefault();
+      setUploadError(null);
+      void startUpload([file]);
+    }
+
+    document.addEventListener("paste", handlePaste);
+
+    return () => document.removeEventListener("paste", handlePaste);
+  }, [isUploading, startUpload]);
 
   function updatePreview(key: string, nextValue: unknown) {
     if (!key) {
@@ -130,6 +188,8 @@ export function HackathonCreateForm() {
     setCreateDiscordChannel(false);
     setRegion("");
     setCountry("");
+    setImageUrl("");
+    setUploadError(null);
     setFormVersion((version) => version + 1);
   }
 
@@ -198,7 +258,50 @@ export function HackathonCreateForm() {
             <label className={labelClassName} htmlFor="new-imageUrl">
               Image URL
             </label>
-            <input id="new-imageUrl" name="imageUrl" type="url" className={inputClassName} />
+            <div className="flex gap-2">
+              <input
+                id="new-imageUrl"
+                name="imageUrl"
+                type="url"
+                className={inputClassName}
+                onChange={(event) => setImageUrl(event.target.value)}
+                value={imageUrl}
+              />
+              <button
+                className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full border border-navy/20 px-4 text-sm font-semibold text-navy/70 hover:bg-ivory hover:text-navy dark:border-white/20 dark:text-wheat/70 dark:hover:bg-white/10 dark:hover:text-wheat disabled:opacity-50"
+                disabled={isUploading}
+                onClick={() => photoInputRef.current?.click()}
+                type="button"
+              >
+                {isUploading ? "Uploading..." : "Upload"}
+              </button>
+            </div>
+            {/* Nameless so it stays out of the submit FormData; the grid's
+                preview handler skips it for the same reason. */}
+            <input
+              accept="image/*"
+              className="hidden"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                event.target.value = "";
+
+                if (!file) {
+                  return;
+                }
+
+                setUploadError(null);
+                void startUpload([file]);
+              }}
+              ref={photoInputRef}
+              type="file"
+            />
+            {uploadError ? (
+              <p className="mt-1 text-xs font-semibold text-[#B42318]">{uploadError}</p>
+            ) : (
+              <p className="mt-1 text-xs leading-5 text-navy/55 dark:text-wheat/55">
+                Or paste an image anywhere on the page to upload it.
+              </p>
+            )}
           </div>
           <div>
             <label className={labelClassName} htmlFor="new-applicationUrl">

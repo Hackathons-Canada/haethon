@@ -24,7 +24,7 @@ import { getPrimarySourceByHackathon } from "@/lib/hackathons/source-badges";
 import type { HackathonSourceBadge } from "@/lib/hackathons/source-badges";
 import { reminderTypeLabels } from "@/lib/hackathons/reminder-labels";
 import {
-  computeSelectableReminderPlan,
+  computeSelectableReminderOffers,
   getSelectableReminderTypesForStatus,
 } from "@/lib/hackathons/reminder-plan";
 
@@ -170,7 +170,6 @@ export default async function MyHackathonsPage() {
     db
       .select({
         country: countryAlertSubscriptions.country,
-        frequency: countryAlertSubscriptions.frequency,
       })
       .from(countryAlertSubscriptions)
       .where(eq(countryAlertSubscriptions.userId, user.id))
@@ -187,10 +186,12 @@ export default async function MyHackathonsPage() {
 
   // Offer the reminders that fit the hacker's current stage — interested hackers
   // get application-open countdowns, applied/accepted ones get event-start
-  // countdowns — and only those still in the future.
+  // countdowns — and only those still in the future. "The moment applications
+  // open" is also offered while the opening date is unconfirmed (scheduledFor
+  // null); the daily cron emails once the date is known and arrives.
   function toReminder(row: PipelineRow, statusLabel: string): HackathonCardReminder {
     const availableReminderTypes = new Set(getSelectableReminderTypesForStatus(row.applicationStatus));
-    const options = computeSelectableReminderPlan(
+    const options = computeSelectableReminderOffers(
       {
         startsAt: row.startsAt,
         endsAt: row.endsAt,
@@ -204,7 +205,7 @@ export default async function MyHackathonsPage() {
       .map(({ type, scheduledFor }) => ({
         type,
         label: reminderTypeLabels[type] ?? type,
-        scheduledFor: scheduledFor.toISOString(),
+        scheduledFor: scheduledFor ? scheduledFor.toISOString() : null,
         enabled: enabledByKey.get(`${row.hackathonId}:${type}`) ?? false,
       }));
 

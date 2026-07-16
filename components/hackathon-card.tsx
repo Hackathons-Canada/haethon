@@ -311,8 +311,10 @@ function HackathonLogoMark({
 type ReminderOption = {
   type: SelectableReminderType;
   label: string;
-  /* ISO string of the send time, so this stays serializable from the server. */
-  scheduledFor: string;
+  /* ISO string of the send time, so this stays serializable from the server.
+     Null while the anchor date is unconfirmed — the "applications open" email
+     goes out the moment the date is known and arrives. */
+  scheduledFor: string | null;
   enabled: boolean;
 };
 
@@ -332,6 +334,7 @@ function ReminderControl({ hackathonId, statusLabel, options: initialOptions }: 
   const [options, setOptions] = useState(initialOptions);
   const [open, setOpen] = useState(false);
   const [pendingType, setPendingType] = useState<SelectableReminderType | null>(null);
+  const [limitNotice, setLimitNotice] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -372,6 +375,7 @@ function ReminderControl({ hackathonId, statusLabel, options: initialOptions }: 
 
     setOptions(nextOptions);
     setPendingType(type);
+    setLimitNotice(false);
 
     try {
       const response = await fetch(`/api/hackathons/${encodeURIComponent(hackathonId)}/notifications`, {
@@ -384,6 +388,14 @@ function ReminderControl({ hackathonId, statusLabel, options: initialOptions }: 
 
       if (response.status === 401) {
         handleUnauthenticated();
+        return;
+      }
+
+      // The server books the change against the five-emails-per-week limit —
+      // an overflowing week comes back as a 409.
+      if (response.status === 409) {
+        setOptions(previousOptions);
+        setLimitNotice(true);
         return;
       }
 
@@ -453,7 +465,9 @@ function ReminderControl({ hackathonId, statusLabel, options: initialOptions }: 
                     <span className="min-w-0">
                       <span className="block text-sm font-semibold text-navy dark:text-wheat">{option.label}</span>
                       <span className="mt-0.5 block text-xs text-navy/55 dark:text-wheat/55">
-                        {formatReminderDate(new Date(option.scheduledFor))}
+                        {option.scheduledFor
+                          ? formatReminderDate(new Date(option.scheduledFor))
+                          : "Date TBA — we'll email you the moment they open"}
                         {pending ? " · saving" : ""}
                       </span>
                     </span>
@@ -483,6 +497,11 @@ function ReminderControl({ hackathonId, statusLabel, options: initialOptions }: 
               No reminders are available yet. We&apos;ll offer them once this hackathon&apos;s key dates are confirmed.
             </p>
           )}
+          {limitNotice ? (
+            <p className="mt-2 px-1 pb-1 text-xs font-semibold text-cabernet dark:text-[#e4a3ab]">
+              For now, you&apos;re limited to five emails per week. Turn another reminder off to make room.
+            </p>
+          ) : null}
         </div>
       ) : null}
     </div>

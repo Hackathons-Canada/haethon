@@ -6,31 +6,17 @@ import { BellPlus, Check, ChevronDown, Globe2, Search, Trash2 } from "lucide-rea
 
 import { countryOptions } from "@/lib/hackathons/countries";
 
-export type CountryAlertFrequency = "instant" | "daily" | "weekly";
-
 export type CountryAlertSubscription = {
   country: string;
-  frequency: CountryAlertFrequency;
 };
-
-const frequencyChoices: Array<{ value: CountryAlertFrequency; label: string; description: string }> = [
-  { value: "instant", label: "Instant", description: "An email as soon as a hackathon is added." },
-  { value: "daily", label: "Daily digest", description: "At most one email a day with everything new." },
-  { value: "weekly", label: "Weekly digest", description: "One email a week summarizing new additions." },
-];
-
-const frequencyLabels = Object.fromEntries(frequencyChoices.map((choice) => [choice.value, choice.label])) as Record<
-  CountryAlertFrequency,
-  string
->;
 
 function handleUnauthenticated() {
   window.location.href = "/sign-in";
 }
 
 /* Country alert bar at the top of the My Hackathons board. One alert per
-   account: pick a country and a cadence, and an email goes out whenever a new
-   hackathon is published there. Mirrors the search bar's pill styling and the
+   account: pick a country, and new hackathons published there show up in the
+   Monday weekly digest email. Mirrors the search bar's pill styling and the
    countries popover from the Hackathons DB page. */
 export function CountryAlertSection({ subscription }: { subscription: CountryAlertSubscription | null }) {
   const router = useRouter();
@@ -40,7 +26,6 @@ export function CountryAlertSection({ subscription }: { subscription: CountryAle
   const [error, setError] = useState<string | null>(null);
   const [countryQuery, setCountryQuery] = useState("");
   const [draftCountry, setDraftCountry] = useState<string | null>(subscription?.country ?? null);
-  const [draftFrequency, setDraftFrequency] = useState<CountryAlertFrequency>(subscription?.frequency ?? "daily");
   const rootRef = useRef<HTMLDivElement>(null);
   const countrySearchRef = useRef<HTMLInputElement>(null);
 
@@ -82,7 +67,6 @@ export function CountryAlertSection({ subscription }: { subscription: CountryAle
     setOpen((current) => {
       if (!current) {
         setDraftCountry(saved?.country ?? null);
-        setDraftFrequency(saved?.frequency ?? "daily");
         setCountryQuery("");
         setError(null);
       }
@@ -101,7 +85,7 @@ export function CountryAlertSection({ subscription }: { subscription: CountryAle
 
     try {
       const response = await fetch("/api/account/country-alert", {
-        body: JSON.stringify({ country: draftCountry, frequency: draftFrequency }),
+        body: JSON.stringify({ country: draftCountry }),
         headers: { "Content-Type": "application/json" },
         method: "PUT",
       });
@@ -111,11 +95,18 @@ export function CountryAlertSection({ subscription }: { subscription: CountryAle
         return;
       }
 
+      // The server refuses a new subscription when a week is already fully
+      // booked against the five-email weekly limit.
+      if (response.status === 409) {
+        setError("For now, you're limited to five emails per week.");
+        return;
+      }
+
       if (!response.ok) {
         throw new Error("Could not save the alert.");
       }
 
-      setSaved({ country: draftCountry, frequency: draftFrequency });
+      setSaved({ country: draftCountry });
       setOpen(false);
       router.refresh();
     } catch {
@@ -169,8 +160,8 @@ export function CountryAlertSection({ subscription }: { subscription: CountryAle
           </span>
           <span className="mt-1 text-sm leading-5 text-navy/55 dark:text-wheat/55">
             {saved
-              ? `Emailing you when a new hackathon is added in ${saved.country} · ${frequencyLabels[saved.frequency]}`
-              : "Get an email whenever a new hackathon is added in a country you pick."}
+              ? `New hackathons in ${saved.country} land in your Monday digest email`
+              : "New hackathons in a country you pick, in one weekly digest email."}
           </span>
         </div>
 
@@ -261,46 +252,9 @@ export function CountryAlertSection({ subscription }: { subscription: CountryAle
               ) : null}
             </div>
 
-            <p className="mt-4 px-1 font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-cabernet dark:text-[#e4a3ab]">
-              How often
-            </p>
-            <div className="mt-2 space-y-1.5">
-              {frequencyChoices.map((choice) => {
-                const selected = draftFrequency === choice.value;
-
-                return (
-                  <button
-                    className={`flex w-full items-center justify-between gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40 ${
-                      selected
-                        ? "border-cabernet/35 dark:border-[#e4a3ab]/40 bg-cabernet/5 dark:bg-[#e4a3ab]/10"
-                        : "border-navy/10 dark:border-white/10 bg-white dark:bg-white/[0.06] hover:border-navy/20 hover:bg-ivory dark:hover:bg-white/10"
-                    }`}
-                    key={choice.value}
-                    onClick={() => setDraftFrequency(choice.value)}
-                    type="button"
-                  >
-                    <span className="min-w-0">
-                      <span className="block text-sm font-semibold text-navy dark:text-wheat">{choice.label}</span>
-                      <span className="mt-0.5 block text-xs text-navy/55 dark:text-wheat/55">{choice.description}</span>
-                    </span>
-                    <span
-                      aria-hidden="true"
-                      className={`grid size-6 shrink-0 place-items-center rounded-full border ${
-                        selected
-                          ? "border-cabernet dark:border-[#e4a3ab]/50 bg-cabernet text-wheat dark:bg-wheat dark:text-[#141414]"
-                          : "border-navy/15 dark:border-white/15 text-transparent"
-                      }`}
-                    >
-                      <Check className="size-3.5" strokeWidth={3} />
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-
             <div className="mt-4 flex items-center justify-between gap-3">
               <p className="text-xs text-navy/55 dark:text-wheat/55">
-                {error ?? "One alert per account — saving replaces your current one."}
+                {error ?? "One alert per account, delivered in your Monday digest — saving replaces your current one."}
               </p>
               <button
                 className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-full bg-cabernet px-5 text-sm font-semibold text-wheat transition-opacity disabled:opacity-50 dark:bg-wheat dark:text-[#141414] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40"

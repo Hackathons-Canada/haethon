@@ -21,6 +21,9 @@ export const env = createEnv({
     SENTRY_AUTH_TOKEN: z.string().min(1).optional(),
     SENTRY_ORG: z.string().min(1).optional(),
     SENTRY_PROJECT: z.string().min(1).optional(),
+    // Optional: without it the admin photo-upload button fails, everything
+    // else still works. The uploadthing SDK reads it from process.env itself.
+    UPLOADTHING_TOKEN: z.string().min(1).optional(),
     // Required: cron auth breaks silently (503s) without it, and it is the
     // fallback signing key for unsubscribe links.
     CRON_SECRET: z.string().min(1),
@@ -52,6 +55,7 @@ export const env = createEnv({
     SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN,
     SENTRY_ORG: process.env.SENTRY_ORG,
     SENTRY_PROJECT: process.env.SENTRY_PROJECT,
+    UPLOADTHING_TOKEN: process.env.UPLOADTHING_TOKEN,
     CRON_SECRET: process.env.CRON_SECRET,
     EMAIL_UNSUBSCRIBE_SECRET: process.env.EMAIL_UNSUBSCRIBE_SECRET,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,

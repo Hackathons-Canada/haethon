@@ -6,8 +6,8 @@
       "schedule": "0 12 * * *"
     },
     {
-      "path": "/api/cron/send-country-alerts",
-      "schedule": "30 12 * * *"
+      "path": "/api/cron/send-weekly-digest",
+      "schedule": "30 12 * * 1"
     },
     {
       "path": "/api/cron/sync-discord",

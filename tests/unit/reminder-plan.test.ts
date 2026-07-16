@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  computeSelectableReminderOffers,
   computeSelectableReminderPlan,
   computeSelectableReminderSchedule,
   getSelectableReminderTypesForStatus,
@@ -28,10 +29,11 @@ describe("computeSelectableReminderPlan", () => {
     ]);
   });
 
-  it("offers interested hackers the two application-open reminders", () => {
+  it("offers interested hackers the application reminders", () => {
     expect(getSelectableReminderTypesForStatus("interested")).toEqual([
       "application_week_before",
       "application_day_before",
+      "application_open",
     ]);
   });
 
@@ -49,15 +51,17 @@ describe("computeSelectableReminderPlan", () => {
     expect(types(schedule)).toEqual([
       "application_week_before",
       "application_day_before",
+      "application_open",
       "hackathon_week_before",
       "hackathon_day_before",
     ]);
     // Event reminders stay anchored to the (past) start date rather than dropping out.
-    expect(schedule[2].scheduledFor).toEqual(new Date("2020-01-01T00:00:00Z"));
+    expect(schedule[3].scheduledFor).toEqual(new Date("2020-01-01T00:00:00Z"));
     // The deliverable plan still filters those past sends out.
     expect(types(computeSelectableReminderPlan(alreadyStarted, now))).toEqual([
       "application_week_before",
       "application_day_before",
+      "application_open",
     ]);
   });
 
@@ -65,19 +69,22 @@ describe("computeSelectableReminderPlan", () => {
     expect(computeSelectableReminderPlan(null, now)).toEqual([]);
   });
 
-  it("schedules the four selectable email reminders", () => {
+  it("schedules the five selectable email reminders", () => {
     const plan = computeSelectableReminderPlan(dates, now);
 
     expect(types(plan)).toEqual([
       "application_week_before",
       "application_day_before",
+      "application_open",
       "hackathon_week_before",
       "hackathon_day_before",
     ]);
     expect(plan[0].scheduledFor).toEqual(new Date("2026-07-08T00:00:00Z"));
     expect(plan[1].scheduledFor).toEqual(new Date("2026-07-14T00:00:00Z"));
-    expect(plan[2].scheduledFor).toEqual(new Date("2026-09-05T15:00:00Z"));
-    expect(plan[3].scheduledFor).toEqual(new Date("2026-09-11T15:00:00Z"));
+    // The opening announcement goes out at the opening moment itself.
+    expect(plan[2].scheduledFor).toEqual(new Date("2026-07-15T00:00:00Z"));
+    expect(plan[3].scheduledFor).toEqual(new Date("2026-09-05T15:00:00Z"));
+    expect(plan[4].scheduledFor).toEqual(new Date("2026-09-11T15:00:00Z"));
   });
 
   it("bases the event reminders on the event start, not an application date", () => {
@@ -100,7 +107,7 @@ describe("computeSelectableReminderPlan", () => {
   it("omits the start-relative reminders when there is no start date", () => {
     const plan = computeSelectableReminderPlan({ ...dates, startsAt: null }, now);
 
-    expect(types(plan)).toEqual(["application_week_before", "application_day_before"]);
+    expect(types(plan)).toEqual(["application_week_before", "application_day_before", "application_open"]);
   });
 
   it("drops reminders that are already in the past", () => {
@@ -113,5 +120,35 @@ describe("computeSelectableReminderPlan", () => {
     const midway = new Date("2026-09-06T00:00:00Z");
 
     expect(types(computeSelectableReminderPlan(dates, midway))).toEqual(["hackathon_day_before"]);
+  });
+});
+
+describe("computeSelectableReminderOffers", () => {
+  it("matches the deliverable plan when the opening date is known and upcoming", () => {
+    expect(computeSelectableReminderOffers(dates, now)).toEqual(computeSelectableReminderPlan(dates, now));
+  });
+
+  it("offers a date-TBA applications-open reminder while the opening date is unconfirmed", () => {
+    const offers = computeSelectableReminderOffers({ ...dates, applicationOpensAt: null }, now);
+
+    expect(offers[0]).toEqual({ type: "application_open", scheduledFor: null });
+    expect(offers.map((offer) => offer.type)).toEqual([
+      "application_open",
+      "hackathon_week_before",
+      "hackathon_day_before",
+    ]);
+  });
+
+  it("offers the date-TBA applications-open reminder even without any dates", () => {
+    expect(computeSelectableReminderOffers(null, now)).toEqual([{ type: "application_open", scheduledFor: null }]);
+  });
+
+  it("stops offering the applications-open reminder once applications are open", () => {
+    const afterOpening = new Date("2026-07-20T00:00:00Z");
+
+    expect(computeSelectableReminderOffers(dates, afterOpening).map((offer) => offer.type)).toEqual([
+      "hackathon_week_before",
+      "hackathon_day_before",
+    ]);
   });
 });

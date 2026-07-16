@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { BellRing } from "lucide-react";
 
 import { formatReminderDate, reminderTypeLabels } from "@/lib/hackathons/reminder-labels";
-import { EMAIL_NOTIFICATION_LIMIT, type SelectableReminderType } from "@/lib/hackathons/reminder-plan";
+import type { SelectableReminderType } from "@/lib/hackathons/reminder-plan";
 
 type NotificationPreference = {
   type: SelectableReminderType;
@@ -28,13 +28,9 @@ function handleUnauthenticated() {
 export function HackathonNotificationPreferences({
   hackathonId,
   initialPreferences,
-  pendingElsewhereCount = 0,
 }: {
   hackathonId: string;
   initialPreferences: NotificationPreference[];
-  /* Pending email reminders the user already has on other hackathons — the
-     starting point for the account-wide notification limit check. */
-  pendingElsewhereCount?: number;
 }) {
   const router = useRouter();
   const [preferences, setPreferences] = useState(initialPreferences);
@@ -62,17 +58,6 @@ export function HackathonNotificationPreferences({
       return;
     }
 
-    if (enabled) {
-      const enabledUpcomingCount = preferences.filter(
-        (preference) => preference.enabled && isUpcoming(preference)
-      ).length;
-
-      if (pendingElsewhereCount + enabledUpcomingCount >= EMAIL_NOTIFICATION_LIMIT) {
-        setLimitNoticeOpen(true);
-        return;
-      }
-    }
-
     const previousPreferences = preferences;
     const nextPreferences = preferences.map((preference) =>
       preference.type === type ? { ...preference, enabled } : preference
@@ -98,8 +83,8 @@ export function HackathonNotificationPreferences({
         return;
       }
 
-      // The server re-checks the notification limit — a stale elsewhere count
-      // (another tab, another hackathon) surfaces here as a 409.
+      // The server books the change against the five-emails-per-week limit —
+      // a week that would overflow surfaces here as a 409.
       if (response.status === 409) {
         setPreferences(previousPreferences);
         setLimitNoticeOpen(true);
@@ -155,7 +140,11 @@ export function HackathonNotificationPreferences({
                   />
                 </span>
                 <span className="mt-2 text-xs text-navy/55 dark:text-wheat/55">
-                  {scheduledFor ? formatReminderDate(scheduledFor) : "No upcoming reminder"}
+                  {scheduledFor
+                    ? formatReminderDate(scheduledFor)
+                    : isUpcoming(preference)
+                      ? "Date TBA — emailed the moment they open"
+                      : "No upcoming reminder"}
                   {pending ? " - saving" : ""}
                 </span>
               </label>
@@ -179,11 +168,11 @@ export function HackathonNotificationPreferences({
               />
               <div className="relative w-full max-w-md rounded-2xl border border-navy/10 dark:border-white/10 bg-white dark:bg-[#1b1b1b] p-6 shadow-[0_30px_80px_rgb(0_0_0/0.45)]">
                 <h2 className="text-lg font-semibold leading-6 text-navy dark:text-wheat">
-                  Hey, nothing&apos;s going to show up for now.
+                  For now, you&apos;re limited to five emails.
                 </h2>
                 <p className="mt-2 text-sm leading-5 text-navy/60 dark:text-wheat/60">
-                  You can have up to {EMAIL_NOTIFICATION_LIMIT} email notifications at a time. Turn one off to make
-                  room for this one.
+                  You can get at most five emails in a week, and this reminder would land in a week that&apos;s
+                  already full. Turn another reminder off to make room for this one.
                 </p>
                 <div className="mt-6 flex items-center justify-end">
                   <button

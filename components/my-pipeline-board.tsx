@@ -130,7 +130,7 @@ export function MyPipelineBoard({ columns: initialColumns }: { columns: Pipeline
 
         return (
           <section
-            className={`flex w-[320px] shrink-0 flex-col rounded-2xl border bg-ivory dark:bg-white/5 p-3 transition-colors ${
+            className={`flex min-w-[320px] flex-1 shrink-0 flex-col rounded-2xl border bg-ivory dark:bg-white/5 p-3 transition-colors ${
               isDropTarget
                 ? "border-cabernet dark:border-[#e4a3ab]/60 bg-cabernet/5 dark:bg-[#e4a3ab]/10"
                 : "border-navy/10 dark:border-white/10"

@@ -1,4 +1,4 @@
-import { and, count, eq, isNull, ne, sql } from "drizzle-orm";
+import { and, count, eq, gt, isNotNull, isNull, lte, notExists, or, sql } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { hackathonDates, reminders, userHackathonNotificationPreferences, userHackathons } from "@/lib/db/schema";
@@ -61,43 +61,65 @@ export async function setUserHackathonNotificationPreferences({
 }
 
 /**
- * Email reminders that have not been delivered yet. Scope to one hackathon via
- * `hackathonId`, or to everything else via `excludeHackathonId` — the pair is
- * how the account-wide notification limit splits "this hackathon" from the
- * rest when deciding whether a preference change adds sends.
+ * Email reminders for one hackathon that have not been delivered yet — the
+ * baseline for deciding whether a preference change adds sends.
  */
-export async function countPendingEmailReminders({
-  userId,
-  hackathonId,
-  excludeHackathonId,
-}: {
-  userId: string;
-  hackathonId?: string;
-  excludeHackathonId?: string;
-}) {
-  const conditions = [eq(reminders.userId, userId), eq(reminders.channel, "email"), isNull(reminders.sentAt)];
-
-  if (hackathonId) {
-    conditions.push(eq(reminders.hackathonId, hackathonId));
-  }
-
-  if (excludeHackathonId) {
-    conditions.push(ne(reminders.hackathonId, excludeHackathonId));
-  }
-
-  const [row] = await db.select({ value: count() }).from(reminders).where(and(...conditions));
+export async function countPendingEmailReminders({ userId, hackathonId }: { userId: string; hackathonId: string }) {
+  const [row] = await db
+    .select({ value: count() })
+    .from(reminders)
+    .where(
+      and(
+        eq(reminders.userId, userId),
+        eq(reminders.hackathonId, hackathonId),
+        eq(reminders.channel, "email"),
+        isNull(reminders.sentAt)
+      )
+    );
 
   return row?.value ?? 0;
 }
 
 /**
- * How many reminders syncRemindersForUserHackathon would schedule for this
- * hackathon once the requested preference changes are applied — used to
- * enforce the notification limit before anything is written. Untracked
- * hackathons predict with the default "interested" status because the
- * notifications endpoint creates the tracking row with that default.
+ * Plan entries whose exact (type, scheduledFor) email already went out. The
+ * Monday digest delivers digest-type reminders up to a week before their
+ * scheduledFor, so a future plan entry can already be history — recreating it
+ * would email the hacker twice about the same moment.
  */
-export async function countPlannedEmailReminders({
+async function excludeAlreadySentEntries(
+  userId: string,
+  hackathonId: string,
+  entries: { type: SelectableReminderType; scheduledFor: Date }[]
+) {
+  if (!entries.length) {
+    return entries;
+  }
+
+  const sentRows = await db
+    .select({ type: reminders.type, scheduledFor: reminders.scheduledFor })
+    .from(reminders)
+    .where(
+      and(
+        eq(reminders.userId, userId),
+        eq(reminders.hackathonId, hackathonId),
+        eq(reminders.channel, "email"),
+        isNotNull(reminders.sentAt)
+      )
+    );
+
+  const sentKeys = new Set(sentRows.map((row) => `${row.type}:${row.scheduledFor.getTime()}`));
+
+  return entries.filter((entry) => !sentKeys.has(`${entry.type}:${entry.scheduledFor.getTime()}`));
+}
+
+/**
+ * The reminders syncRemindersForUserHackathon would schedule for this hackathon
+ * once the requested preference changes are applied — used to enforce the
+ * weekly email limit before anything is written. Untracked hackathons predict
+ * with the default "interested" status because the notifications endpoint
+ * creates the tracking row with that default.
+ */
+export async function computePlannedEmailReminderEntries({
   userId,
   hackathonId,
   preferences,
@@ -137,9 +159,11 @@ export async function countPlannedEmailReminders({
     getSelectableReminderTypesForStatus(userHackathon?.applicationStatus ?? "interested")
   );
 
-  return computeSelectableReminderPlan(dates ?? null, now).filter(
+  const planned = computeSelectableReminderPlan(dates ?? null, now).filter(
     (entry) => availableReminderTypes.has(entry.type) && enabledByType.get(entry.type)
-  ).length;
+  );
+
+  return excludeAlreadySentEntries(userId, hackathonId, planned);
 }
 
 async function getEnabledEmailReminderTypes(userId: string, hackathonId: string) {
@@ -165,6 +189,90 @@ async function getEnabledEmailReminderTypes(userId: string, hackathonId: string)
   }
 
   return enabledByType;
+}
+
+/**
+ * Schedule the "applications open" email for every hacker who enabled it
+ * before the opening date was confirmed. Nothing re-syncs reminders when an
+ * admin fills in a hackathon's dates, so the daily cron sweeps instead: once
+ * `applicationOpensAt` is known and has arrived, a due reminder is inserted
+ * (and sent in the same run). Skipped once applications have closed or the
+ * event has started — announcing an opening that has already ended would be
+ * wrong — and once any application_open reminder exists for the pair, so a
+ * sent email is never repeated.
+ */
+export async function scheduleDueApplicationOpenReminders(now = new Date()) {
+  const due = await db
+    .select({
+      userId: userHackathonNotificationPreferences.userId,
+      hackathonId: userHackathonNotificationPreferences.hackathonId,
+      applicationOpensAt: hackathonDates.applicationOpensAt,
+    })
+    .from(userHackathonNotificationPreferences)
+    .innerJoin(hackathonDates, eq(hackathonDates.hackathonId, userHackathonNotificationPreferences.hackathonId))
+    .innerJoin(
+      userHackathons,
+      and(
+        eq(userHackathons.userId, userHackathonNotificationPreferences.userId),
+        eq(userHackathons.hackathonId, userHackathonNotificationPreferences.hackathonId)
+      )
+    )
+    .where(
+      and(
+        eq(userHackathonNotificationPreferences.type, "application_open"),
+        eq(userHackathonNotificationPreferences.channel, "email"),
+        eq(userHackathonNotificationPreferences.enabled, true),
+        eq(userHackathons.isSaved, true),
+        eq(userHackathons.applicationStatus, "interested"),
+        isNotNull(hackathonDates.applicationOpensAt),
+        lte(hackathonDates.applicationOpensAt, now),
+        or(isNull(hackathonDates.applicationClosesAt), gt(hackathonDates.applicationClosesAt, now)),
+        or(isNull(hackathonDates.startsAt), gt(hackathonDates.startsAt, now)),
+        notExists(
+          db
+            .select({ id: reminders.id })
+            .from(reminders)
+            .where(
+              and(
+                eq(reminders.userId, userHackathonNotificationPreferences.userId),
+                eq(reminders.hackathonId, userHackathonNotificationPreferences.hackathonId),
+                eq(reminders.type, "application_open"),
+                eq(reminders.channel, "email")
+              )
+            )
+        )
+      )
+    );
+
+  const rows = due.filter((row) => row.applicationOpensAt !== null);
+
+  if (!rows.length) {
+    return 0;
+  }
+
+  await db
+    .insert(reminders)
+    .values(
+      rows.map((row) => ({
+        userId: row.userId,
+        hackathonId: row.hackathonId,
+        type: "application_open" as const,
+        channel: "email" as const,
+        scheduledFor: row.applicationOpensAt as Date,
+      }))
+    )
+    .onConflictDoNothing({
+      target: [
+        reminders.userId,
+        reminders.hackathonId,
+        reminders.type,
+        reminders.channel,
+        reminders.scheduledFor,
+      ],
+      where: sql`${reminders.sentAt} is null`,
+    });
+
+  return rows.length;
 }
 
 /**
@@ -212,8 +320,14 @@ export async function syncRemindersForUserHackathon({
 
   const enabledByType = await getEnabledEmailReminderTypes(userId, hackathonId);
   const availableReminderTypes = new Set(getSelectableReminderTypesForStatus(userHackathon?.applicationStatus ?? null));
-  const plan = computeSelectableReminderPlan(dates ?? null, now).filter(
-    (entry) => availableReminderTypes.has(entry.type) && enabledByType.get(entry.type)
+  // Skip entries the weekly digest already delivered ahead of their
+  // scheduledFor — recreating them would repeat the email next Monday.
+  const plan = await excludeAlreadySentEntries(
+    userId,
+    hackathonId,
+    computeSelectableReminderPlan(dates ?? null, now).filter(
+      (entry) => availableReminderTypes.has(entry.type) && enabledByType.get(entry.type)
+    )
   );
 
   if (!plan.length) {

@@ -40,6 +40,21 @@ describe("buildReminderEmail", () => {
     expect(email.text).toContain("Applications open in a week");
   });
 
+  it("renders the applications-are-open announcement copy", async () => {
+    const email = await buildReminderEmail({
+      type: "application_open",
+      firstName: "Ada",
+      hackathonName: "HackNight 2026",
+      hackathonSlug: "hacknight-2026",
+      scheduledFor: new Date("2026-07-15T00:00:00Z"),
+      appUrl: "https://haethon.dev",
+      unsubscribeUrl: "https://haethon.dev/api/email/unsubscribe?token=signed-token",
+    });
+
+    expect(email.subject).toBe("Applications open · HackNight 2026");
+    expect(email.text).toContain("Applications are open");
+  });
+
   it("falls back to a generic greeting and the label when copy is missing", async () => {
     const email = await buildReminderEmail({
       type: "add_to_profile",

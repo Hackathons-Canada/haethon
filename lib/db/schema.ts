@@ -46,7 +46,6 @@ export const reminderTypeEnum = pgEnum("reminder_type", [
   "application_day_before",
 ]);
 export const notificationChannelEnum = pgEnum("notification_channel", ["email", "discord", "in_app"]);
-export const countryAlertFrequencyEnum = pgEnum("country_alert_frequency", ["instant", "daily", "weekly"]);
 export const importStatusEnum = pgEnum("import_status", ["pending", "approved", "rejected", "merged"]);
 export const sourceTypeEnum = pgEnum("source_type", [
   "devpost",
@@ -425,11 +424,11 @@ export const userHackathonNotificationPreferences = pgTable(
   ]
 );
 
-/* One country watch per user (the unique userId enforces the cap): an email
-   goes out when a hackathon is published in that country. lastNotifiedAt is
-   the delivery watermark — only hackathons published after it are "new" for
-   this subscriber, which is what keeps every frequency down to one email per
-   dispatch no matter how many hackathons landed in between. */
+/* One country watch per user (the unique userId enforces the cap): new
+   hackathons published in that country ride the user's Monday weekly digest.
+   lastNotifiedAt is the delivery watermark — only hackathons published after
+   it are "new" for this subscriber, which keeps each digest down to one email
+   no matter how many hackathons landed in between. */
 export const countryAlertSubscriptions = pgTable(
   "country_alert_subscriptions",
   {
@@ -439,7 +438,6 @@ export const countryAlertSubscriptions = pgTable(
       .references(() => users.id, { onDelete: "cascade" })
       .unique(),
     country: varchar("country", { length: 120 }).notNull(),
-    frequency: countryAlertFrequencyEnum("frequency").notNull().default("daily"),
     lastNotifiedAt: timestamp("last_notified_at", { withTimezone: true }).defaultNow().notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),

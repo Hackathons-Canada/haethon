@@ -428,6 +428,7 @@ export const hackathonNotificationPreferencesSchema = z.object({
     .array(
       z.object({
         type: z.enum([
+          "application_open",
           "application_week_before",
           "application_day_before",
           "hackathon_week_before",
@@ -437,13 +438,14 @@ export const hackathonNotificationPreferencesSchema = z.object({
       })
     )
     .min(1)
-    .max(4),
+    .max(5),
 });
 
 export const reminderEmailTestSchema = z.object({
   email: z.string().trim().email(),
   hackathonId: z.string().uuid(),
   type: z.enum([
+    "application_open",
     "application_week_before",
     "application_day_before",
     "hackathon_week_before",
