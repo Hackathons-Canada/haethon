@@ -1,10 +1,11 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { AlertTriangle, Check, CheckCircle2, RotateCcw, Upload, X } from "lucide-react";
+import { AlertTriangle, Check, CheckCircle2, Pencil, RotateCcw, Upload, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { HackathonCardPreview, HackathonPayloadDetails, type PreviewPayload } from "@/components/admin/hackathon-card-preview";
+import { HackathonImportEditDialog } from "@/components/admin/hackathon-import-edit-dialog";
 
 type DiscordPreview =
   | { eligible: false }
@@ -84,6 +85,7 @@ export function HackathonJsonImporter() {
   const [pendingDiscord, setPendingDiscord] = useState<{ discord: EligibleDiscordPreview; hackathonId: string } | null>(null);
   const [pendingDuplicate, setPendingDuplicate] = useState<{ matchedName: string | null; duplicateScore: number } | null>(null);
   const [discordBusy, setDiscordBusy] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   const activePayload = queue[currentIndex];
   const remainingCount = Math.max(queue.length - currentIndex, 0);
@@ -245,6 +247,13 @@ export function HackathonJsonImporter() {
     setMessage("Skipped.");
   }
 
+  function applyEdits(updated: PreviewPayload) {
+    setQueue((current) => current.map((payload, index) => (index === currentIndex ? updated : payload)));
+    setEditing(false);
+    setStatus("success");
+    setMessage("Card updated. Review it again, then choose yes or no.");
+  }
+
   function resetImport() {
     setQueue([]);
     setCurrentIndex(0);
@@ -254,6 +263,7 @@ export function HackathonJsonImporter() {
     setMessage(null);
     setPendingDiscord(null);
     setPendingDuplicate(null);
+    setEditing(false);
   }
 
   if (queue.length) {
@@ -360,7 +370,7 @@ export function HackathonJsonImporter() {
                 <div>
                   <p className="text-sm font-semibold text-navy dark:text-wheat">Does this card look right?</p>
                   <p className="mt-2 text-sm leading-6 text-navy/55 dark:text-wheat/55">
-                    Yes imports this record. No skips it and shows the next card.
+                    Yes imports this record. No skips it and shows the next card. Edit card fixes details, tags, or location before importing.
                   </p>
                 </div>
                 <div className="mt-5 grid gap-3">
@@ -372,6 +382,15 @@ export function HackathonJsonImporter() {
                   >
                     <Check aria-hidden="true" className="size-4" />
                     Yes
+                  </button>
+                  <button
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-navy/15 dark:border-white/15 px-4 text-sm font-semibold text-navy dark:text-wheat hover:bg-white dark:hover:bg-white/10 disabled:opacity-50"
+                    disabled={status === "submitting"}
+                    onClick={() => setEditing(true)}
+                    type="button"
+                  >
+                    <Pencil aria-hidden="true" className="size-4" />
+                    Edit card
                   </button>
                   <button
                     className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-[#B42318] px-4 text-sm font-semibold text-[#B42318] disabled:opacity-50"
@@ -386,6 +405,10 @@ export function HackathonJsonImporter() {
               </div>
             )}
           </div>
+        ) : null}
+
+        {editing && activePayload ? (
+          <HackathonImportEditDialog onClose={() => setEditing(false)} onSave={applyEdits} payload={activePayload} />
         ) : null}
 
         {pendingDiscord && pendingDiscord.discord.action === "create" ? (
