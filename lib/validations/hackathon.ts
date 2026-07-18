@@ -13,10 +13,11 @@ const emptyToUndefined = (value: unknown) => (typeof value === "string" && value
 // a bare .url() check would let javascript:/data: schemes through.
 const isHttpUrl = (value: string) => /^https?:\/\//i.test(value);
 const HTTP_URL_MESSAGE = "Only http(s) links are allowed";
+const httpUrl = z.string().trim().url().refine(isHttpUrl, HTTP_URL_MESSAGE);
 
 const optionalUrl = z.preprocess(
   emptyToUndefined,
-  z.string().trim().url().refine(isHttpUrl, HTTP_URL_MESSAGE).optional()
+  httpUrl.optional()
 );
 const optionalString = (max: number) => z.preprocess(emptyToUndefined, z.string().trim().max(max).optional());
 const optionalDiscordChannelId = z.preprocess(
@@ -159,7 +160,7 @@ export const hackathonSearchSchema = z
     startsAfter: z.coerce.date().optional(),
     startsBefore: z.coerce.date().optional(),
     limit: z.coerce.number().int().min(1).max(50).default(12),
-    offset: z.coerce.number().int().min(0).max(500).default(0),
+    offset: z.coerce.number().int().min(0).max(10_000).default(0),
   })
   .strip()
   .transform(({ country, countries, ...filters }) => ({
@@ -173,7 +174,7 @@ const normalizedHackathonPayloadBaseSchema = z.object({
     seriesSlug: optionalString(200),
     organizationId: optionalString(80),
     organizationName: optionalString(160),
-    websiteUrl: z.string().trim().url(),
+    websiteUrl: httpUrl,
     imageUrl: optionalUrl,
     sourceUrl: optionalUrl,
     applicationUrl: optionalUrl,
@@ -232,7 +233,9 @@ export const adminHackathonImportPayloadSchema = normalizedHackathonPayloadBaseS
 export const adminHackathonImportSchema = z.preprocess(
   (value) => (Array.isArray(value) ? { hackathons: value } : value),
   z.object({
-    hackathons: z.array(adminHackathonImportPayloadSchema).min(1).max(1000),
+    // This endpoint performs synchronous validation and writes. Keep each
+    // request bounded so a malformed bulk upload cannot monopolize a worker.
+    hackathons: z.array(adminHackathonImportPayloadSchema).min(1).max(250),
     ignoreDuplicates: z.boolean().optional(),
   }).strip()
 );
@@ -319,8 +322,8 @@ export const organizerSubmissionSchema = normalizedHackathonPayloadBaseSchema
 export const communitySubmissionSchema = z.object({
   submitterType: z.literal("community"),
   name: z.string().trim().min(3).max(180),
-  websiteUrl: z.string().trim().url(),
-  sourceUrl: z.string().trim().url(),
+  websiteUrl: httpUrl,
+  sourceUrl: httpUrl,
 });
 
 export const hackathonSubmissionSchema = z.discriminatedUnion("submitterType", [

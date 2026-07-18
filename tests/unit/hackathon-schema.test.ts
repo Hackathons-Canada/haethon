@@ -109,6 +109,32 @@ describe("hackathon submission schemas", () => {
     expect(result.success).toBe(false);
   });
 
+  it.each(["javascript:alert(1)", "data:text/html,hello", "ftp://example.com/event"]) (
+    "rejects unsafe required links (%s)",
+    (unsafeUrl) => {
+      const community = communitySubmissionSchema.safeParse({
+        submitterType: "community",
+        name: "Waterloo Build Weekend",
+        websiteUrl: unsafeUrl,
+        sourceUrl: unsafeUrl,
+      });
+      const organizer = organizerSubmissionSchema.safeParse({
+        submitterType: "organizer",
+        name: "Waterloo Build Weekend",
+        organizationName: "Waterloo Builders",
+        websiteUrl: unsafeUrl,
+        country: "Canada",
+        startDate: "2026-09-12",
+        endDate: "2026-09-14",
+        format: "in_person",
+        shortDescription: "A weekend hackathon for students building useful software.",
+      });
+
+      expect(community.success).toBe(false);
+      expect(organizer.success).toBe(false);
+    }
+  );
+
   it("drops hackathon detail fields from community submissions", () => {
     // Community submitters no longer send dates or location — a reviewer fills
     // those in later — so any such fields are stripped rather than persisted.

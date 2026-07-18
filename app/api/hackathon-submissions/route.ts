@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { hackathonSubmissions } from "@/lib/db/schema";
 import { createHackathonSubmission } from "@/lib/hackathons/review-service";
 import { sendSubmissionEmail } from "@/lib/notifications/submissions";
+import { consumeRateLimit } from "@/lib/security/rate-limit";
 import { hackathonSubmissionSchema } from "@/lib/validations/hackathon";
 
 export async function GET(request: Request) {
@@ -42,6 +43,19 @@ export async function POST(request: Request) {
 
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+  }
+
+  const rateLimit = await consumeRateLimit({
+    key: `hackathon-submission:${context.user.id}`,
+    limit: 10,
+    windowMs: 60 * 60 * 1000,
+  });
+
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { error: "Too many submissions. Try again later." },
+      { status: 429, headers: { "Retry-After": String(rateLimit.retryAfterSeconds) } }
+    );
   }
 
   try {

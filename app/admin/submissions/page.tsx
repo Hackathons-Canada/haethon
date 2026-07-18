@@ -76,6 +76,7 @@ export default async function AdminSubmissionsPage() {
           <p className="text-sm text-navy/55 dark:text-wheat/55">One request at a time</p>
         </div>
         <SubmissionReviewQueue
+          allowDeleteExisting
           emptyMessage="No pending requests. New form submissions will appear here for review."
           endpointBase="/api/admin/hackathon-submissions"
           submissions={pending}

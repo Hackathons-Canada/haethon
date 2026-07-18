@@ -313,7 +313,10 @@ export const userHackathons = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => [uniqueIndex("user_hackathons_user_event_idx").on(table.userId, table.hackathonId)]
+  (table) => [
+    uniqueIndex("user_hackathons_user_event_idx").on(table.userId, table.hackathonId),
+    index("user_hackathons_event_status_user_idx").on(table.hackathonId, table.applicationStatus, table.userId),
+  ]
 );
 
 export const userHackathonAttendanceDays = pgTable(
@@ -333,7 +336,19 @@ export const userHackathonAttendanceDays = pgTable(
   (table) => [
     uniqueIndex("user_hackathon_attendance_unique_idx").on(table.userId, table.hackathonId, table.attendedOn),
     index("user_hackathon_attendance_user_day_idx").on(table.userId, table.attendedOn),
+    index("user_hackathon_attendance_event_user_day_idx").on(table.hackathonId, table.userId, table.attendedOn),
   ]
+);
+
+export const rateLimitBuckets = pgTable(
+  "rate_limit_buckets",
+  {
+    key: varchar("key", { length: 240 }).primaryKey(),
+    count: integer("count").notNull().default(1),
+    windowStartedAt: timestamp("window_started_at", { withTimezone: true }).defaultNow().notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  },
+  (table) => [index("rate_limit_buckets_expires_idx").on(table.expiresAt)]
 );
 
 export const hackathonCheckinCodes = pgTable(
@@ -531,6 +546,7 @@ export const hackathonSubmissions = pgTable(
     rejectionReason: text("rejection_reason"),
     reviewedByUserId: uuid("reviewed_by_user_id").references(() => users.id, { onDelete: "set null" }),
     reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+    reviewClaimedAt: timestamp("review_claimed_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },

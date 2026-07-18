@@ -3,12 +3,14 @@ import { NextResponse } from "next/server";
 
 import { db } from "@/lib/db";
 import { hackathons } from "@/lib/db/schema";
+import { fetchSafeRemoteImage } from "@/lib/security/remote-image";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
 const MAX_LOGO_BYTES = 4 * 1024 * 1024;
+export const runtime = "nodejs";
 
 /* Same-origin proxy for hackathon logos. Most logo hosts (e.g. the Devpost
    CDN) don't send CORS headers, which taints the canvas the card uses to
@@ -28,28 +30,18 @@ export async function GET(_request: Request, context: RouteContext) {
   }
 
   try {
-    const upstream = await fetch(hackathon.imageUrl, {
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; HaethonBot/1.0)" },
-      redirect: "follow",
-      signal: AbortSignal.timeout(8000),
-    });
+    const image = await fetchSafeRemoteImage(hackathon.imageUrl, MAX_LOGO_BYTES);
 
-    const contentType = upstream.headers.get("content-type") ?? "";
-    const contentLength = Number(upstream.headers.get("content-length") ?? 0);
-
-    if (!upstream.ok || !contentType.startsWith("image/") || contentLength > MAX_LOGO_BYTES) {
-      throw new Error("Upstream logo unavailable.");
-    }
-
-    return new NextResponse(upstream.body, {
+    return new NextResponse(image.bytes, {
       headers: {
-        "Cache-Control": "public, max-age=86400, stale-while-revalidate=604800",
-        "Content-Type": contentType,
+        "Cache-Control": "public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800",
+        "Content-Length": String(image.bytes.byteLength),
+        "Content-Security-Policy": "default-src 'none'; sandbox",
+        "Content-Type": image.contentType,
+        "X-Content-Type-Options": "nosniff",
       },
     });
   } catch {
-    /* Let the <img> still render by handing the browser the original URL;
-       color sampling falls back to the name-hash accent in that case. */
-    return NextResponse.redirect(hackathon.imageUrl, 302);
+    return NextResponse.json({ error: "Logo unavailable." }, { status: 502 });
   }
 }

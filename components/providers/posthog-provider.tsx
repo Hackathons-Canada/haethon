@@ -1,7 +1,6 @@
 "use client";
 
 import posthog from "posthog-js";
-import { PostHogProvider as Provider } from "posthog-js/react";
 
 import { PostHogIdentify } from "@/components/providers/posthog-identify";
 import { PostHogPageView } from "@/components/providers/posthog-pageview";
@@ -33,12 +32,11 @@ if (typeof window !== "undefined" && !posthog.__loaded) {
   }
 }
 
-export function PostHogProvider({ children }: { children: React.ReactNode }) {
+export function PostHogBootstrap() {
   return (
-    <Provider client={posthog}>
+    <>
       <PostHogPageView />
       <PostHogIdentify />
-      {children}
-    </Provider>
+    </>
   );
 }

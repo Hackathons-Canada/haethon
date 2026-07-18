@@ -116,10 +116,12 @@ function initialPreviewPayload(submission: SubmissionReviewItem) {
 }
 
 export function SubmissionReviewCard({
+  allowDeleteExisting = false,
   endpointBase,
   onReviewed,
   submission,
 }: {
+  allowDeleteExisting?: boolean;
   endpointBase: string;
   onReviewed?: (submissionId: string) => void;
   submission: SubmissionReviewItem;
@@ -565,7 +567,7 @@ export function SubmissionReviewCard({
             <GitMerge aria-hidden="true" className="size-4" />
             Merge
           </button>
-          {hasDuplicate ? (
+          {hasDuplicate && allowDeleteExisting ? (
             <button
               className="inline-flex min-h-10 items-center gap-2 rounded-full bg-[#B54708] hover:bg-[#8a3606] px-4 text-sm font-semibold text-white disabled:opacity-50"
               disabled={disabled}

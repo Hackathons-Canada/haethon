@@ -4,6 +4,8 @@ import { requireAdminUser } from "@/lib/auth";
 import { importAdminHackathons } from "@/lib/hackathons/review-service";
 import { adminHackathonImportSchema } from "@/lib/validations/hackathon";
 
+export const maxDuration = 60;
+
 export async function POST(request: Request) {
   const gate = await requireAdminUser();
 

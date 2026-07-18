@@ -280,7 +280,7 @@ export function getPublicHackathonCatalog(input: {
     startsAfter: roundDownToHourIso(input.startsAfter),
     startsBefore: roundDownToHourIso(input.startsBefore),
     limit: Math.min(Math.max(input.limit ?? CATALOG_PAGE_SIZE, 1), 50),
-    offset: Math.min(Math.max(input.offset ?? 0, 0), 500),
+    offset: Math.min(Math.max(input.offset ?? 0, 0), 10_000),
   });
 }
 

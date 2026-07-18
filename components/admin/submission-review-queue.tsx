@@ -5,10 +5,12 @@ import { useMemo, useState } from "react";
 import { SubmissionReviewCard, type SubmissionReviewItem } from "@/components/admin/submission-review-card";
 
 export function SubmissionReviewQueue({
+  allowDeleteExisting = false,
   emptyMessage,
   endpointBase,
   submissions,
 }: {
+  allowDeleteExisting?: boolean;
   emptyMessage: string;
   endpointBase: string;
   submissions: SubmissionReviewItem[];
@@ -38,7 +40,13 @@ export function SubmissionReviewQueue({
         <span className="font-semibold text-navy dark:text-wheat">{remainingSubmissions.length} pending</span>
         <span className="text-navy/55 dark:text-wheat/55">Showing next submission</span>
       </div>
-      <SubmissionReviewCard key={activeSubmission.id} endpointBase={endpointBase} onReviewed={onReviewed} submission={activeSubmission} />
+      <SubmissionReviewCard
+        key={activeSubmission.id}
+        allowDeleteExisting={allowDeleteExisting}
+        endpointBase={endpointBase}
+        onReviewed={onReviewed}
+        submission={activeSubmission}
+      />
     </div>
   );
 }

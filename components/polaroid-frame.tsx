@@ -95,7 +95,7 @@ export function PolaroidFrame({
 /** Left-edge scrapbook pile — hung off the margin, overlapping, crooked */
 const leftPolaroids = [
   {
-    src: "/photos/celebration.png",
+    src: "/photos/celebration.webp",
     alt: "Hackers celebrating at HackAI Toronto",
     caption: "we shipped it",
     className:
@@ -107,7 +107,7 @@ const leftPolaroids = [
     tape: "top" as const,
   },
   {
-    src: "/photos/atrium.png",
+    src: "/photos/atrium.webp",
     alt: "Students collaborating on laptops in a modern atrium",
     caption: "building together",
     className:
@@ -119,7 +119,7 @@ const leftPolaroids = [
     tape: "corners" as const,
   },
   {
-    src: "/photos/team-huddle.png",
+    src: "/photos/team-huddle.webp",
     alt: "A hackathon team huddled around a laptop in a classroom",
     caption: "debugging live",
     className:
@@ -131,7 +131,7 @@ const leftPolaroids = [
     tape: "top" as const,
   },
   {
-    src: "/photos/swag.png",
+    src: "/photos/swag.webp",
     alt: "Hackathon stickers, lanyards, and a sticker covered laptop",
     caption: "swag haul",
     className:
@@ -143,7 +143,7 @@ const leftPolaroids = [
     tape: "corners" as const,
   },
   {
-    src: "/photos/collab.png",
+    src: "/photos/collab.webp",
     alt: "A team huddled around a laptop during a hackathon",
     caption: "pair programming",
     className:
@@ -159,7 +159,7 @@ const leftPolaroids = [
 /** Right-edge scrapbook pile */
 const rightPolaroids = [
   {
-    src: "/photos/keynote.png",
+    src: "/photos/keynote.webp",
     alt: "A packed hackathon keynote hall filled with attendees",
     caption: "opening ceremony",
     className:
@@ -171,7 +171,7 @@ const rightPolaroids = [
     tape: "corners" as const,
   },
   {
-    src: "/photos/stage.png",
+    src: "/photos/stage.webp",
     alt: "A speaker presenting on stage at a developer community event",
     caption: "talks & demos",
     className:
@@ -183,7 +183,7 @@ const rightPolaroids = [
     tape: "top" as const,
   },
   {
-    src: "/photos/demo-guitar.png",
+    src: "/photos/demo-guitar.webp",
     alt: "A team demoing a hardware guitar project on stage",
     caption: "demo day",
     className:
@@ -195,7 +195,7 @@ const rightPolaroids = [
     tape: "corners" as const,
   },
   {
-    src: "/photos/sushi.png",
+    src: "/photos/sushi.webp",
     alt: "Hackers grabbing sushi at a late night event buffet",
     caption: "midnight fuel",
     className:
@@ -207,7 +207,7 @@ const rightPolaroids = [
     tape: "top" as const,
   },
   {
-    src: "/photos/atrium-wide.png",
+    src: "/photos/atrium-wide.webp",
     alt: "A multi level university atrium during a community event",
     caption: "the venue",
     className:

@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, like, or } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, like, lt, or } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@/lib/db";
@@ -198,7 +198,7 @@ async function findBestDuplicate(payload: { name: string; websiteUrl?: string | 
 
 export async function createPublishedHackathon(
   payload: NormalizedHackathonPayload,
-  options?: { source?: HackathonSource; syncDiscord?: boolean }
+  options?: { revalidateCaches?: boolean; source?: HackathonSource; syncDiscord?: boolean }
 ) {
   payload = normalizeLocationPayload(payload);
   const organizationId = await ensureOrganization(payload);
@@ -253,7 +253,9 @@ export async function createPublishedHackathon(
     await syncHackathonDiscordChannelSafely(created.id);
   }
 
-  revalidateHackathonCaches();
+  if (options?.revalidateCaches !== false) {
+    revalidateHackathonCaches();
+  }
 
   return created.id;
 }
@@ -626,11 +628,11 @@ export async function importAdminHackathons(input: {
 
     // Do not create the Discord channel yet — the admin approves that separately.
     const hackathonId = await createPublishedHackathon(payload, {
+      revalidateCaches: false,
       source: rawPayload.source,
       syncDiscord: false,
     });
     duplicateCandidates.unshift({ id: hackathonId, name: payload.name, websiteUrl: payload.websiteUrl, startsAt: payload.startDate });
-    const discord = await previewHackathonDiscordChannel(hackathonId);
     const [submission] = await db
       .insert(hackathonSubmissions)
       .values({
@@ -652,7 +654,6 @@ export async function importAdminHackathons(input: {
       .returning({ id: hackathonSubmissions.id });
 
     results.push({
-      discord,
       duplicateScore,
       externalId: rawPayload.externalId,
       hackathonId,
@@ -662,6 +663,26 @@ export async function importAdminHackathons(input: {
       submissionId: submission.id,
     });
   }
+
+  const importedResults = results.filter(
+    (result): result is typeof result & { hackathonId: string } => result.status === "imported" && Boolean(result.hackathonId)
+  );
+
+  if (importedResults.length > 0) {
+    revalidateHackathonCaches();
+  }
+
+  // Discord previews are independent read operations. A small worker pool
+  // removes the serial network waterfall without creating an unbounded burst.
+  let nextPreviewIndex = 0;
+  await Promise.all(
+    Array.from({ length: Math.min(4, importedResults.length) }, async () => {
+      while (nextPreviewIndex < importedResults.length) {
+        const result = importedResults[nextPreviewIndex++];
+        result.discord = await previewHackathonDiscordChannel(result.hackathonId);
+      }
+    })
+  );
 
   return {
     duplicateCount: results.filter((result) => result.status === "duplicate_flagged").length,
@@ -687,60 +708,118 @@ export async function reviewHackathonSubmission(input: {
     throw new Error("Submission not found.");
   }
 
-  if (input.allowedOrganizationIds && (!submission.organizationId || !input.allowedOrganizationIds.includes(submission.organizationId))) {
+  const isRestrictedOrganizer = input.allowedOrganizationIds !== undefined;
+  const allowedOrganizationIds = input.allowedOrganizationIds ?? [];
+
+  if (submission.status !== "pending") {
+    throw new Error("This submission has already been reviewed.");
+  }
+
+  if (isRestrictedOrganizer && (!submission.organizationId || !allowedOrganizationIds.includes(submission.organizationId))) {
     throw new Error("You cannot review this submission.");
   }
 
-  if (input.action.action === "reject") {
+  if (isRestrictedOrganizer && input.action.action === "delete_existing") {
+    throw new Error("Only an administrator can delete an existing hackathon.");
+  }
+
+  if (isRestrictedOrganizer && input.action.action === "merge") {
+    const [target] = await db
+      .select({ organizationId: hackathons.organizationId })
+      .from(hackathons)
+      .where(eq(hackathons.id, input.action.targetHackathonId))
+      .limit(1);
+
+    if (!target?.organizationId || !allowedOrganizationIds.includes(target.organizationId)) {
+      throw new Error("You cannot merge into that hackathon.");
+    }
+  }
+
+  const claimedAt = new Date();
+  const staleClaimCutoff = new Date(claimedAt.getTime() - 5 * 60 * 1000);
+  const [claim] = await db
+    .update(hackathonSubmissions)
+    .set({ reviewClaimedAt: claimedAt, updatedAt: claimedAt })
+    .where(
+      and(
+        eq(hackathonSubmissions.id, submission.id),
+        eq(hackathonSubmissions.status, "pending"),
+        or(isNull(hackathonSubmissions.reviewClaimedAt), lt(hackathonSubmissions.reviewClaimedAt, staleClaimCutoff))
+      )
+    )
+    .returning({ id: hackathonSubmissions.id });
+
+  if (!claim) {
+    throw new Error("This submission is already being reviewed.");
+  }
+
+  try {
+    if (input.action.action === "reject") {
+      const [updated] = await db
+        .update(hackathonSubmissions)
+        .set({
+          status: "rejected",
+          rejectionReason: input.action.rejectionReason,
+          reviewedByUserId: input.reviewerUserId,
+          reviewedAt: claimedAt,
+          reviewClaimedAt: null,
+          updatedAt: claimedAt,
+        })
+        .where(and(eq(hackathonSubmissions.id, submission.id), eq(hackathonSubmissions.reviewClaimedAt, claimedAt)))
+        .returning();
+
+      return { submission: updated, approvedHackathonId: null };
+    }
+
+    const normalizedPayload = isRestrictedOrganizer
+      ? { ...input.action.normalizedPayload, organizationId: submission.organizationId ?? undefined }
+      : input.action.normalizedPayload;
+
+    let approvedHackathonId: string;
+    if (input.action.action === "merge") {
+      approvedHackathonId = await mergeIntoHackathon(input.action.targetHackathonId, normalizedPayload);
+    } else {
+      // Deleting an existing event is deliberately admin-only; the organizer
+      // route is constrained above before any mutation occurs.
+      if (input.action.action === "delete_existing") {
+        await deleteHackathon(input.action.targetHackathonId);
+      }
+
+      approvedHackathonId = await createPublishedHackathon(normalizedPayload);
+    }
+
     const [updated] = await db
       .update(hackathonSubmissions)
       .set({
-        status: "rejected",
-        rejectionReason: input.action.rejectionReason,
+        status: input.action.action === "merge" ? "merged" : "approved",
+        approvedHackathonId,
+        matchedHackathonId:
+          input.action.action === "merge"
+            ? input.action.targetHackathonId
+            : input.action.action === "delete_existing"
+              ? null
+              : submission.matchedHackathonId,
         reviewedByUserId: input.reviewerUserId,
         reviewedAt: new Date(),
+        reviewClaimedAt: null,
         updatedAt: new Date(),
       })
-      .where(eq(hackathonSubmissions.id, submission.id))
+      .where(and(eq(hackathonSubmissions.id, submission.id), eq(hackathonSubmissions.reviewClaimedAt, claimedAt)))
       .returning();
 
-    return { submission: updated, approvedHackathonId: null };
-  }
-
-  let approvedHackathonId: string;
-  if (input.action.action === "merge") {
-    approvedHackathonId = await mergeIntoHackathon(input.action.targetHackathonId, input.action.normalizedPayload);
-  } else {
-    // "delete_existing" first removes the duplicate the reviewer is superseding, then
-    // publishes this submission fresh. The delete's onDelete:"set null" clears this
-    // submission's matchedHackathonId, so we leave it null below rather than re-point
-    // it at a row that no longer exists.
-    if (input.action.action === "delete_existing") {
-      await deleteHackathon(input.action.targetHackathonId);
+    if (!updated) {
+      throw new Error("The submission review could not be finalized.");
     }
 
-    approvedHackathonId = await createPublishedHackathon(input.action.normalizedPayload);
+    return { submission: updated, approvedHackathonId };
+  } catch (error) {
+    await db
+      .update(hackathonSubmissions)
+      .set({ reviewClaimedAt: null, updatedAt: new Date() })
+      .where(and(eq(hackathonSubmissions.id, submission.id), eq(hackathonSubmissions.reviewClaimedAt, claimedAt)));
+
+    throw error;
   }
-
-  const [updated] = await db
-    .update(hackathonSubmissions)
-    .set({
-      status: input.action.action === "merge" ? "merged" : "approved",
-      approvedHackathonId,
-      matchedHackathonId:
-        input.action.action === "merge"
-          ? input.action.targetHackathonId
-          : input.action.action === "delete_existing"
-            ? null
-            : submission.matchedHackathonId,
-      reviewedByUserId: input.reviewerUserId,
-      reviewedAt: new Date(),
-      updatedAt: new Date(),
-    })
-    .where(eq(hackathonSubmissions.id, submission.id))
-    .returning();
-
-  return { submission: updated, approvedHackathonId };
 }
 
 export async function listHackathonSubmissions(options?: { allowedOrganizationIds?: string[]; limit?: number }) {

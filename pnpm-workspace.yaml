@@ -3,6 +3,10 @@ packages:
   - 'apps/*'      # Add this if you have an apps folder
   - 'packages/*'  # Add this if you have a packages folder
 
+overrides:
+  effect: 3.22.0
+  postcss: 8.5.19
+
 allowBuilds:
   '@clerk/shared': true
   '@sentry/cli': true

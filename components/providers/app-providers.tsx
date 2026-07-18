@@ -1,13 +1,18 @@
 "use client";
 
 import { ClerkProvider } from "@clerk/nextjs";
+import dynamic from "next/dynamic";
 
-import { PostHogProvider } from "@/components/providers/posthog-provider";
+const PostHogBootstrap = dynamic(
+  () => import("@/components/providers/posthog-provider").then((module) => module.PostHogBootstrap),
+  { ssr: false }
+);
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
     <ClerkProvider>
-      <PostHogProvider>{children}</PostHogProvider>
+      <PostHogBootstrap />
+      {children}
     </ClerkProvider>
   );
 }

@@ -37,6 +37,7 @@ export default async function AdminBrokenPage() {
           <p className="text-sm text-navy/55 dark:text-wheat/55">One broken item at a time</p>
         </div>
         <SubmissionReviewQueue
+          allowDeleteExisting
           emptyMessage="No imported JSON records need fixes."
           endpointBase="/api/admin/hackathon-submissions"
           submissions={fixQueue}

@@ -36,6 +36,7 @@ const appTables = [
   "organizer_claims",
   "organizer_leads",
   "projects",
+  "rate_limit_buckets",
   "reminders",
   "sources",
   "sponsor_leads",

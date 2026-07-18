@@ -6,35 +6,15 @@ import { db } from "@/lib/db";
 import { hackathonDates, hackathons, userHackathons } from "@/lib/db/schema";
 import { evaluateCheckinWindow, normalizeCheckinCode } from "@/lib/hackathons/checkin";
 import { getActiveCheckinCode, writeOrganizerVerifiedAttendanceDays } from "@/lib/hackathons/checkin-service";
+import { consumeRateLimit } from "@/lib/security/rate-limit";
 import { hackathonCheckinRedeemSchema } from "@/lib/validations/hackathon";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
-// Best-effort brute-force guard: per-instance in-memory counter of failed
-// attempts per user+hackathon. The codebase has no durable rate-limit infra
-// (Redis/Upstash), so a shared limiter is a noted follow-up.
 const MAX_FAILED_ATTEMPTS = 10;
 const ATTEMPT_WINDOW_MS = 10 * 60 * 1000;
-const failedAttempts = new Map<string, { count: number; resetAt: number }>();
-
-function isRateLimited(key: string, now: number) {
-  const entry = failedAttempts.get(key);
-
-  return Boolean(entry && entry.resetAt > now && entry.count >= MAX_FAILED_ATTEMPTS);
-}
-
-function recordFailedAttempt(key: string, now: number) {
-  const entry = failedAttempts.get(key);
-
-  if (!entry || entry.resetAt <= now) {
-    failedAttempts.set(key, { count: 1, resetAt: now + ATTEMPT_WINDOW_MS });
-    return;
-  }
-
-  entry.count += 1;
-}
 
 export async function POST(request: Request, context: RouteContext) {
   const userContext = await getCurrentUserContext();
@@ -73,12 +53,16 @@ export async function POST(request: Request, context: RouteContext) {
     return NextResponse.json({ error: window.error }, { status: 422 });
   }
 
-  const attemptKey = `${userContext.user.id}:${id}`;
+  const rateLimit = await consumeRateLimit({
+    key: `checkin:${userContext.user.id}:${id}`,
+    limit: MAX_FAILED_ATTEMPTS,
+    windowMs: ATTEMPT_WINDOW_MS,
+  });
 
-  if (isRateLimited(attemptKey, now.getTime())) {
+  if (!rateLimit.allowed) {
     return NextResponse.json(
       { error: "Too many check in attempts. Try again in a few minutes." },
-      { status: 429 }
+      { status: 429, headers: { "Retry-After": String(rateLimit.retryAfterSeconds) } }
     );
   }
 
@@ -87,12 +71,8 @@ export async function POST(request: Request, context: RouteContext) {
   // Same response whether no code exists or the code doesn't match, so the
   // endpoint doesn't reveal whether check-in codes are configured.
   if (!activeCode || activeCode.code !== normalizeCheckinCode(parsed.data.code)) {
-    recordFailedAttempt(attemptKey, now.getTime());
-
     return NextResponse.json({ error: "That check in code isn't valid for this hackathon." }, { status: 422 });
   }
-
-  failedAttempts.delete(attemptKey);
 
   const [existing] = await db
     .select({ applicationStatus: userHackathons.applicationStatus })

@@ -36,19 +36,19 @@ const companies: readonly Company[] = [
       "A weekend where hundreds of builders ship real projects, backed by mentors, hardware, and a community that keeps going long after the closing ceremony.",
     images: [
       {
-        src: "/photos/hc25-hallway.png",
+        src: "/photos/hc25-hallway.webp",
         alt: "Hackers lining the hallway between sessions at HC25.",
         width: 1440,
         height: 2160,
       },
       {
-        src: "/photos/hc25-collab.png",
+        src: "/photos/hc25-collab.webp",
         alt: "Three hackers laughing around a laptop at HC25.",
         width: 2326,
         height: 1548,
       },
       {
-        src: "/photos/hc25-crowd.png",
+        src: "/photos/hc25-crowd.webp",
         alt: "A packed room of hackers during an HC25 ceremony.",
         width: 2160,
         height: 1440,
@@ -71,25 +71,25 @@ const companies: readonly Company[] = [
       "We help companies reach hackers through events, challenges, and recruiting. It's sponsorship that lands in the room instead of a logo on a banner.",
     images: [
       {
-        src: "/photos/corporate-catering.png",
+        src: "/photos/corporate-catering.webp",
         alt: "A hacker serving themselves from a spread of catered sushi.",
         width: 2586,
         height: 1724,
       },
       {
-        src: "/photos/corporate-celebration.png",
+        src: "/photos/corporate-celebration.webp",
         alt: "Two hackers cheering during a sponsor prize reveal.",
         width: 2586,
         height: 1724,
       },
       {
-        src: "/photos/corporate-conversation.png",
+        src: "/photos/corporate-conversation.webp",
         alt: "Two hackers chatting during a networking break.",
         width: 2586,
         height: 1724,
       },
       {
-        src: "/photos/corporate-group.png",
+        src: "/photos/corporate-group.webp",
         alt: "The full crowd posing with oversized prize cheques.",
         width: 2586,
         height: 1724,

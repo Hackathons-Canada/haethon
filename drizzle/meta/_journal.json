@@ -141,6 +141,13 @@
       "when": 1784406893852,
       "tag": "0019_fuzzy_forge",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1784409090184,
+      "tag": "0020_curved_shard",
+      "breakpoints": true
     }
   ]
 }
