@@ -1,5 +1,5 @@
 {
-  "id": "81a284c9-9fab-4e0a-9ee7-1c9ddd65bb39",
+  "id": "2accd848-675d-4fb9-9c88-dcd1b941b738",
   "prevId": "cd47953c-993b-4480-b55c-2ae80f4c12a3",
   "version": "7",
   "dialect": "postgresql",
@@ -2659,6 +2659,89 @@
         "reminders_hackathon_id_hackathons_id_fk": {
           "name": "reminders_hackathon_id_hackathons_id_fk",
           "tableFrom": "reminders",
+          "tableTo": "hackathons",
+          "columnsFrom": [
+            "hackathon_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.sources": {
+      "name": "sources",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "hackathon_id": {
+          "name": "hackathon_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "source_type": {
+          "name": "source_type",
+          "type": "source_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_url": {
+          "name": "source_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reliability_score": {
+          "name": "reliability_score",
+          "type": "numeric(5, 2)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "imported_at": {
+          "name": "imported_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "sources_hackathon_idx": {
+          "name": "sources_hackathon_idx",
+          "columns": [
+            {
+              "expression": "hackathon_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "sources_hackathon_id_hackathons_id_fk": {
+          "name": "sources_hackathon_id_hackathons_id_fk",
+          "tableFrom": "sources",
           "tableTo": "hackathons",
           "columnsFrom": [
             "hackathon_id"

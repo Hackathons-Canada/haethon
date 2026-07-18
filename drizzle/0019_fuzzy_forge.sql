@@ -1,8 +1,6 @@
 ALTER TABLE "hackathons" ADD COLUMN "source" "source_type";--> statement-breakpoint
--- One-time compile of the badge each hackathon currently shows, so nothing
--- changes visually when reads switch to the column. Admin-pinned sentinel
--- rows win outright; everything else replays the legacy read-time vote:
--- most frequent URL-derived type, legacy priority order as the tie-break.
+-- Compile the currently displayed badge once. Admin overrides win; remaining
+-- rows replay the legacy read-time vote so this release has no visual churn.
 UPDATE "hackathons" h
 SET "source" = s."source_type"
 FROM "sources" s
@@ -50,5 +48,7 @@ UPDATE "hackathons" h
 SET "source" = picked.derived_type::"source_type"
 FROM picked
 WHERE picked.hackathon_id = h."id"
-  AND h."source" IS NULL;--> statement-breakpoint
-DROP TABLE "sources" CASCADE;
+  AND h."source" IS NULL;
+
+-- Deliberately retain sources for one compatibility release. It can be
+-- removed after every production instance runs code that uses hackathons.source.

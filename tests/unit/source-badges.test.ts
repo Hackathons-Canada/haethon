@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   COMMUNITY_FORM_SOURCE_URL,
+  compileSourceType,
   deriveSourceType,
   HACKATHON_SOURCES,
   sourceBadge,
@@ -27,10 +28,9 @@ describe("hackathon source badges", () => {
     expect(deriveSourceType(undefined, undefined)).toBe("other");
   });
 
-  it("keeps URL derivation separate from importer-provided provenance", () => {
-    // The import service can persist `source: \"mlh\"` for an MLH feed item
-    // even when the event itself links to Devpost.
-    expect(deriveSourceType("https://devpost.com/hackathons/example")).toBe("devpost");
+  it("prefers importer-provided provenance over the linked website", () => {
+    expect(compileSourceType("mlh", "https://devpost.com/hackathons/example")).toBe("mlh");
+    expect(compileSourceType(undefined, "https://devpost.com/hackathons/example")).toBe("devpost");
   });
 
   it("labels every storable source without needing a URL", () => {

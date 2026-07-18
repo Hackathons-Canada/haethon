@@ -1,8 +1,8 @@
 /* Pure source helpers, safe to use from client components.
 
-   A hackathon's source is compiled once — derived from the import's source
-   URL when the hackathon is created — and stored on hackathons.source. It is
-   never re-derived on reads; admins change it from the edit dialog. */
+   A hackathon's source is compiled once from explicit feed provenance or,
+   when that is absent, the import URL. It is stored on hackathons.source,
+   never re-derived on reads, and remains admin-editable. */
 export type HackathonSource = "devpost" | "mlh" | "luma" | "cerebral_valley" | "organizer_site" | "manual" | "other";
 
 export type HackathonSourceBadge = {
@@ -77,4 +77,12 @@ export function deriveSourceType(...urls: Array<string | null | undefined>): Hac
   }
 
   return "other";
+}
+
+/** Explicit feed provenance wins over URLs owned by a downstream host. */
+export function compileSourceType(
+  source: HackathonSource | null | undefined,
+  ...urls: Array<string | null | undefined>
+): HackathonSource {
+  return source ?? deriveSourceType(...urls);
 }

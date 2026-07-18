@@ -467,6 +467,22 @@ export const notifications = pgTable(
   (table) => [index("notifications_user_idx").on(table.userId)]
 );
 
+/* Kept temporarily for compatibility with application instances from before
+   migration 0019 during a rolling production deployment. New code reads and
+   writes hackathons.source; remove this table in a later cleanup release. */
+export const sources = pgTable(
+  "sources",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    hackathonId: uuid("hackathon_id").references(() => hackathons.id, { onDelete: "cascade" }),
+    sourceType: sourceTypeEnum("source_type").notNull(),
+    sourceUrl: text("source_url").notNull(),
+    reliabilityScore: numeric("reliability_score", { precision: 5, scale: 2 }).default("0"),
+    importedAt: timestamp("imported_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [index("sources_hackathon_idx").on(table.hackathonId)]
+);
+
 export const importBatches = pgTable("import_batches", {
   id: uuid("id").defaultRandom().primaryKey(),
   sourceName: varchar("source_name", { length: 120 }).notNull(),
@@ -686,6 +702,7 @@ export const hackathonsRelations = relations(hackathons, ({ one, many }) => ({
     fields: [hackathons.id],
     references: [hackathonDates.hackathonId],
   }),
+  legacySources: many(sources),
   tags: many(hackathonTags),
   attendanceDays: many(userHackathonAttendanceDays),
   notificationPreferences: many(userHackathonNotificationPreferences),

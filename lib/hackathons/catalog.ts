@@ -13,8 +13,7 @@ import {
 import { formatDateRange, formatLocationParts } from "@/lib/hackathons/card-format";
 import { isPastCatalogRow, pastRecurringSeriesIds, selectVisibleCatalogRows } from "@/lib/hackathons/catalog-visibility";
 import { getHackathonIdsWithDiscord } from "@/lib/hackathons/discord-cards";
-import { getPrimarySourceByHackathon } from "@/lib/hackathons/source-badges";
-import type { HackathonSourceBadge } from "@/lib/hackathons/source-badges";
+import { sourceBadge, type HackathonSourceBadge } from "@/lib/hackathons/source-badges";
 
 /* One page of catalog results. The listing page and the search API both read
    through this module so the public catalog is queried (and cached) once. */
@@ -121,6 +120,7 @@ async function queryCatalogPage(query: CatalogQuery): Promise<CatalogPage> {
       isRecurring: sql<boolean>`coalesce(${hackathonSeries.isRecurring}, false)`,
       name: hackathons.name,
       slug: hackathons.slug,
+      source: hackathons.source,
       imageUrl: hackathons.imageUrl,
       venue: hackathons.venue,
       format: hackathons.format,
@@ -211,12 +211,7 @@ async function queryCatalogPage(query: CatalogQuery): Promise<CatalogPage> {
   // Dropping rows after the LIMIT can shorten a paginated API page by at most
   // one row per recurring series; hasMore already reflects the underlying set.
   const pageRows = selectVisibleCatalogRows(fetchedRows, seriesWithCurrentEdition, now);
-  const hackathonIds = pageRows.map((row) => row.id);
-
-  const [discordHackathonIds, sourceByHackathon] = await Promise.all([
-    getHackathonIdsWithDiscord(pageRows),
-    getPrimarySourceByHackathon(hackathonIds),
-  ]);
+  const discordHackathonIds = await getHackathonIdsWithDiscord(pageRows);
 
   return {
     cards: pageRows.map((row) => {
@@ -237,7 +232,7 @@ async function queryCatalogPage(query: CatalogQuery): Promise<CatalogPage> {
         location: location.locality ?? "Location TBA",
         name: row.name,
         slug: row.slug,
-        source: sourceByHackathon.get(row.id) ?? null,
+        source: row.source ? sourceBadge(row.source) : null,
         startsAt: row.startsAt?.toISOString() ?? null,
         travelReimbursement: row.travelReimbursement,
         voteDisplayOffset: row.voteDisplayOffset,

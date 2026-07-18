@@ -13,6 +13,10 @@ import {
   isArchiveCategoryName,
   pastCategoryDiscordName,
 } from "@/lib/discord/channel-rules";
+import {
+  discordChannelRetentionCutoff,
+  isDiscordChannelPastRetention,
+} from "@/lib/discord/channel-retention";
 import { discordRest, isUnknownChannelError } from "@/lib/discord/rest";
 import {
   discordChannels,
@@ -71,12 +75,6 @@ type SyncContext = {
 };
 
 const SYNC_CONCURRENCY = 4;
-
-export const PAST_DISCORD_CHANNEL_RETENTION_DAYS = 30;
-
-function discordChannelRetentionCutoff(now: Date) {
-  return new Date(now.getTime() - PAST_DISCORD_CHANNEL_RETENTION_DAYS * 24 * 60 * 60 * 1000);
-}
 
 const INELIGIBLE_REASON = "Only Canadian and US hackathons are synced to Discord.";
 
@@ -780,6 +778,7 @@ export async function syncHackathonDiscordChannel(hackathonId: string) {
       country: hackathonLocations.country,
       endsAt: hackathonDates.endsAt,
       hackathonId: hackathons.id,
+      isRecurring: hackathonSeries.isRecurring,
       name: hackathons.name,
       seriesId: hackathons.seriesId,
       slug: hackathons.slug,
@@ -790,6 +789,7 @@ export async function syncHackathonDiscordChannel(hackathonId: string) {
     .from(hackathons)
     .leftJoin(hackathonLocations, eq(hackathonLocations.hackathonId, hackathons.id))
     .leftJoin(hackathonDates, eq(hackathonDates.hackathonId, hackathons.id))
+    .leftJoin(hackathonSeries, eq(hackathonSeries.id, hackathons.seriesId))
     .where(eq(hackathons.id, hackathonId))
     .limit(1);
 
@@ -797,8 +797,16 @@ export async function syncHackathonDiscordChannel(hackathonId: string) {
     throw new Error("Hackathon not found.");
   }
 
-  const seriesId =
-    row.seriesId ??
+  const pastRetention = isDiscordChannelPastRetention({
+    endsAt: row.endsAt,
+    isRecurring: row.isRecurring ?? false,
+  });
+
+  if (pastRetention) {
+    return { status: "skipped" as const, reason: "Discord channel retention period has ended." };
+  }
+
+  const seriesId = row.seriesId ??
     (await assignHackathonSeries(row.hackathonId, {
       name: row.name,
       websiteUrl: row.websiteUrl ?? "",
@@ -821,6 +829,7 @@ export async function syncHackathonDiscordChannel(hackathonId: string) {
     .limit(1);
 
   const channelsBySeries = new Map<string, MappedChannel>(mapped ? [[seriesId, mapped]] : []);
+
   const category = categoryForHackathon({
     country: row.country,
     endsAt: row.endsAt,
@@ -1318,6 +1327,16 @@ export async function syncPublishedHackathonDiscordChannels() {
  * the hackathon and all related database records are retained.
  */
 export async function deleteExpiredHackathonDiscordChannels(now = new Date()) {
+  const rest = discordRest();
+
+  if (!rest || !env.DISCORD_GUILD_ID) {
+    return {
+      expired: 0,
+      deleted: [] as string[],
+      failed: ["Discord bot credentials are not configured."],
+    };
+  }
+
   const cutoff = discordChannelRetentionCutoff(now);
   const expired = await db
     .select({
@@ -1327,11 +1346,13 @@ export async function deleteExpiredHackathonDiscordChannels(now = new Date()) {
       name: hackathons.name,
     })
     .from(discordChannels)
+    .innerJoin(discordGuilds, eq(discordGuilds.id, discordChannels.guildId))
     .innerJoin(hackathons, eq(hackathons.id, discordChannels.hackathonId))
     .innerJoin(hackathonDates, eq(hackathonDates.hackathonId, hackathons.id))
     .leftJoin(hackathonSeries, eq(hackathonSeries.id, hackathons.seriesId))
     .where(
       and(
+        eq(discordGuilds.guildSnowflake, env.DISCORD_GUILD_ID),
         lt(hackathonDates.endsAt, cutoff),
         or(isNull(hackathons.seriesId), eq(hackathonSeries.isRecurring, false))
       )
@@ -1341,16 +1362,11 @@ export async function deleteExpiredHackathonDiscordChannels(now = new Date()) {
     return { expired: 0, deleted: [] as string[], failed: [] as string[] };
   }
 
-  const rest = discordRest();
   const deleted: string[] = [];
   const failed: string[] = [];
 
-  for (const row of expired) {
+  await runWithConcurrency(expired, SYNC_CONCURRENCY, async (row) => {
     try {
-      if (!rest) {
-        throw new Error("Discord bot credentials are not configured.");
-      }
-
       try {
         await rest.delete(Routes.channel(row.channelSnowflake));
       } catch (error) {
@@ -1367,7 +1383,7 @@ export async function deleteExpiredHackathonDiscordChannels(now = new Date()) {
         extra: { hackathonId: row.hackathonId, hackathonName: row.name },
       });
     }
-  }
+  });
 
   return { expired: expired.length, deleted, failed };
 }

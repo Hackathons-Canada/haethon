@@ -5,7 +5,7 @@ import { hackathons } from "@/lib/db/schema";
 import { sourceBadge } from "@/lib/hackathons/source-provenance";
 import type { HackathonSourceBadge } from "@/lib/hackathons/source-provenance";
 
-export { COMMUNITY_FORM_SOURCE_URL, deriveSourceType, HACKATHON_SOURCES, sourceBadge } from "@/lib/hackathons/source-provenance";
+export { COMMUNITY_FORM_SOURCE_URL, compileSourceType, deriveSourceType, HACKATHON_SOURCES, sourceBadge } from "@/lib/hackathons/source-provenance";
 export type { HackathonSource, HackathonSourceBadge } from "@/lib/hackathons/source-provenance";
 
 /**

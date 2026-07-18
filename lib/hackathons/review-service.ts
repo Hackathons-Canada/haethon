@@ -25,7 +25,7 @@ import {
 } from "@/lib/hackathons/utils";
 import type { CommunitySubmissionInput, HackathonSubmissionInput, NormalizedHackathonPayload } from "@/lib/hackathons/utils";
 import { ensureHackathonSeries } from "@/lib/hackathons/series";
-import { deriveSourceType } from "@/lib/hackathons/source-badges";
+import { compileSourceType } from "@/lib/hackathons/source-badges";
 import type { HackathonSource } from "@/lib/hackathons/source-provenance";
 import { deleteHackathon } from "@/lib/hackathons/admin-service";
 import { revalidateHackathonCaches } from "@/lib/hackathons/catalog";
@@ -226,7 +226,7 @@ export async function createPublishedHackathon(
       prizeAmountUsd: payload.prizeAmountUsd,
       // Compiled once here. An explicit feed identity wins because the event
       // URL may point somewhere else (for example MLH linking to Devpost).
-      source: options?.source ?? deriveSourceType(payload.sourceUrl, payload.websiteUrl),
+      source: compileSourceType(options?.source, payload.sourceUrl, payload.websiteUrl),
       lastVerifiedAt: now,
       dataConfidenceScore: "0.85",
       publishedAt: now,
@@ -290,9 +290,9 @@ async function mergeIntoHackathon(targetHackathonId: string, payload: Normalized
       travelReimbursement: existing.travelReimbursement || payload.travelReimbursement,
       highSchoolersOnly: existing.highSchoolersOnly || payload.highSchoolersOnly,
       prizeAmountUsd: existing.prizeAmountUsd ?? payload.prizeAmountUsd,
-      // First source wins: a later sighting only fills the gap when the
-      // hackathon was created before sources were compiled.
-      source: existing.source ?? deriveSourceType(payload.sourceUrl, payload.websiteUrl),
+      // Source is creation-time provenance. In particular, preserve null when
+      // an admin deliberately selected "None" instead of deriving it again.
+      source: existing.source,
       lastVerifiedAt: new Date(),
       updatedAt: new Date(),
     })
