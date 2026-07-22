@@ -102,12 +102,12 @@ function FaceoffCardFace({
         <div aria-hidden="true" className="absolute inset-0 -z-10">
           <Image
             alt=""
-            className="scale-125 object-cover opacity-[0.14] blur-2xl dark:opacity-20"
+            className="scale-125 object-cover opacity-25 saturate-150 blur-xl dark:opacity-40"
             fill
             sizes="480px"
             src={`/api/hackathons/${encodeURIComponent(hackathon.id)}/logo`}
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-white/20 via-white/80 to-white dark:from-transparent dark:via-[#1b1b1b]/80 dark:to-[#1b1b1b]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-white/60 to-white dark:from-transparent dark:via-[#1b1b1b]/55 dark:to-[#1b1b1b]" />
         </div>
       ) : null}
       <div
@@ -374,10 +374,10 @@ export function FaceoffArena({ pool }: { pool: FaceoffHackathon[] }) {
                               : { scale: 1, opacity: 1 }
                     }
                     aria-label={`Vote ${hackathon.name} to win over ${opponent.name}`}
-                    className={`group relative order-1 overflow-visible rounded-3xl border bg-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cabernet/40 dark:bg-[#1b1b1b] dark:focus-visible:outline-wheat/40 ${outcomeClasses} ${
+                    className={`group relative overflow-visible rounded-3xl border bg-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cabernet/40 dark:bg-[#1b1b1b] dark:focus-visible:outline-wheat/40 ${outcomeClasses} ${
                       side === "left"
-                        ? "sm:col-start-1 sm:row-start-1 sm:rounded-r-none sm:border-r-0"
-                        : "sm:order-3 sm:col-start-3 sm:row-start-1 sm:rounded-l-none sm:border-l-0"
+                        ? "order-1 sm:col-start-1 sm:row-start-1 sm:rounded-r-none sm:border-r-0"
+                        : "order-3 sm:col-start-3 sm:row-start-1 sm:rounded-l-none sm:border-l-0"
                     }`}
                     disabled={phase !== "idle"}
                     key={hackathon.id}
