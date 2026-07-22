@@ -49,19 +49,24 @@ export default function Home() {
         <div className="relative z-10 mx-auto flex max-w-[640px] flex-col items-center px-5 text-center sm:px-8 lg:max-w-[700px]">
           <HeroHeadline />
 
-          <LandingReveal delay={0.45}>
-            <p className="mt-6 max-w-[34rem] text-base leading-relaxed text-navy/60 sm:text-lg dark:text-wheat/65">
+          <LandingReveal delay={0.55}>
+            <p className="mt-6 max-w-[34rem] text-pretty text-base leading-relaxed text-navy/60 sm:text-lg dark:text-wheat/65">
               Search hundreds of upcoming hackathons, build your profile, and
               never miss another application deadline.
             </p>
           </LandingReveal>
 
-          <LandingReveal delay={0.6}>
+          <LandingReveal delay={0.7}>
             <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
               <Link
                 href="/hackathons"
-                className="group inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-cabernet px-6 text-sm font-semibold text-wheat shadow-[0_12px_32px_-12px_rgba(114,28,36,0.6)] transition duration-300 hover:-translate-y-0.5 hover:bg-[#5c151c] hover:shadow-[0_18px_40px_-12px_rgba(114,28,36,0.7)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cabernet active:translate-y-0 dark:bg-wheat dark:text-[#141414] dark:shadow-[0_12px_32px_-12px_rgba(244,235,217,0.35)] dark:hover:bg-white dark:hover:shadow-[0_18px_40px_-12px_rgba(244,235,217,0.45)] dark:focus-visible:outline-wheat"
+                className="group relative inline-flex min-h-11 items-center justify-center gap-2 overflow-hidden rounded-full bg-cabernet px-6 text-sm font-semibold text-wheat shadow-[0_12px_32px_-12px_rgba(114,28,36,0.6)] transition duration-300 hover:-translate-y-0.5 hover:bg-[#5c151c] hover:shadow-[0_18px_40px_-12px_rgba(114,28,36,0.7)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cabernet active:translate-y-0 dark:bg-wheat dark:text-[#141414] dark:shadow-[0_12px_32px_-12px_rgba(244,235,217,0.35)] dark:hover:bg-white dark:hover:shadow-[0_18px_44px_-12px_rgba(134,227,190,0.4)] dark:focus-visible:outline-wheat"
               >
+                {/* Sheen that sweeps across the pill on hover. */}
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0 -translate-x-[130%] bg-[linear-gradient(105deg,transparent_30%,rgba(255,255,255,0.45)_50%,transparent_70%)] transition-transform duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-[130%] motion-reduce:hidden"
+                />
                 Open App
                 <span
                   aria-hidden="true"
@@ -72,16 +77,33 @@ export default function Home() {
               </Link>
               <Link
                 href="/about"
-                className="inline-flex min-h-11 items-center justify-center rounded-full border border-navy/15 bg-white/70 px-6 text-sm font-semibold text-navy backdrop-blur-sm transition duration-300 hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_12px_28px_-14px_rgba(29,42,68,0.35)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-navy/30 active:translate-y-0 dark:border-white/15 dark:bg-white/5 dark:text-wheat dark:hover:bg-white/10 dark:hover:shadow-[0_12px_28px_-14px_rgba(0,0,0,0.6)] dark:focus-visible:outline-wheat"
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-navy/15 bg-white/70 px-6 text-sm font-semibold text-navy backdrop-blur-sm transition duration-300 hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_12px_28px_-14px_rgba(29,42,68,0.35)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-navy/30 active:translate-y-0 dark:border-white/15 dark:bg-white/5 dark:text-wheat dark:hover:border-white/25 dark:hover:bg-white/10 dark:hover:shadow-[0_12px_28px_-14px_rgba(0,0,0,0.6)] dark:focus-visible:outline-wheat"
               >
                 About HNA
               </Link>
             </div>
             <p className="mt-4 text-[0.75rem] text-navy/40 dark:text-wheat/40">
-              Free for hackers. Built for North America.
+              Free for hackers <span aria-hidden="true">·</span> Built for
+              North America
             </p>
           </LandingReveal>
         </div>
+
+        {/* Scroll cue — a drip of light running down toward the map. */}
+        <LandingReveal
+          className="absolute inset-x-0 bottom-8 z-10 hidden justify-center sm:flex"
+          delay={1.2}
+        >
+          <a
+            href="#coverage"
+            className="group flex flex-col items-center gap-2.5 font-mono text-[0.6rem] font-medium uppercase tracking-[0.24em] text-wheat/35 transition-colors duration-300 hover:text-wheat/75 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-wheat"
+          >
+            Scroll
+            <span className="block h-10 w-px overflow-hidden rounded-full bg-white/10">
+              <span className="block h-full w-full animate-scroll-drip bg-gradient-to-b from-transparent via-wheat/70 to-transparent motion-reduce:animate-none" />
+            </span>
+          </a>
+        </LandingReveal>
 
         <div className="relative z-10 mx-auto mt-14 grid max-w-[360px] grid-cols-2 gap-3 px-6 sm:hidden">
           {mobilePolaroids.map((shot, i) => (
@@ -110,8 +132,9 @@ export default function Home() {
       </section>
 
       <section
+        id="coverage"
         aria-labelledby="coverage-heading"
-        className="px-5 py-16 sm:px-8 sm:py-20 lg:px-12"
+        className="scroll-mt-24 px-5 py-16 sm:px-8 sm:py-20 lg:px-12"
       >
         <div className="mx-auto max-w-[1100px]">
           <div className="max-w-[36rem]">

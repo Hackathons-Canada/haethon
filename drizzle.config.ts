@@ -22,6 +22,7 @@ const appTables = [
   "discord_guilds",
   "hackathon_checkin_codes",
   "hackathon_dates",
+  "hackathon_faceoff_votes",
   "hackathon_locations",
   "hackathon_results",
   "hackathon_series",

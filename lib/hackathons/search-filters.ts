@@ -14,6 +14,9 @@ export type HackathonFormatFilter = "any" | "online" | "in_person";
 /* "any" or a radius in km around the user's position. The position itself is
    ephemeral browser state (IP lookup or geolocation), never part of the URL. */
 export type DistanceFilter = "any" | number;
+/* "grid" is the existing card browse view (now Elo + local-country ranked);
+   "tier" is the S/A/B/C/D tier list; "ranking" is the numbered leaderboard. */
+export type HackathonViewMode = "grid" | "tier" | "ranking";
 
 export type HackathonSearchFilters = {
   beginnerFriendly: FeatureFilter;
@@ -24,7 +27,20 @@ export type HackathonSearchFilters = {
   highSchoolersOnly: FeatureFilter;
   name: string;
   travelReimbursement: FeatureFilter;
+  view: HackathonViewMode;
 };
+
+export const viewModeOptions: { label: string; value: HackathonViewMode }[] = [
+  { label: "Browse", value: "grid" },
+  { label: "Tier List", value: "tier" },
+  { label: "Ranking", value: "ranking" },
+];
+
+const viewModeValues = new Set<HackathonViewMode>(["grid", "tier", "ranking"]);
+
+function isViewMode(value: string): value is HackathonViewMode {
+  return viewModeValues.has(value as HackathonViewMode);
+}
 
 export const datePeriodOptions: { label: string; value: DatePeriod }[] = [
   { label: "Any date", value: "any" },
@@ -92,6 +108,7 @@ function splitCountryParam(value: string) {
 
 export function normalizeSearchFilters(searchParams: Record<string, string | string[] | undefined>): HackathonSearchFilters {
   const rawName = firstParam(searchParams.q);
+  const viewValue = firstParam(searchParams.view);
   const datePeriodValue = firstParam(searchParams.datePeriod);
   const rawDistance = firstParam(searchParams.distanceKm);
   const distanceValue = rawDistance ? Number(rawDistance) : Number.NaN;
@@ -115,6 +132,7 @@ export function normalizeSearchFilters(searchParams: Record<string, string | str
     name: rawName?.trim() ?? "",
     travelReimbursement:
       travelReimbursementValue && isFeatureFilter(travelReimbursementValue) ? travelReimbursementValue : "any",
+    view: viewValue && isViewMode(viewValue) ? viewValue : "grid",
   };
 }
 

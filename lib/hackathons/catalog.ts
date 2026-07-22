@@ -55,7 +55,14 @@ type CatalogQuery = {
 type PublicHackathonCard = {
   beginnerFriendly: boolean;
   country: string | null;
+  /* Two-letter ISO code, used to match the visitor's IP-geo country for the
+     "push local hackathons to the top" boost — display name alone isn't a
+     reliable join key. */
+  countryCode: string | null;
   date: string;
+  eloRating: number;
+  faceoffLosses: number;
+  faceoffWins: number;
   format: "online" | "in_person";
   hasDiscord: boolean;
   highSchoolersOnly: boolean;
@@ -129,9 +136,13 @@ async function queryCatalogPage(query: CatalogQuery): Promise<CatalogPage> {
       highSchoolersOnly: hackathons.highSchoolersOnly,
       voteDisplayOffset: hackathons.voteDisplayOffset,
       voteScore: hackathons.voteScore,
+      eloRating: hackathons.eloRating,
+      faceoffWins: hackathons.faceoffWins,
+      faceoffLosses: hackathons.faceoffLosses,
       city: hackathonLocations.city,
       region: hackathonLocations.region,
       country: hackathonLocations.country,
+      countryCode: hackathonLocations.countryCode,
       latitude: hackathonLocations.latitude,
       longitude: hackathonLocations.longitude,
       startsAt: hackathonDates.startsAt,
@@ -220,7 +231,11 @@ async function queryCatalogPage(query: CatalogQuery): Promise<CatalogPage> {
       return {
         beginnerFriendly: row.beginnerFriendly,
         country: location.country,
+        countryCode: row.countryCode ?? null,
         date: formatDateRange(row.startsAt, row.endsAt),
+        eloRating: row.eloRating,
+        faceoffWins: row.faceoffWins,
+        faceoffLosses: row.faceoffLosses,
         format: row.format,
         hasDiscord: discordHackathonIds.has(row.id),
         highSchoolersOnly: row.highSchoolersOnly,

@@ -12,10 +12,12 @@ import {
   Compass,
   Settings,
   ShieldCheck,
+  Swords,
 } from "lucide-react";
 
 const items = [
   { href: "/hackathons", icon: Compass, label: "Hackathons DB" },
+  { href: "/face-off", icon: Swords, label: "Face Off" },
   { href: "/my", icon: CalendarDays, label: "My Hackathons" },
   { href: "/account", icon: CircleUser, label: "Hacker Profile" },
   { href: "/account/settings", icon: Settings, label: "Account Settings" },

@@ -15,4 +15,28 @@
   --font-sans: var(--font-space-grotesk);
   --font-serif: var(--font-newsreader);
   --font-mono: var(--font-plex-mono);
+  --animate-aurora-shimmer: aurora-shimmer 8s ease-in-out infinite;
+  --animate-scroll-drip: scroll-drip 2.6s cubic-bezier(0.45, 0, 0.25, 1) infinite;
+}
+
+/* Aurora light sweeping through gradient-clipped text. */
+@keyframes aurora-shimmer {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* A pulse of light falling down the hero scroll cue, with a beat between drips. */
+@keyframes scroll-drip {
+  0% {
+    transform: translateY(-100%);
+  }
+  65%,
+  100% {
+    transform: translateY(100%);
+  }
 }

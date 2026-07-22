@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowBigDown, ArrowBigUp, BellPlus, Bookmark, Check, ChevronDown } from "lucide-react";
+import { ArrowBigDown, ArrowBigUp, BellPlus, Bookmark, Check, ChevronDown, Swords } from "lucide-react";
 
 import { DiscordGlyph } from "@/components/discord-glyph";
 import { hackathonLogoSrc, isDirectImageUrl } from "@/lib/hackathons/logo-hosts";
@@ -19,7 +19,13 @@ export type HackathonCardData = {
   /** Search metadata sent with the cached catalog snapshot. */
   beginnerFriendly?: boolean;
   country?: string | null;
+  /** Two-letter ISO code — used for the "near me" local-country boost. */
+  countryCode?: string | null;
   date: string;
+  /** Face Off head-to-head rating. Undefined only for hand-built preview cards. */
+  eloRating?: number;
+  faceoffLosses?: number;
+  faceoffWins?: number;
   format?: "online" | "in_person";
   hasDiscord?: boolean;
   highSchoolersOnly?: boolean;
@@ -630,8 +636,18 @@ export function HackathonCard({
           {hackathon.beginnerFriendly ||
           hackathon.travelReimbursement ||
           hackathon.highSchoolersOnly ||
-          hackathon.hasDiscord ? (
+          hackathon.hasDiscord ||
+          typeof hackathon.eloRating === "number" ? (
             <div className="mt-2 flex flex-wrap items-center gap-2">
+              {typeof hackathon.eloRating === "number" ? (
+                <span
+                  className="relative z-10 inline-flex items-center gap-1 rounded-full border border-navy/15 bg-navy/[0.03] px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-navy/55 dark:border-white/15 dark:bg-white/[0.04] dark:text-wheat/55"
+                  title="Face Off Elo rating"
+                >
+                  <Swords aria-hidden="true" className="size-3" />
+                  {hackathon.eloRating}
+                </span>
+              ) : null}
               {hackathon.beginnerFriendly ? (
                 <span className="relative z-10 inline-flex items-center rounded-full border border-cabernet/20 bg-cabernet/[0.05] px-2.5 py-1 text-[11px] font-semibold text-cabernet dark:border-[#e4a3ab]/30 dark:bg-[#e4a3ab]/10 dark:text-[#e4a3ab]">
                   Beginner friendly

@@ -190,6 +190,11 @@ export const hackathons = pgTable(
     // Beta-only presentation value. Keep it separate from the real vote score
     // so voting, ranking, and reporting always use the genuine total.
     voteDisplayOffset: integer("vote_display_offset").notNull().default(0),
+    // Head-to-head Face Off ranking. Seeded once by scripts/backfill-hackathon-elo.ts
+    // (1500 = untouched default) and updated per matchup in /api/faceoff/vote.
+    eloRating: integer("elo_rating").notNull().default(1500),
+    faceoffWins: integer("faceoff_wins").notNull().default(0),
+    faceoffLosses: integer("faceoff_losses").notNull().default(0),
     lastVerifiedAt: timestamp("last_verified_at", { withTimezone: true }),
     dataConfidenceScore: numeric("data_confidence_score", { precision: 5, scale: 2 }).default("0"),
     publishedAt: timestamp("published_at", { withTimezone: true }),
@@ -384,6 +389,38 @@ export const userHackathonVotes = pgTable(
   (table) => [
     uniqueIndex("user_hackathon_votes_user_event_idx").on(table.userId, table.hackathonId),
     index("user_hackathon_votes_hackathon_idx").on(table.hackathonId),
+  ]
+);
+
+/* One row per Face Off matchup vote. Signed-in voters are keyed by userId;
+   anonymous voters (allowed, per product decision) are keyed by a random id
+   stored in a long-lived cookie — voterFingerprint is always set so recent-vote
+   throttling works for both. Elo before/after is stored on the row (rather than
+   only on the hackathon) purely for the "+18 Elo" reveal in the Face Off UI. */
+export const hackathonFaceoffVotes = pgTable(
+  "hackathon_faceoff_votes",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    winnerId: uuid("winner_id")
+      .notNull()
+      .references(() => hackathons.id, { onDelete: "cascade" }),
+    loserId: uuid("loser_id")
+      .notNull()
+      .references(() => hackathons.id, { onDelete: "cascade" }),
+    voterUserId: uuid("voter_user_id").references(() => users.id, { onDelete: "set null" }),
+    voterFingerprint: varchar("voter_fingerprint", { length: 64 }).notNull(),
+    winnerEloBefore: integer("winner_elo_before").notNull(),
+    winnerEloAfter: integer("winner_elo_after").notNull(),
+    loserEloBefore: integer("loser_elo_before").notNull(),
+    loserEloAfter: integer("loser_elo_after").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("hackathon_faceoff_votes_winner_idx").on(table.winnerId),
+    index("hackathon_faceoff_votes_loser_idx").on(table.loserId),
+    // Throttling reads "has this voter already judged this pair recently" —
+    // always looked up by fingerprint plus one side of the matchup.
+    index("hackathon_faceoff_votes_voter_idx").on(table.voterFingerprint, table.createdAt),
   ]
 );
 
@@ -723,6 +760,25 @@ export const hackathonsRelations = relations(hackathons, ({ one, many }) => ({
   attendanceDays: many(userHackathonAttendanceDays),
   notificationPreferences: many(userHackathonNotificationPreferences),
   votes: many(userHackathonVotes),
+  faceoffWinsLog: many(hackathonFaceoffVotes, { relationName: "faceoffWinner" }),
+  faceoffLossesLog: many(hackathonFaceoffVotes, { relationName: "faceoffLoser" }),
+}));
+
+export const hackathonFaceoffVotesRelations = relations(hackathonFaceoffVotes, ({ one }) => ({
+  winner: one(hackathons, {
+    fields: [hackathonFaceoffVotes.winnerId],
+    references: [hackathons.id],
+    relationName: "faceoffWinner",
+  }),
+  loser: one(hackathons, {
+    fields: [hackathonFaceoffVotes.loserId],
+    references: [hackathons.id],
+    relationName: "faceoffLoser",
+  }),
+  voter: one(users, {
+    fields: [hackathonFaceoffVotes.voterUserId],
+    references: [users.id],
+  }),
 }));
 
 export const hackathonSeriesRelations = relations(hackathonSeries, ({ many }) => ({
@@ -739,3 +795,4 @@ export type SelectHackathonSeries = typeof hackathonSeries.$inferSelect;
 export type SelectHackathon = typeof hackathons.$inferSelect;
 export type SelectUser = typeof users.$inferSelect;
 export type SelectHackathonSubmission = typeof hackathonSubmissions.$inferSelect;
+export type SelectHackathonFaceoffVote = typeof hackathonFaceoffVotes.$inferSelect;

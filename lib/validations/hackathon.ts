@@ -484,3 +484,12 @@ export const attendanceAnomalyResolveSchema = z.object({
 export const hackathonVoteSchema = z.object({
   vote: z.union([z.literal(-1), z.literal(0), z.literal(1)]),
 });
+
+export const faceoffVoteSchema = z
+  .object({
+    winnerId: z.string().uuid(),
+    loserId: z.string().uuid(),
+  })
+  .refine((value) => value.winnerId !== value.loserId, {
+    message: "A hackathon can't face off against itself.",
+  });

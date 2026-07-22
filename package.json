@@ -21,6 +21,7 @@
     "backfill:import-submission-origin": "tsx scripts/backfill-import-submission-origin.ts",
     "backfill:passive-verification": "tsx scripts/backfill-passive-verification.ts",
     "backfill:location-coordinates": "tsx scripts/backfill-location-coordinates.ts",
+    "backfill:hackathon-elo": "tsx scripts/backfill-hackathon-elo.ts",
     "repair:checkin-codes": "node scripts/db/repair-checkin-codes.mjs"
   },
   "dependencies": {

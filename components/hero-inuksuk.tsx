@@ -68,6 +68,32 @@ const meteors = [
 
 type Meteor = (typeof meteors)[number];
 
+/* Rare four-point glints scattered through the sky — brighter than the
+   twinkle field, slow enough to feel like a reward for lingering. */
+const sparkles = [
+  { top: "10%", left: "24%", size: 14, delay: 3, duration: 6.5, repeatDelay: 7 },
+  { top: "17%", left: "76%", size: 18, delay: 9, duration: 7.5, repeatDelay: 10 },
+  { top: "30%", left: "11%", size: 12, delay: 15, duration: 7, repeatDelay: 13 },
+] as const;
+
+type SparkleProps = (typeof sparkles)[number];
+
+function Sparkle({ top, left, size, delay, duration, repeatDelay }: SparkleProps) {
+  return (
+    <motion.span
+      className="absolute block"
+      style={{ top, left, width: size, height: size }}
+      initial={{ opacity: 0, scale: 0.4, rotate: -18 }}
+      animate={{ opacity: [0, 0.9, 0], scale: [0.4, 1, 0.4], rotate: 22 }}
+      transition={{ delay, duration, repeat: Infinity, repeatDelay, ease: "easeInOut" }}
+    >
+      <span className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-gradient-to-b from-transparent via-wheat/90 to-transparent" />
+      <span className="absolute left-0 top-1/2 h-px w-full -translate-y-1/2 bg-gradient-to-r from-transparent via-wheat/90 to-transparent" />
+      <span className="absolute left-1/2 top-1/2 size-[3px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-[0_0_8px_2px_rgb(244_235_217_/_0.5)]" />
+    </motion.span>
+  );
+}
+
 function ShootingStar({ meteor }: { meteor: Meteor }) {
   const { top, left, angle, distance, tail, duration, delay, repeatDelay, brightness } = meteor;
   /* The wrapper sets the flight angle; the inner span only ever translates
@@ -144,6 +170,28 @@ export function HeroAurora() {
         style={{
           background:
             "linear-gradient(180deg, #0a1220 0%, #0e151e 42%, #141414 80%)",
+        }}
+      />
+
+      {/* Faint second ribbon high above the arc — dimmer and drifting the
+          other way, so the sky reads as layered curtains, not one band. */}
+      <motion.div
+        className="absolute inset-x-[-18%] top-[-14%] h-[36%] rotate-[-3deg]"
+        animate={
+          still
+            ? undefined
+            : { x: ["0%", "-1.5%", "1%", "0%"], opacity: [0.5, 0.75, 0.55, 0.5] }
+        }
+        transition={
+          still
+            ? undefined
+            : { duration: 24, repeat: Infinity, ease: "easeInOut", delay: 3 }
+        }
+        style={{
+          background:
+            "linear-gradient(97deg, transparent 6%, rgb(88 156 142 / 0.14) 28%, rgb(134 227 190 / 0.18) 46%, rgb(150 110 180 / 0.12) 68%, transparent 92%)",
+          filter: "blur(42px)",
+          opacity: still ? 0.55 : undefined,
         }}
       />
 
@@ -267,6 +315,13 @@ export function HeroAurora() {
           }}
         />
       ))}
+
+      {/* Star glints — occasional four-point flares among the twinkles. */}
+      {still
+        ? null
+        : sparkles.map((sparkle) => (
+            <Sparkle key={`${sparkle.top}-${sparkle.left}`} {...sparkle} />
+          ))}
 
       {/* Shooting stars — every so often one crosses the sky. Blink and you
           miss it; watch long enough and the bright one rewards you. */}

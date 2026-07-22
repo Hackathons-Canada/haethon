@@ -3,22 +3,41 @@
 import Link from "next/link";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { Archive, CalendarDays, Check, Globe2, LocateFixed, MapPin, Navigation, PlusSquare, Search, Settings2, X } from "lucide-react";
+import {
+  Archive,
+  CalendarDays,
+  Check,
+  Globe2,
+  LayoutGrid,
+  ListOrdered,
+  LocateFixed,
+  MapPin,
+  Navigation,
+  PlusSquare,
+  Search,
+  Settings2,
+  Trophy,
+  X,
+} from "lucide-react";
 
 import { HackathonCard } from "@/components/hackathon-card";
 import type { HackathonCardData } from "@/components/hackathon-card";
+import { HackathonRankingList } from "@/components/hackathon-ranking-list";
+import { HackathonTierList } from "@/components/hackathon-tier-list";
 import type { GeoPoint } from "@/lib/geo";
 import { countryOptions } from "@/lib/hackathons/countries";
 import { filterLocalHackathonCatalog } from "@/lib/hackathons/local-catalog-search";
+import { sortByEloWithLocalBoost } from "@/lib/hackathons/ranking";
 import { activeRegionPreset, regionPresets } from "@/lib/hackathons/region-presets";
 import type { RegionPresetId } from "@/lib/hackathons/region-presets";
-import { datePeriodOptions, distanceOptions } from "@/lib/hackathons/search-filters";
+import { datePeriodOptions, distanceOptions, viewModeOptions } from "@/lib/hackathons/search-filters";
 import type {
   DatePeriod,
   DistanceFilter,
   FeatureFilter,
   HackathonFormatFilter,
   HackathonSearchFilters,
+  HackathonViewMode,
 } from "@/lib/hackathons/search-filters";
 
 const countryListboxId = "hackathon-country-options";
@@ -30,10 +49,18 @@ const distancePopoverId = "hackathon-distance-popover";
 
 type OpenPopover = "countries" | "date" | "format" | "features" | "distance" | null;
 
-/* The user's position for the distance filter. IP-based (free Vercel geo
-   headers, no permission prompt) by default; "precise" comes from the browser
-   geolocation API when the user asks for it. */
-type UserOrigin = GeoPoint & { label: string | null; precise: boolean };
+/* The user's position for the distance filter (and, via countryCode, the
+   Browse/Ranking views' "push local hackathons to the top" boost). IP-based
+   (free Vercel geo headers, no permission prompt) by default; "precise" comes
+   from the browser geolocation API when the user asks for it — that path has
+   no country of its own, so countryCode stays null and the boost no-ops. */
+type UserOrigin = GeoPoint & { label: string | null; precise: boolean; countryCode?: string | null };
+
+const viewModeIcons: Record<HackathonViewMode, typeof LayoutGrid> = {
+  grid: LayoutGrid,
+  tier: Trophy,
+  ranking: ListOrdered,
+};
 
 const formatOptions: { label: string; value: HackathonFormatFilter; detail: string }[] = [
   { label: "Any format", value: "any", detail: "Show online and in person events" },
@@ -73,6 +100,7 @@ function replaceSearchUrl(
     highSchoolersOnly,
     name,
     travelReimbursement,
+    view,
   }: HackathonSearchFilters,
   basePath: string
 ) {
@@ -106,6 +134,10 @@ function replaceSearchUrl(
 
   if (highSchoolersOnly !== "any") {
     params.set("highSchoolersOnly", highSchoolersOnly);
+  }
+
+  if (view !== "grid") {
+    params.set("view", view);
   }
 
   const query = params.toString();
@@ -145,6 +177,7 @@ export function HackathonSearch({
   const [beginnerFriendly, setBeginnerFriendly] = useState<FeatureFilter>(initialFilters.beginnerFriendly);
   const [travelReimbursement, setTravelReimbursement] = useState<FeatureFilter>(initialFilters.travelReimbursement);
   const [highSchoolersOnly, setHighSchoolersOnly] = useState<FeatureFilter>(initialFilters.highSchoolersOnly);
+  const [view, setView] = useState<HackathonViewMode>(initialFilters.view);
   const [catalog, setCatalog] = useState(initialHackathons);
   const [openPopover, setOpenPopover] = useState<OpenPopover>(null);
   const filterFormRef = useRef<HTMLFormElement>(null);
@@ -204,41 +237,48 @@ export function HackathonSearch({
     );
   }
 
-  /* Prompt-free default: Vercel's IP geo headers via /api/geo (city-level,
-     free). Falls back to browser geolocation when they are unavailable
-     (e.g. local dev). */
-  async function locate() {
-    setLocationState("locating");
-
+  /* Prompt-free: Vercel's IP geo headers via /api/geo (city-level, free).
+     Returns whether a position was found, so callers can decide whether to
+     escalate to the (permission-prompting) browser API. */
+  async function locateViaIp() {
     try {
       const response = await fetch("/api/geo");
       const body = (await response.json()) as {
-        data: { latitude: number; longitude: number; city: string | null } | null;
+        data: { latitude: number; longitude: number; city: string | null; countryCode: string | null } | null;
       };
 
       if (body.data) {
         setOrigin({ ...body.data, label: body.data.city, precise: false });
         setLocationState("ready");
-        return;
+        return true;
       }
     } catch {
       // Fall through to the browser API.
     }
 
-    locateWithBrowser();
+    return false;
   }
 
-  /* Distance picks trigger locate() from their click handler; this only
-     covers landing on a URL that already carries a distance filter. */
-  useEffect(() => {
-    if (initialFilters.distanceKm === "any") {
+  /* Used when the visitor explicitly asks for location (a distance filter
+     pick): IP lookup first, then the browser prompt if that came up empty. */
+  async function locate() {
+    setLocationState("locating");
+
+    if (await locateViaIp()) {
       return;
     }
 
-    const timeout = setTimeout(() => void locate(), 0);
+    locateWithBrowser();
+  }
+
+  /* Runs on every load, prompt-free, so the Browse/Ranking views can push the
+     visitor's own country to the top without them doing anything. Distance
+     picks trigger the full locate() (with a browser-prompt fallback) from
+     their own click handler; this only ever does the silent IP lookup. */
+  useEffect(() => {
+    const timeout = setTimeout(() => void locateViaIp(), 0);
 
     return () => clearTimeout(timeout);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -275,24 +315,49 @@ export function HackathonSearch({
   ];
 
   const currentFilters = useMemo(
-    () => ({ beginnerFriendly, countries, datePeriod, distanceKm, format, highSchoolersOnly, name, travelReimbursement }),
-    [beginnerFriendly, countries, datePeriod, distanceKm, format, highSchoolersOnly, name, travelReimbursement]
+    () => ({
+      beginnerFriendly,
+      countries,
+      datePeriod,
+      distanceKm,
+      format,
+      highSchoolersOnly,
+      name,
+      travelReimbursement,
+      view,
+    }),
+    [beginnerFriendly, countries, datePeriod, distanceKm, format, highSchoolersOnly, name, travelReimbursement, view]
   );
   const activeFilters = useMemo(() => hasActiveFilters(currentFilters), [currentFilters]);
   const filteredHackathons = useMemo(
     () => filterLocalHackathonCatalog(catalog, currentFilters, origin),
     [catalog, currentFilters, origin]
   );
-  /* The catalog arrives with past (recurring) editions already ordered after
-     everything upcoming; splitting on isPast keeps that order while letting the
-     grid draw an explicit archive divider between the two groups. */
-  const upcomingHackathons = useMemo(
-    () => filteredHackathons.filter((hackathon) => !hackathon.isPast),
+  /* eloRating/countryCode are optional on HackathonCardData (some call sites,
+     like the admin preview card, don't have them) but always present on the
+     real catalog snapshot these views render — normalized here once so the
+     ranking helpers below can rely on a definite number. */
+  const rankableHackathons = useMemo(
+    () => filteredHackathons.map((hackathon) => ({ ...hackathon, eloRating: hackathon.eloRating ?? 1500 })),
     [filteredHackathons]
   );
+  const originCountryCode = origin?.countryCode ?? null;
+  const eloRankedHackathons = useMemo(
+    () => sortByEloWithLocalBoost(rankableHackathons, originCountryCode),
+    [rankableHackathons, originCountryCode]
+  );
+  /* The catalog arrives with past (recurring) editions already ordered after
+     everything upcoming; splitting on isPast keeps that order while letting the
+     grid draw an explicit archive divider between the two groups. Grid view is
+     Elo-ranked like the other views, so the split reads off eloRankedHackathons
+     rather than the raw filtered list. */
+  const upcomingHackathons = useMemo(
+    () => eloRankedHackathons.filter((hackathon) => !hackathon.isPast),
+    [eloRankedHackathons]
+  );
   const pastHackathons = useMemo(
-    () => filteredHackathons.filter((hackathon) => hackathon.isPast),
-    [filteredHackathons]
+    () => eloRankedHackathons.filter((hackathon) => hackathon.isPast),
+    [eloRankedHackathons]
   );
   const selectedPreset = useMemo(() => activeRegionPreset({ countries, format }), [countries, format]);
   const filteredCountries = useMemo(() => {
@@ -876,44 +941,86 @@ export function HackathonSearch({
 
       <section className="px-5 pb-16 pt-10 sm:px-8 sm:pb-20 lg:px-12">
         <div className="mx-auto max-w-[1120px]">
-          <div className="mb-7">
-            <h1 className="font-serif text-3xl font-semibold tracking-[-0.02em] text-navy dark:text-wheat sm:text-4xl">Upcoming hackathons</h1>
+          <div className="mb-7 flex flex-wrap items-center justify-between gap-4">
+            <h1 className="font-serif text-3xl font-semibold tracking-[-0.02em] text-navy dark:text-wheat sm:text-4xl">
+              {view === "tier" ? "Tier list" : view === "ranking" ? "Elo ranking" : "Upcoming hackathons"}
+            </h1>
+            <div
+              aria-label="Hackathon view"
+              className="inline-flex items-center gap-1 rounded-full border border-navy/10 bg-white/70 p-1 shadow-[0_10px_32px_-14px_rgba(29,42,68,0.3)] backdrop-blur-xl dark:border-white/10 dark:bg-white/[0.06]"
+              role="tablist"
+            >
+              {viewModeOptions.map((option) => {
+                const Icon = viewModeIcons[option.value];
+                const active = view === option.value;
+
+                return (
+                  <button
+                    aria-selected={active}
+                    className={`inline-flex min-h-9 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40 ${
+                      active
+                        ? "bg-cabernet text-wheat dark:bg-wheat dark:text-[#141414]"
+                        : "text-navy/55 hover:bg-navy/[0.05] hover:text-navy dark:text-wheat/55 dark:hover:bg-white/5 dark:hover:text-wheat"
+                    }`}
+                    key={option.value}
+                    onClick={() => setView(option.value)}
+                    role="tab"
+                    type="button"
+                  >
+                    <Icon aria-hidden="true" className="size-4" />
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
-          {filteredHackathons.length ? (
-            <>
-              {upcomingHackathons.length ? (
-                <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
-                  {upcomingHackathons.map((hackathon) => (
-                    <Fragment key={hackathon.id}>{renderCardNode(hackathon, cardHelpers)}</Fragment>
-                  ))}
-                </div>
-              ) : null}
+          {view === "grid" && !activeFilters ? (
+            <p className="mb-6 -mt-3 text-sm leading-5 text-navy/50 dark:text-wheat/50">
+              Ranked by Face Off Elo{originCountryCode ? " — hackathons near you first." : "."}
+            </p>
+          ) : null}
 
-              {/* Past recurring editions sit below a labeled rule so the cutoff
-                  between live events and the archive is unmistakable. */}
-              {pastHackathons.length ? (
-                <>
-                  <div
-                    aria-label="Archived hackathons"
-                    className={`flex items-center gap-4 ${upcomingHackathons.length ? "mt-14" : "mt-2"}`}
-                    role="separator"
-                  >
-                    <span aria-hidden="true" className="h-px flex-1 bg-navy/15 dark:bg-white/15" />
-                    <span className="inline-flex items-center gap-2 font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-navy/55 dark:text-wheat/55">
-                      <Archive aria-hidden="true" className="size-3.5" />
-                      Archived · awaiting next edition
-                    </span>
-                    <span aria-hidden="true" className="h-px flex-1 bg-navy/15 dark:bg-white/15" />
-                  </div>
-                  <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
-                    {pastHackathons.map((hackathon) => (
+          {filteredHackathons.length ? (
+            view === "tier" ? (
+              <HackathonTierList hackathons={rankableHackathons} />
+            ) : view === "ranking" ? (
+              <HackathonRankingList hackathons={eloRankedHackathons} localCountryCode={originCountryCode} />
+            ) : (
+              <>
+                {upcomingHackathons.length ? (
+                  <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+                    {upcomingHackathons.map((hackathon) => (
                       <Fragment key={hackathon.id}>{renderCardNode(hackathon, cardHelpers)}</Fragment>
                     ))}
                   </div>
-                </>
-              ) : null}
-            </>
+                ) : null}
+
+                {/* Past recurring editions sit below a labeled rule so the cutoff
+                    between live events and the archive is unmistakable. */}
+                {pastHackathons.length ? (
+                  <>
+                    <div
+                      aria-label="Archived hackathons"
+                      className={`flex items-center gap-4 ${upcomingHackathons.length ? "mt-14" : "mt-2"}`}
+                      role="separator"
+                    >
+                      <span aria-hidden="true" className="h-px flex-1 bg-navy/15 dark:bg-white/15" />
+                      <span className="inline-flex items-center gap-2 font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-navy/55 dark:text-wheat/55">
+                        <Archive aria-hidden="true" className="size-3.5" />
+                        Archived · awaiting next edition
+                      </span>
+                      <span aria-hidden="true" className="h-px flex-1 bg-navy/15 dark:bg-white/15" />
+                    </div>
+                    <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+                      {pastHackathons.map((hackathon) => (
+                        <Fragment key={hackathon.id}>{renderCardNode(hackathon, cardHelpers)}</Fragment>
+                      ))}
+                    </div>
+                  </>
+                ) : null}
+              </>
+            )
           ) : (
             <div className="rounded-xl border border-navy/10 dark:border-white/10 bg-ivory dark:bg-white/5 p-8 text-center">
               <h2 className="text-xl font-semibold text-navy dark:text-wheat">No hackathons match your search</h2>
