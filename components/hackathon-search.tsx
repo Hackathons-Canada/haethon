@@ -456,7 +456,7 @@ export function HackathonSearch({
           <div className="relative mb-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             <div
               aria-label="Region filters"
-              className="inline-flex items-center gap-1 rounded-full border border-navy/10 bg-white/70 p-1.5 shadow-[0_10px_32px_-14px_rgba(29,42,68,0.3)] backdrop-blur-xl dark:border-white/10 dark:bg-white/[0.06] dark:shadow-[0_12px_36px_-14px_rgba(0,0,0,0.6)]"
+              className="inline-flex items-center gap-1 p-1.5"
               role="group"
             >
               {regionPresets.map((preset) => {
@@ -488,7 +488,7 @@ export function HackathonSearch({
               })}
             </div>
             <Link
-              className="inline-flex min-h-10 items-center gap-2 rounded-full border border-navy/15 dark:border-white/15 px-4 text-sm font-semibold text-navy dark:text-wheat transition-colors hover:border-navy dark:hover:border-white/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40 sm:absolute sm:right-0"
+              className="inline-flex min-h-10 items-center gap-2 px-4 text-sm font-semibold text-navy dark:text-wheat transition-colors hover:text-cabernet dark:hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40 sm:absolute sm:right-0"
               href="/submit"
             >
               <PlusSquare aria-hidden="true" className="size-4" />
@@ -497,7 +497,7 @@ export function HackathonSearch({
           </div>
 
           <form
-            className="relative z-30 flex flex-col rounded-[2.35rem] border border-navy/10 dark:border-white/10 bg-white dark:bg-[#1b1b1b] p-2 shadow-[0_10px_36px_rgba(0,0,0,0.14)] md:flex-row md:items-stretch"
+            className="relative z-30 flex flex-col p-2 md:flex-row md:items-stretch"
             ref={filterFormRef}
             onSubmit={(event) => {
               event.preventDefault();

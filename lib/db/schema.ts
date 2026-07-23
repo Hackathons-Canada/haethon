@@ -186,10 +186,6 @@ export const hackathons = pgTable(
        afterwards. Later sightings of the same event never overwrite it.
        Null renders no source badge. */
     source: sourceTypeEnum("source"),
-    voteScore: integer("vote_score").notNull().default(0),
-    // Beta-only presentation value. Keep it separate from the real vote score
-    // so voting, ranking, and reporting always use the genuine total.
-    voteDisplayOffset: integer("vote_display_offset").notNull().default(0),
     // Head-to-head Face Off ranking. Seeded once by scripts/backfill-hackathon-elo.ts
     // (1500 = untouched default) and updated per matchup in /api/faceoff/vote.
     eloRating: integer("elo_rating").notNull().default(1500),
@@ -370,26 +366,6 @@ export const hackathonCheckinCodes = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [index("hackathon_checkin_codes_hackathon_idx").on(table.hackathonId)]
-);
-
-export const userHackathonVotes = pgTable(
-  "user_hackathon_votes",
-  {
-    id: uuid("id").defaultRandom().primaryKey(),
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    hackathonId: uuid("hackathon_id")
-      .notNull()
-      .references(() => hackathons.id, { onDelete: "cascade" }),
-    vote: integer("vote").notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
-  },
-  (table) => [
-    uniqueIndex("user_hackathon_votes_user_event_idx").on(table.userId, table.hackathonId),
-    index("user_hackathon_votes_hackathon_idx").on(table.hackathonId),
-  ]
 );
 
 /* One row per Face Off matchup vote. Signed-in voters are keyed by userId;
@@ -731,7 +707,6 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   organizationMemberships: many(organizationMemberships),
   hackathonSubmissions: many(hackathonSubmissions),
   attendanceDays: many(userHackathonAttendanceDays),
-  hackathonVotes: many(userHackathonVotes),
   countryAlertSubscription: one(countryAlertSubscriptions, {
     fields: [users.id],
     references: [countryAlertSubscriptions.userId],
@@ -759,7 +734,6 @@ export const hackathonsRelations = relations(hackathons, ({ one, many }) => ({
   tags: many(hackathonTags),
   attendanceDays: many(userHackathonAttendanceDays),
   notificationPreferences: many(userHackathonNotificationPreferences),
-  votes: many(userHackathonVotes),
   faceoffWinsLog: many(hackathonFaceoffVotes, { relationName: "faceoffWinner" }),
   faceoffLossesLog: many(hackathonFaceoffVotes, { relationName: "faceoffLoser" }),
 }));

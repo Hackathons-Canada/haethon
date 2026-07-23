@@ -25,8 +25,6 @@ export type AdminHackathonListItem = {
   travelReimbursement: boolean;
   highSchoolersOnly: boolean;
   prizeAmountUsd: number | null;
-  voteDisplayOffset: number;
-  voteScore: number;
   city: string | null;
   region: string | null;
   country: string | null;

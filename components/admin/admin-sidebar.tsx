@@ -20,9 +20,9 @@ export function AdminSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="border-b border-navy/10 dark:border-white/10 bg-white/75 backdrop-blur-xl dark:bg-[#141414]/60 p-4 lg:min-h-screen lg:w-64 lg:border-b-0 lg:border-r lg:p-5">
+    <aside className="border-b border-ink/15 bg-paper p-4 lg:min-h-screen lg:w-64 lg:border-b-0 lg:border-r lg:p-5">
       <div className="lg:sticky lg:top-5">
-        <Link className="font-serif text-2xl font-semibold text-navy dark:text-wheat" href="/">
+        <Link className="text-2xl font-medium tracking-tight text-ink" href="/">
           HNA
         </Link>
         <nav aria-label="Admin navigation" className="mt-6 flex gap-2 lg:flex-col">
@@ -32,8 +32,8 @@ export function AdminSidebar() {
             return (
               <Link
                 aria-current={active ? "page" : undefined}
-                className={`inline-flex min-h-11 items-center gap-3 rounded-full px-3 text-sm font-semibold transition-colors ${
-                  active ? "bg-cabernet text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white" : "text-navy/70 dark:text-wheat/70 hover:bg-ivory dark:hover:bg-white/10 hover:text-navy dark:hover:text-wheat"
+                className={`inline-flex min-h-11 items-center gap-3 rounded-full px-3 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine ${
+                  active ? "bg-pine text-paper" : "text-ink/70 hover:bg-ink/10 hover:text-ink"
                 }`}
                 href={href}
                 key={href}

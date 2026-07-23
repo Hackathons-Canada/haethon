@@ -28,7 +28,7 @@ export default async function HackathonsPage({
   const hackathonCards = await applyUserCardState(cards, user?.id);
 
   return (
-    <main className="min-h-screen text-navy dark:text-wheat">
+    <main className="min-h-screen">
       <HackathonSearch initialFilters={filters} initialHackathons={hackathonCards} />
     </main>
   );

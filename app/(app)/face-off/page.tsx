@@ -25,7 +25,7 @@ export default async function FaceOffPage() {
   }));
 
   return (
-    <main className="min-h-screen px-5 pb-20 pt-14 text-navy dark:text-wheat sm:px-8 sm:pt-16 lg:px-12">
+    <main className="min-h-screen px-5 pb-20 pt-14 sm:px-8 sm:pt-16 lg:px-12">
       <FaceoffArena pool={pool} />
     </main>
   );

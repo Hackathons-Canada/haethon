@@ -30,8 +30,8 @@ export function HeroHeadline() {
   const still = prefersReducedMotion ?? false;
 
   return (
-    <>
-      <h1 className="relative text-balance font-serif text-[clamp(2.75rem,8vw,5.5rem)] font-semibold leading-[1.05] tracking-[-0.02em] text-navy dark:text-wheat">
+    <div className="relative">
+      <h1 className="relative z-10 text-balance font-serif text-[clamp(2.75rem,8vw,5.5rem)] font-semibold leading-[1.05] tracking-[-0.02em] text-navy dark:text-wheat">
         <RevealWord index={0} still={still}>
           Where
         </RevealWord>{" "}
@@ -87,6 +87,6 @@ export function HeroHeadline() {
           </svg>
         </RevealWord>
       </h1>
-    </>
+    </div>
   );
 }

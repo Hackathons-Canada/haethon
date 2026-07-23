@@ -39,78 +39,153 @@ type Audience = {
   description: string;
   /** Aurora-style layered radials, echoing the hero's HeroAurora palette. */
   glow: string;
-  Graphic: (props: { className?: string }) => React.ReactElement;
+  Graphic: (props: GraphicProps) => React.ReactElement;
   points: string[];
   cta: AudienceCta;
+};
+
+type GraphicProps = {
+  className?: string;
+  tone?: "light" | "dark";
 };
 
 /* ------------------------------- Vignettes ------------------------------ */
 
 /* Hackers — a slice of the hackathon feed: saved events with deadlines. */
-function HackersGraphic({ className }: { className?: string }) {
+function HackersGraphic({ className, tone = "dark" }: GraphicProps) {
+  const light = tone === "light";
+
   return (
     <div className={`space-y-2 ${className ?? ""}`} aria-hidden="true">
-      <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-3.5 py-2.5">
-        <CalendarDays className="h-4 w-4 flex-none text-wheat/40" />
+      <div
+        className={`flex items-center gap-3 rounded-xl border px-3.5 py-2.5 ${
+          light ? "border-black/10 bg-white/35" : "border-white/10 bg-white/[0.04]"
+        }`}
+      >
+        <CalendarDays
+          className={`h-4 w-4 flex-none ${light ? "text-black/55" : "text-wheat/40"}`}
+        />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[0.72rem] font-medium text-wheat/80">
+          <p
+            className={`truncate text-[0.72rem] font-medium ${
+              light ? "text-black/80" : "text-wheat/80"
+            }`}
+          >
             ConUHacks XI
           </p>
-          <p className="truncate text-[0.62rem] text-wheat/40">
+          <p
+            className={`truncate text-[0.62rem] ${
+              light ? "text-black/50" : "text-wheat/40"
+            }`}
+          >
             Montreal, QC · Oct 3-4
           </p>
         </div>
-        <Bookmark className="h-3.5 w-3.5 flex-none text-wheat/30" />
+        <Bookmark
+          className={`h-3.5 w-3.5 flex-none ${light ? "text-black/45" : "text-wheat/30"}`}
+        />
       </div>
-      <div className="flex items-center gap-3 rounded-xl border border-rust/40 bg-rust/10 px-3.5 py-2.5">
-        <CalendarDays className="h-4 w-4 flex-none text-rust" />
+      <div
+        className={`flex items-center gap-3 rounded-xl border px-3.5 py-2.5 ${
+          light ? "border-black/30 bg-black/[0.05]" : "border-rust/40 bg-rust/10"
+        }`}
+      >
+        <CalendarDays
+          className={`h-4 w-4 flex-none ${light ? "text-black" : "text-rust"}`}
+        />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[0.72rem] font-medium text-wheat">
+          <p
+            className={`truncate text-[0.72rem] font-medium ${
+              light ? "text-black" : "text-wheat"
+            }`}
+          >
             Hack the North
           </p>
-          <p className="truncate text-[0.62rem] text-rust">
+          <p
+            className={`truncate text-[0.62rem] ${
+              light ? "text-black/70" : "text-rust"
+            }`}
+          >
             Apps close in 3 days
           </p>
         </div>
-        <BookmarkCheck className="h-3.5 w-3.5 flex-none text-rust" />
+        <BookmarkCheck
+          className={`h-3.5 w-3.5 flex-none ${light ? "text-black" : "text-rust"}`}
+        />
       </div>
-      <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-3.5 py-2.5 opacity-60">
-        <CalendarDays className="h-4 w-4 flex-none text-wheat/40" />
+      <div
+        className={`flex items-center gap-3 rounded-xl border px-3.5 py-2.5 opacity-60 ${
+          light ? "border-black/10 bg-white/35" : "border-white/10 bg-white/[0.04]"
+        }`}
+      >
+        <CalendarDays
+          className={`h-4 w-4 flex-none ${light ? "text-black/55" : "text-wheat/40"}`}
+        />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[0.72rem] font-medium text-wheat/80">
+          <p
+            className={`truncate text-[0.72rem] font-medium ${
+              light ? "text-black/80" : "text-wheat/80"
+            }`}
+          >
             UofTHacks 13
           </p>
-          <p className="truncate text-[0.62rem] text-wheat/40">
+          <p
+            className={`truncate text-[0.62rem] ${
+              light ? "text-black/50" : "text-wheat/40"
+            }`}
+          >
             Toronto, ON · Jan 17-19
           </p>
         </div>
-        <Bookmark className="h-3.5 w-3.5 flex-none text-wheat/30" />
+        <Bookmark
+          className={`h-3.5 w-3.5 flex-none ${light ? "text-black/45" : "text-wheat/30"}`}
+        />
       </div>
     </div>
   );
 }
 
 /* Organizers — applications climbing after publishing with HNA. */
-function OrganizersGraphic({ className }: { className?: string }) {
+function OrganizersGraphic({ className, tone = "dark" }: GraphicProps) {
   const id = useId();
+  const light = tone === "light";
+
   return (
     <div
-      className={`rounded-2xl border border-white/10 bg-white/[0.04] p-4 ${className ?? ""}`}
+      className={`rounded-2xl border p-4 ${
+        light ? "border-black/10 bg-white/35" : "border-white/10 bg-white/[0.04]"
+      } ${className ?? ""}`}
       aria-hidden="true"
     >
       <div className="flex items-center justify-between">
-        <span className="text-[0.65rem] font-medium tracking-wide text-wheat/50">
+        <span
+          className={`text-[0.65rem] font-medium tracking-wide ${
+            light ? "text-black/60" : "text-wheat/50"
+          }`}
+        >
           Applications
         </span>
-        <span className="rounded-full bg-[#46786e]/20 px-2 py-0.5 text-[0.65rem] font-medium text-[#7fb8a5]">
+        <span
+          className={`rounded-full px-2 py-0.5 text-[0.65rem] font-medium ${
+            light ? "bg-black/10 text-black/70" : "bg-[#46786e]/20 text-[#7fb8a5]"
+          }`}
+        >
           +128% this week
         </span>
       </div>
       <svg viewBox="0 0 220 64" className="mt-3 h-16 w-full">
         <defs>
           <linearGradient id={`${id}-fill`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#46786e" stopOpacity="0.45" />
-            <stop offset="100%" stopColor="#46786e" stopOpacity="0" />
+            <stop
+              offset="0%"
+              stopColor={light ? "#000000" : "#46786e"}
+              stopOpacity="0.45"
+            />
+            <stop
+              offset="100%"
+              stopColor={light ? "#000000" : "#46786e"}
+              stopOpacity="0"
+            />
           </linearGradient>
         </defs>
         <path
@@ -120,22 +195,31 @@ function OrganizersGraphic({ className }: { className?: string }) {
         <path
           d="M0 56 C28 54 46 48 72 42 C98 36 118 34 144 22 C166 12 194 10 220 5"
           fill="none"
-          stroke="#63c2a6"
+          stroke={light ? "#000000" : "#63c2a6"}
           strokeWidth="2.5"
           strokeLinecap="round"
         />
-        <circle cx="220" cy="5" r="3.5" fill="#63c2a6" />
+        <circle cx="220" cy="5" r="3.5" fill={light ? "#000000" : "#63c2a6"} />
       </svg>
       <div className="mt-3 flex items-center gap-1.5">
         <div className="flex -space-x-1.5">
-          {["bg-boreal", "bg-[#46786e]", "bg-cabernet", "bg-navy"].map((c) => (
+          {(light
+            ? ["bg-black", "bg-black/80", "bg-black/60", "bg-black/40"]
+            : ["bg-boreal", "bg-[#46786e]", "bg-cabernet", "bg-navy"]
+          ).map((c) => (
             <span
               key={c}
-              className={`h-4.5 w-4.5 rounded-full border-2 border-[#141414] ${c}`}
+              className={`h-4.5 w-4.5 rounded-full border-2 ${
+                light ? "border-white/80" : "border-[#141414]"
+              } ${c}`}
             />
           ))}
         </div>
-        <span className="text-[0.62rem] text-wheat/40">
+        <span
+          className={`text-[0.62rem] ${
+            light ? "text-black/50" : "text-wheat/40"
+          }`}
+        >
           shared across HNA socials
         </span>
       </div>
@@ -144,34 +228,66 @@ function OrganizersGraphic({ className }: { className?: string }) {
 }
 
 /* Corporate — the inquiry email, already addressed. */
-function CorporateGraphic({ className }: { className?: string }) {
+function CorporateGraphic({ className, tone = "dark" }: GraphicProps) {
+  const light = tone === "light";
+
   return (
     <div
-      className={`overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] ${className ?? ""}`}
+      className={`overflow-hidden rounded-2xl border ${
+        light ? "border-black/10 bg-white/35" : "border-white/10 bg-white/[0.04]"
+      } ${className ?? ""}`}
       aria-hidden="true"
     >
-      <div className="flex items-center gap-1.5 border-b border-white/10 px-4 py-2.5">
-        <span className="h-2 w-2 rounded-full bg-cabernet" />
-        <span className="h-2 w-2 rounded-full bg-gold" />
-        <span className="h-2 w-2 rounded-full bg-boreal" />
-        <span className="ml-2 text-[0.62rem] text-wheat/40">New message</span>
+      <div
+        className={`flex items-center gap-1.5 border-b px-4 py-2.5 ${
+          light ? "border-black/10" : "border-white/10"
+        }`}
+      >
+        <span className={`h-2 w-2 rounded-full ${light ? "bg-black" : "bg-cabernet"}`} />
+        <span className={`h-2 w-2 rounded-full ${light ? "bg-black/70" : "bg-gold"}`} />
+        <span className={`h-2 w-2 rounded-full ${light ? "bg-black/40" : "bg-boreal"}`} />
+        <span
+          className={`ml-2 text-[0.62rem] ${
+            light ? "text-black/50" : "text-wheat/40"
+          }`}
+        >
+          New message
+        </span>
       </div>
       <div className="space-y-2.5 px-4 py-3.5 text-[0.72rem]">
-        <p className="border-b border-white/5 pb-2 text-wheat/70">
-          <span className="text-wheat/35">To: </span>hi@hna.dev
+        <p
+          className={`border-b pb-2 ${
+            light ? "border-black/10 text-black/75" : "border-white/5 text-wheat/70"
+          }`}
+        >
+          <span className={light ? "text-black/45" : "text-wheat/35"}>To: </span>
+          hi@hna.dev
         </p>
-        <p className="border-b border-white/5 pb-2 text-wheat/70">
-          <span className="text-wheat/35">Subject: </span>Custom hackathon
+        <p
+          className={`border-b pb-2 ${
+            light ? "border-black/10 text-black/75" : "border-white/5 text-wheat/70"
+          }`}
+        >
+          <span className={light ? "text-black/45" : "text-wheat/35"}>
+            Subject:{" "}
+          </span>
+          Custom hackathon
           inquiry
         </p>
         <div className="space-y-1.5 pt-1">
-          <div className="h-1.5 w-11/12 rounded-full bg-white/10" />
-          <div className="h-1.5 w-3/4 rounded-full bg-white/10" />
-          <div className="h-1.5 w-5/6 rounded-full bg-white/10" />
-          <div className="h-1.5 w-1/2 rounded-full bg-white/10" />
+          <div className={`h-1.5 w-11/12 rounded-full ${light ? "bg-black/15" : "bg-white/10"}`} />
+          <div className={`h-1.5 w-3/4 rounded-full ${light ? "bg-black/15" : "bg-white/10"}`} />
+          <div className={`h-1.5 w-5/6 rounded-full ${light ? "bg-black/15" : "bg-white/10"}`} />
+          <div className={`h-1.5 w-1/2 rounded-full ${light ? "bg-black/15" : "bg-white/10"}`} />
         </div>
         <div className="flex justify-end pt-1.5">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-rust px-3 py-1.5 text-[0.65rem] font-medium text-wheat">
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[0.65rem] font-medium ${
+              light
+                ? "border border-black/40 bg-transparent text-black"
+                : "bg-rust text-wheat"
+            }`}
+          >
             Send
             <Send className="h-2.5 w-2.5" />
           </span>
@@ -280,7 +396,7 @@ export function AudienceCards() {
             layoutId={`audience-card-${audience.id}`}
             onClick={() => setActive(audience)}
             aria-label={`${audience.category}: ${audience.title}`}
-            className={`group relative flex flex-col overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] p-7 text-left outline-none transition-colors hover:border-white/20 hover:bg-white/[0.05] focus-visible:ring-2 focus-visible:ring-rust/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#141414] sm:p-8 ${
+            className={`group relative flex flex-col overflow-hidden rounded-3xl border border-black/10 bg-white/25 p-7 text-left text-ink outline-none transition-colors hover:border-black/20 hover:bg-white/40 focus-visible:ring-2 focus-visible:ring-ink/70 focus-visible:ring-offset-2 focus-visible:ring-offset-paper sm:p-8 ${
               audience.id === "corporate" ? "sm:col-start-2 sm:row-span-2 sm:row-start-1" : ""
             }`}
           >
@@ -292,19 +408,19 @@ export function AudienceCards() {
             <div className="relative">
               <motion.p
                 layoutId={`audience-category-${audience.id}`}
-                className="text-sm font-medium tracking-wide text-rust"
+                className="text-sm font-medium tracking-wide text-black/70"
               >
                 {audience.category}
               </motion.p>
               <motion.h3
                 layoutId={`audience-title-${audience.id}`}
-                className="mt-2 text-2xl font-semibold leading-tight tracking-tight text-white sm:text-[1.7rem]"
+                className="mt-2 text-2xl font-semibold leading-tight tracking-tight text-black sm:text-[1.7rem]"
               >
                 {audience.title}
               </motion.h3>
               <motion.p
                 layoutId={`audience-desc-${audience.id}`}
-                className="mt-3 max-w-md text-[0.92rem] leading-relaxed text-white/70"
+                className="mt-3 max-w-md text-[0.92rem] leading-relaxed text-black/65"
               >
                 {audience.description}
               </motion.p>
@@ -314,10 +430,10 @@ export function AudienceCards() {
               layoutId={`audience-graphic-${audience.id}`}
               className="relative my-auto py-7"
             >
-              <audience.Graphic />
+              <audience.Graphic tone="light" />
             </motion.div>
 
-            <span className="relative inline-flex items-center gap-1.5 text-[0.8rem] font-medium text-white/60 transition-colors group-hover:text-white">
+            <span className="relative inline-flex items-center gap-1.5 text-[0.8rem] font-medium text-black/60 transition-colors group-hover:text-black">
               Learn more
               <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
             </span>

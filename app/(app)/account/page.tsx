@@ -91,7 +91,7 @@ function formatLatestDate(value: Date | null) {
   return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(value);
 }
 
-const sectionTitleClassName = "font-serif text-4xl font-semibold tracking-[-0.035em] text-navy dark:text-wheat sm:text-5xl";
+const sectionTitleClassName = "text-4xl font-semibold tracking-tight text-ink sm:text-5xl";
 
 export default async function AccountPage() {
   // Most pages skip the Clerk profile sync for speed; the account page is
@@ -272,7 +272,7 @@ export default async function AccountPage() {
   ].slice(0, 6);
 
   return (
-    <main className="relative min-h-[calc(100vh-80px)] bg-white dark:bg-white/[0.06] px-5 py-8 text-navy dark:text-wheat sm:px-8 lg:px-12">
+    <main className="relative min-h-[calc(100vh-80px)] px-5 py-8 sm:px-8 lg:px-12">
       <div className="mx-auto w-full max-w-[840px]">
         <div className="space-y-10">
           <section id="profile" className="pt-2">
@@ -291,25 +291,23 @@ export default async function AccountPage() {
             <section className="pb-2 pt-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h2 className={sectionTitleClassName}>Pinned</h2>
-                <p className="text-sm text-navy/55 dark:text-wheat/55">Wins &amp; attended events you&apos;ve pinned</p>
+                <p className="text-sm text-ink/55">Wins &amp; attended events you&apos;ve pinned</p>
               </div>
               <div className="mt-4 grid gap-5 md:grid-cols-2">
                 {pinnedItems.length ? (
                   pinnedItems.map((item) => (
                     <article
-                      className={`group flex flex-col overflow-hidden rounded-2xl bg-ivory dark:bg-white/5 ${
-                        item.isWin
-                          ? "border-2 border-[#D4A72C] shadow-[0_0_0_3px_rgba(212,167,44,0.18)]"
-                          : "border border-navy/10 dark:border-white/10"
+                      className={`flex flex-col overflow-hidden bg-paper ${
+                        item.isWin ? "border-2 border-pine" : "border border-ink/15"
                       }`}
                       key={item.id}
                     >
                       {/* Big cover image, mirroring the reference listing card. */}
-                      <div className="relative aspect-[4/3] w-full overflow-hidden bg-white dark:bg-white/[0.06]">
+                      <div className="relative aspect-[4/3] w-full overflow-hidden bg-paper">
                         {item.imageUrl ? (
                           <Image
                             alt={item.hackathonName}
-                            className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                            className="object-cover"
                             fill
                             sizes="(min-width: 768px) 400px, 100vw"
                             src={hackathonLogoSrc(item.hackathonId, item.imageUrl)}

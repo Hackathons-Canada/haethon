@@ -26,8 +26,6 @@ const backdropHackathons: HackathonCardData[] = [
     isSaved: true,
     location: "Waterloo, ON",
     name: "Hack the North",
-    userVote: 1,
-    voteScore: 214,
   },
   {
     country: "United States",
@@ -37,8 +35,6 @@ const backdropHackathons: HackathonCardData[] = [
     isSaved: false,
     location: "Cambridge, MA",
     name: "HackMIT",
-    userVote: 0,
-    voteScore: 168,
   },
   {
     country: "Canada",
@@ -48,8 +44,6 @@ const backdropHackathons: HackathonCardData[] = [
     isSaved: false,
     location: "Montreal, QC",
     name: "ConUHacks XI",
-    userVote: 0,
-    voteScore: 93,
   },
   {
     country: "United States",
@@ -59,8 +53,6 @@ const backdropHackathons: HackathonCardData[] = [
     isSaved: false,
     location: "San Francisco, CA",
     name: "xAI Hackathon",
-    userVote: 1,
-    voteScore: 141,
   },
   {
     country: "United States",
@@ -70,8 +62,6 @@ const backdropHackathons: HackathonCardData[] = [
     isSaved: false,
     location: "Atlanta, GA",
     name: "HackGT",
-    userVote: 0,
-    voteScore: 87,
   },
   {
     country: "United States",
@@ -81,8 +71,6 @@ const backdropHackathons: HackathonCardData[] = [
     isSaved: true,
     location: "Santa Clara, CA",
     name: "NVIDIA Hackathon",
-    userVote: 0,
-    voteScore: 76,
   },
 ];
 
@@ -129,17 +117,17 @@ function BackdropApp() {
     <div
       aria-hidden="true"
       inert
-      className="pointer-events-none hidden select-none overflow-hidden rounded-[1.75rem] border border-white/10 bg-white/[0.03] p-6 [mask-image:linear-gradient(to_bottom,black_45%,transparent_97%)] md:block lg:p-8"
+      className="pointer-events-none hidden select-none overflow-hidden rounded-[1.75rem] border border-ink/10 bg-white/45 p-6 [mask-image:linear-gradient(to_bottom,black_45%,transparent_97%)] md:block lg:p-8"
     >
       <div className="flex items-center justify-between gap-4 opacity-80">
-        <div className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.06] p-1.5">
+        <div className="inline-flex items-center gap-1 rounded-full border border-ink/10 bg-white/70 p-1.5">
           {regionPresets.map((preset, index) => (
             <span
               key={preset.id}
               className={`inline-flex min-h-10 items-center gap-2 whitespace-nowrap rounded-full px-5 text-sm font-semibold ${
                 index === 0
-                  ? "bg-wheat text-[#141414] shadow-[0_8px_20px_-8px_rgba(244,235,217,0.35)]"
-                  : "text-wheat/55"
+                  ? "bg-ink text-paper shadow-[0_8px_20px_-8px_rgba(27,25,23,0.28)]"
+                  : "text-ink/55"
               }`}
             >
               <span className={`text-lg leading-none ${index === 0 ? "" : "grayscale"}`}>
@@ -149,33 +137,33 @@ function BackdropApp() {
             </span>
           ))}
         </div>
-        <span className="inline-flex min-h-10 items-center gap-2 rounded-full border border-white/15 px-4 text-sm font-semibold text-wheat">
+        <span className="inline-flex min-h-10 items-center gap-2 rounded-full border border-ink/15 px-4 text-sm font-semibold text-ink">
           <PlusSquare aria-hidden="true" className="size-4" />
           New entry
         </span>
       </div>
 
-      <div className="mt-8 flex items-stretch rounded-[2.35rem] border border-white/10 bg-[#1b1b1b] p-2 opacity-80 shadow-[0_10px_36px_rgba(0,0,0,0.4)]">
+      <div className="mt-8 flex items-stretch rounded-[2.35rem] border border-ink/10 bg-white/90 p-2 opacity-80 shadow-[0_12px_36px_-18px_rgba(27,25,23,0.32)]">
         {backdropSearchFields.map(({ Icon, label, value }) => (
           <div
             key={label}
             className="flex min-h-[4.2rem] min-w-0 flex-1 flex-col justify-start rounded-[2rem] px-6 py-3"
           >
-            <span className="flex items-center gap-1.5 text-xs font-semibold leading-5 text-wheat">
+            <span className="flex items-center gap-1.5 text-xs font-semibold leading-5 text-ink">
               {Icon ? <Icon className="size-3.5" /> : null}
               {label}
             </span>
-            <span className="mt-1 block truncate text-sm leading-5 text-wheat/40">{value}</span>
+            <span className="mt-1 block truncate text-sm leading-5 text-ink/40">{value}</span>
           </div>
         ))}
         <div className="flex items-center px-3 py-2">
-          <span className="grid size-12 place-items-center rounded-full bg-wheat text-[#141414]">
+          <span className="grid size-12 place-items-center rounded-full bg-pine text-paper">
             <Search className="size-5" strokeWidth={2.5} />
           </span>
         </div>
       </div>
 
-      <h3 className="mt-10 font-serif text-3xl font-semibold tracking-[-0.02em] text-wheat opacity-80">
+      <h3 className="mt-10 text-3xl font-medium tracking-tight text-ink opacity-80">
         Upcoming hackathons
       </h3>
 
@@ -204,26 +192,26 @@ function SpotlightSearchCard() {
     >
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -inset-8 rounded-[3rem] bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,1),rgba(0,0,0,0.85)_55%,transparent_80%)] blur-3xl"
+        className="pointer-events-none absolute -inset-8 rounded-[3rem] bg-[radial-gradient(ellipse_at_center,rgba(0,115,84,0.14),rgba(0,115,84,0.06)_55%,transparent_80%)] blur-3xl"
       />
 
-      <div className="relative rounded-[1.75rem] border border-white/15 bg-[#1b1b1b] p-4 shadow-[0_45px_90px_-25px_rgba(0,0,0,0.85)] sm:p-5">
+      <div className="relative rounded-[1.75rem] border border-ink/15 bg-paper p-4 shadow-[0_32px_70px_-32px_rgba(27,25,23,0.38)] sm:p-5">
         <div className="flex items-baseline justify-between gap-3 px-2 pb-3 pt-1">
-          <span className="inline-flex items-center gap-2 font-mono text-[0.7rem] font-medium uppercase tracking-[0.14em] text-wheat/55">
+          <span className="inline-flex items-center gap-2 font-mono text-[0.7rem] font-medium uppercase tracking-[0.14em] text-ink/55">
             <Search aria-hidden="true" className="size-3.5" />
             Search hackathons
           </span>
-          <span className="text-[0.7rem] font-medium text-rust">148 results</span>
+          <span className="text-[0.7rem] font-medium text-pine">148 results</span>
         </div>
 
         <div className="space-y-2">
-          <div className="rounded-2xl bg-white/[0.06] px-5 py-3">
-            <span className="text-xs font-semibold leading-5 text-wheat">Name</span>
-            <p className="mt-1 text-sm leading-5 text-wheat/40">hackathons near me…</p>
+          <div className="rounded-2xl bg-ink/[0.04] px-5 py-3">
+            <span className="text-xs font-semibold leading-5 text-ink">Name</span>
+            <p className="mt-1 text-sm leading-5 text-ink/40">hackathons near me…</p>
           </div>
 
-          <div className="rounded-2xl bg-white/[0.06] px-5 py-3">
-            <span className="flex items-center gap-1.5 text-xs font-semibold leading-5 text-wheat">
+          <div className="rounded-2xl bg-ink/[0.04] px-5 py-3">
+            <span className="flex items-center gap-1.5 text-xs font-semibold leading-5 text-ink">
               <Globe2 aria-hidden="true" className="size-3.5" />
               Countries
             </span>
@@ -232,7 +220,7 @@ function SpotlightSearchCard() {
                 <motion.span
                   key={country}
                   variants={cardItemVariants}
-                  className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-1 text-xs font-semibold text-wheat"
+                  className="inline-flex items-center gap-1 rounded-full border border-ink/10 bg-white/70 px-2.5 py-1 text-xs font-semibold text-ink"
                 >
                   {country}
                 </motion.span>
@@ -240,16 +228,16 @@ function SpotlightSearchCard() {
             </div>
           </div>
 
-          <div className="rounded-2xl bg-white/[0.06] px-5 py-3">
-            <span className="flex items-center gap-1.5 text-xs font-semibold leading-5 text-wheat">
+          <div className="rounded-2xl bg-ink/[0.04] px-5 py-3">
+            <span className="flex items-center gap-1.5 text-xs font-semibold leading-5 text-ink">
               <CalendarDays aria-hidden="true" className="size-3.5" />
               Date
             </span>
-            <p className="mt-1 text-sm leading-5 text-wheat/55">Next 3 months</p>
+            <p className="mt-1 text-sm leading-5 text-ink/55">Next 3 months</p>
           </div>
 
-          <div className="rounded-2xl bg-white/[0.06] px-5 py-3">
-            <span className="flex items-center gap-1.5 text-xs font-semibold leading-5 text-wheat">
+          <div className="rounded-2xl bg-ink/[0.04] px-5 py-3">
+            <span className="flex items-center gap-1.5 text-xs font-semibold leading-5 text-ink">
               <Settings2 aria-hidden="true" className="size-3.5" />
               Features
             </span>
@@ -260,19 +248,19 @@ function SpotlightSearchCard() {
                   variants={cardItemVariants}
                   className={`flex items-center justify-between gap-3 rounded-xl border px-3.5 py-2.5 ${
                     feature.selected
-                      ? "border-[#e4a3ab]/40 bg-[#e4a3ab]/10"
-                      : "border-white/10 bg-white/[0.04]"
+                      ? "border-pine/35 bg-pine/5"
+                      : "border-ink/10 bg-white/55"
                   }`}
                 >
                   <span className="min-w-0">
-                    <span className="block text-sm font-semibold text-wheat">{feature.label}</span>
-                    <span className="mt-0.5 block text-xs text-wheat/55">{feature.detail}</span>
+                    <span className="block text-sm font-semibold text-ink">{feature.label}</span>
+                    <span className="mt-0.5 block text-xs text-ink/55">{feature.detail}</span>
                   </span>
                   <span
                     className={`grid size-6 shrink-0 place-items-center rounded-full border ${
                       feature.selected
-                        ? "border-[#e4a3ab]/50 bg-wheat text-[#141414]"
-                        : "border-white/15 text-transparent"
+                        ? "border-pine bg-pine text-paper"
+                        : "border-ink/15 text-transparent"
                     }`}
                   >
                     <Check aria-hidden="true" className="size-3.5" strokeWidth={3} />
@@ -283,7 +271,7 @@ function SpotlightSearchCard() {
           </div>
         </div>
 
-        <div className="mt-3 flex min-h-12 items-center justify-center gap-2 rounded-full bg-wheat px-5 text-sm font-semibold text-[#141414]">
+        <div className="mt-3 flex min-h-12 items-center justify-center gap-2 rounded-full bg-pine px-5 text-sm font-semibold text-paper">
           <Search aria-hidden="true" className="size-4" strokeWidth={2.5} />
           Search
         </div>

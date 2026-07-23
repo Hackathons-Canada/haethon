@@ -4,14 +4,15 @@ import { UserProfile } from "@clerk/nextjs";
 import { LogOut } from "lucide-react";
 
 import { AccountSignOutButton } from "@/components/account-sign-out-button";
-const darkVariables = {
-  colorBackground: "#1b1b1b",
-  colorInput: "#262626",
-  colorForeground: "#f4ebd9",
-  colorMutedForeground: "#928d83",
-  colorPrimary: "#f4ebd9",
-  colorPrimaryForeground: "#141414",
-  borderRadius: "0.75rem",
+const lightVariables = {
+  colorBackground: "#fbf7f0",
+  colorInput: "#fbf7f0",
+  colorForeground: "#1b1917",
+  colorMutedForeground: "rgba(27, 25, 23, 0.55)",
+  colorPrimary: "#007354",
+  colorPrimaryForeground: "#fbf7f0",
+  colorBorder: "rgba(27, 25, 23, 0.15)",
+  borderRadius: "0px",
 };
 
 export function ThemedUserProfile() {
@@ -20,29 +21,28 @@ export function ThemedUserProfile() {
       path="/account/settings"
       routing="path"
       appearance={{
-        variables: darkVariables,
+        variables: lightVariables,
         elements: {
           rootBox: "w-full max-w-5xl",
-          cardBox: "w-full bg-white/70 dark:bg-white/10 shadow-none",
-          card: "bg-white/70 dark:bg-white/10 shadow-none",
-          navbar: "bg-white/70 dark:bg-white/10",
-          navbarButton: "text-navy dark:text-wheat hover:bg-navy/10 dark:hover:bg-white/10",
-          pageScrollBox: "bg-white/70 dark:bg-white/10",
-          profileSection: "border-navy/10 dark:border-white/10",
-          profileSectionContent: "bg-white/70 dark:bg-white/10",
-          formFieldInput:
-            "border-navy/15 dark:border-white/15 bg-white dark:bg-white/[0.06] text-navy dark:text-wheat",
+          cardBox: "w-full bg-paper shadow-none",
+          card: "bg-paper shadow-none",
+          navbar: "bg-paper",
+          navbarButton: "text-ink hover:bg-ink/10",
+          pageScrollBox: "bg-paper",
+          profileSection: "border-ink/10",
+          profileSectionContent: "bg-paper",
+          formFieldInput: "border-ink/20 bg-paper text-ink focus:border-pine",
           formButtonPrimary:
-            "bg-cabernet text-wheat hover:bg-[#5c151c] dark:bg-wheat dark:text-[#141414] dark:hover:bg-white",
-          accordionTriggerButton: "hover:bg-navy/10 dark:hover:bg-white/10",
+            "rounded-full bg-transparent text-ink shadow-none transition-colors hover:bg-pine hover:text-paper",
+          accordionTriggerButton: "hover:bg-ink/10",
         },
       }}
     >
       <UserProfile.Page label="Sign out" labelIcon={<LogOut aria-hidden="true" className="size-4" />} url="sign-out">
         <div className="flex flex-col gap-4">
           <div>
-            <h1 className="text-lg font-semibold text-navy dark:text-wheat">Sign out</h1>
-            <p className="mt-1 text-sm text-navy/55 dark:text-wheat/55">Sign out of your account on this device.</p>
+            <h1 className="text-lg font-semibold text-ink">Sign out</h1>
+            <p className="mt-1 text-sm text-ink/55">Sign out of your account on this device.</p>
           </div>
           <div>
             <AccountSignOutButton />

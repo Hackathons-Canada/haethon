@@ -1,13 +1,12 @@
 import Link from "next/link";
 
 import { HeroHeadline } from "@/components/hero-headline";
-import { HeroAurora } from "@/components/hero-inuksuk";
 import { HeroPolaroids } from "@/components/hero-polaroids";
 import { AudienceCards } from "@/components/audience-cards";
 import { ShieldCheck, Rss, Users } from "lucide-react";
 
 import {
-  LazyLandingGlobe,
+  LazyLandingWorldMap,
   LazyPipelineSpotlight,
   LazySearchSpotlight,
 } from "@/components/landing-lazy-visuals";
@@ -37,73 +36,32 @@ export default function Home() {
   // Signed-in visitors are redirected into the app by the middleware, keeping
   // this page fully static.
   return (
-    // The landing page is always night-sky dark, whatever the app theme.
-    <main className="dark min-h-screen overflow-x-clip bg-[#141414] text-wheat">
+    <main className="min-h-screen overflow-x-clip bg-paper text-ink">
       <PrimaryNav />
 
-      <section className="relative isolate overflow-hidden pb-16 pt-24 sm:min-h-[min(110svh,980px)] sm:pb-32 sm:pt-32">
-        <HeroAurora />
-
+      <section className="relative isolate overflow-hidden pb-16 pt-36 sm:min-h-[min(110svh,980px)] sm:pb-32 sm:pt-48">
         <HeroPolaroids />
 
         <div className="relative z-10 mx-auto flex max-w-[640px] flex-col items-center px-5 text-center sm:px-8 lg:max-w-[700px]">
           <HeroHeadline />
 
           <LandingReveal delay={0.55}>
-            <p className="mt-6 max-w-[34rem] text-pretty text-base leading-relaxed text-navy/60 sm:text-lg dark:text-wheat/65">
+            <p className="mt-6 max-w-[34rem] text-pretty text-base leading-relaxed text-ink/55 sm:text-lg">
               Search hundreds of upcoming hackathons, build your profile, and
               never miss another application deadline.
             </p>
           </LandingReveal>
 
           <LandingReveal delay={0.7}>
-            <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
-              <Link
-                href="/hackathons"
-                className="group relative inline-flex min-h-11 items-center justify-center gap-2 overflow-hidden rounded-full bg-cabernet px-6 text-sm font-semibold text-wheat shadow-[0_12px_32px_-12px_rgba(114,28,36,0.6)] transition duration-300 hover:-translate-y-0.5 hover:bg-[#5c151c] hover:shadow-[0_18px_40px_-12px_rgba(114,28,36,0.7)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cabernet active:translate-y-0 dark:bg-wheat dark:text-[#141414] dark:shadow-[0_12px_32px_-12px_rgba(244,235,217,0.35)] dark:hover:bg-white dark:hover:shadow-[0_18px_44px_-12px_rgba(134,227,190,0.4)] dark:focus-visible:outline-wheat"
-              >
-                {/* Sheen that sweeps across the pill on hover. */}
-                <span
-                  aria-hidden="true"
-                  className="pointer-events-none absolute inset-0 -translate-x-[130%] bg-[linear-gradient(105deg,transparent_30%,rgba(255,255,255,0.45)_50%,transparent_70%)] transition-transform duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-[130%] motion-reduce:hidden"
-                />
-                Open App
-                <span
-                  aria-hidden="true"
-                  className="transition-transform duration-300 group-hover:translate-x-0.5"
-                >
-                  →
-                </span>
-              </Link>
-              <Link
-                href="/about"
-                className="inline-flex min-h-11 items-center justify-center rounded-full border border-navy/15 bg-white/70 px-6 text-sm font-semibold text-navy backdrop-blur-sm transition duration-300 hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_12px_28px_-14px_rgba(29,42,68,0.35)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-navy/30 active:translate-y-0 dark:border-white/15 dark:bg-white/5 dark:text-wheat dark:hover:border-white/25 dark:hover:bg-white/10 dark:hover:shadow-[0_12px_28px_-14px_rgba(0,0,0,0.6)] dark:focus-visible:outline-wheat"
-              >
-                About HNA
-              </Link>
-            </div>
-            <p className="mt-4 text-[0.75rem] text-navy/40 dark:text-wheat/40">
-              Free for hackers <span aria-hidden="true">·</span> Built for
-              North America
-            </p>
+            <Link
+              href="/hackathons"
+              className="mt-10 inline-flex min-h-14 items-center justify-center gap-2 rounded-full px-8 text-base font-semibold text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine sm:min-h-16 sm:px-10 sm:text-lg"
+            >
+              Open App
+              <span aria-hidden="true">→</span>
+            </Link>
           </LandingReveal>
         </div>
-
-        {/* Scroll cue — a drip of light running down toward the map. */}
-        <LandingReveal
-          className="absolute inset-x-0 bottom-8 z-10 hidden justify-center sm:flex"
-          delay={1.2}
-        >
-          <a
-            href="#coverage"
-            className="group flex flex-col items-center gap-2.5 font-mono text-[0.6rem] font-medium uppercase tracking-[0.24em] text-wheat/35 transition-colors duration-300 hover:text-wheat/75 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-wheat"
-          >
-            Scroll
-            <span className="block h-10 w-px overflow-hidden rounded-full bg-white/10">
-              <span className="block h-full w-full animate-scroll-drip bg-gradient-to-b from-transparent via-wheat/70 to-transparent motion-reduce:animate-none" />
-            </span>
-          </a>
-        </LandingReveal>
 
         <div className="relative z-10 mx-auto mt-14 grid max-w-[360px] grid-cols-2 gap-3 px-6 sm:hidden">
           {mobilePolaroids.map((shot, i) => (
@@ -140,32 +98,32 @@ export default function Home() {
           <div className="max-w-[36rem]">
             <h2
               id="coverage-heading"
-              className="font-serif text-2xl font-semibold leading-[1.15] tracking-[-0.02em] text-navy sm:text-3xl lg:text-4xl dark:text-wheat"
+              className="text-2xl font-medium leading-[1.15] tracking-tight text-ink sm:text-3xl lg:text-4xl"
             >
               Hackathons across the globe
             </h2>
-            <p className="mt-4 max-w-[32rem] text-base leading-relaxed text-navy/55 dark:text-wheat/55">
+            <p className="mt-4 max-w-[32rem] text-base leading-relaxed text-ink/55">
               One home for every event: sourced from across the web, submitted
               by the community, and vetted by real people.
             </p>
           </div>
 
           <div className="mt-10 sm:mt-12">
-            <LazyLandingGlobe />
+            <LazyLandingWorldMap />
           </div>
 
-          <div className="mt-10 grid divide-y divide-navy/10 border-t border-navy/10 sm:mt-12 sm:grid-cols-3 sm:divide-x sm:divide-y-0 dark:divide-white/10 dark:border-white/10">
+          <div className="mt-10 grid divide-y divide-ink/10 border-t border-ink/10 sm:mt-12 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
             {coveragePillars.map(({ Icon, title, body }) => (
               <div key={title} className="px-1 py-7 sm:px-7 sm:py-8">
                 <Icon
                   aria-hidden="true"
-                  className="size-6 text-rust"
+                  className="size-6 text-pine"
                   strokeWidth={1.75}
                 />
-                <h3 className="mt-4 text-lg font-semibold tracking-tight text-navy dark:text-wheat">
+                <h3 className="mt-4 text-lg font-semibold tracking-tight text-ink">
                   {title}
                 </h3>
-                <p className="mt-2 text-[0.95rem] leading-relaxed text-navy/55 dark:text-wheat/55">
+                <p className="mt-2 text-[0.95rem] leading-relaxed text-ink/55">
                   {body}
                 </p>
               </div>
@@ -182,12 +140,12 @@ export default function Home() {
           <div className="grid gap-6 lg:grid-cols-[1.05fr_1fr] lg:gap-20">
             <h2
               id="search-spotlight-heading"
-              className="max-w-[22rem] font-serif text-2xl font-semibold leading-[1.15] tracking-[-0.02em] text-navy sm:text-3xl lg:text-4xl dark:text-wheat"
+              className="max-w-[22rem] text-2xl font-medium leading-[1.15] tracking-tight text-ink sm:text-3xl lg:text-4xl"
             >
               Find the ones worth going to
             </h2>
             <div>
-              <p className="max-w-[32rem] text-base leading-relaxed text-navy/55 dark:text-wheat/55 sm:text-lg">
+              <p className="max-w-[32rem] text-base leading-relaxed text-ink/55 sm:text-lg">
                 Search hackathons by country, filter by date and format, and
                 surface the events that reimburse your travel. Find the
                 hackathon you actually want to attend in your area, and never
@@ -195,10 +153,10 @@ export default function Home() {
               </p>
               <Link
                 href="/hackathons"
-                className="mt-8 inline-flex items-center gap-3 font-mono text-sm text-navy/40 transition-colors hover:text-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-navy/30 dark:text-wheat/40 dark:hover:text-wheat dark:focus-visible:outline-wheat"
+                className="mt-8 inline-flex items-center gap-3 font-mono text-sm text-ink/40 transition-colors hover:text-pine focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine"
               >
                 1.0
-                <span className="text-navy/70 dark:text-wheat/70">
+                <span>
                   Search{" "}
                   <span aria-hidden="true" className="ml-1">
                     →
@@ -222,12 +180,12 @@ export default function Home() {
           <div className="grid gap-6 lg:grid-cols-[1.05fr_1fr] lg:gap-20">
             <h2
               id="pipeline-spotlight-heading"
-              className="max-w-[22rem] font-serif text-2xl font-semibold leading-[1.15] tracking-[-0.02em] text-navy sm:text-3xl lg:text-4xl dark:text-wheat"
+              className="max-w-[22rem] text-2xl font-medium leading-[1.15] tracking-tight text-ink sm:text-3xl lg:text-4xl"
             >
               Get reminders and keep track of them all
             </h2>
             <div>
-              <p className="max-w-[32rem] text-base leading-relaxed text-navy/55 dark:text-wheat/55 sm:text-lg">
+              <p className="max-w-[32rem] text-base leading-relaxed text-ink/55 sm:text-lg">
                 Choose email reminders that land a week before applications
                 open, a day before they open, and a day before the hackathon
                 starts. Then follow the status of every hackathon you&apos;ve
@@ -235,10 +193,10 @@ export default function Home() {
               </p>
               <Link
                 href="/my"
-                className="mt-8 inline-flex items-center gap-3 font-mono text-sm text-navy/40 transition-colors hover:text-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-navy/30 dark:text-wheat/40 dark:hover:text-wheat dark:focus-visible:outline-wheat"
+                className="mt-8 inline-flex items-center gap-3 font-mono text-sm text-ink/40 transition-colors hover:text-pine focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine"
               >
                 2.0
-                <span className="text-navy/70 dark:text-wheat/70">
+                <span>
                   Track{" "}
                   <span aria-hidden="true" className="ml-1">
                     →
@@ -260,12 +218,12 @@ export default function Home() {
       >
         <div className="mx-auto max-w-[1100px]">
           <div className="mx-auto max-w-[26rem] text-center">
-            <p className="text-[0.7rem] font-medium tracking-[0.04em] text-rust">
+            <p className="text-[0.7rem] font-medium tracking-[0.04em] text-pine">
               Who it&apos;s for
             </p>
             <h2
               id="audiences-heading"
-              className="mt-3 font-serif text-2xl font-semibold leading-[1.15] tracking-[-0.02em] text-navy sm:text-3xl lg:text-4xl dark:text-wheat"
+              className="mt-3 text-2xl font-medium leading-[1.15] tracking-tight text-ink sm:text-3xl lg:text-4xl"
             >
               One platform, three jobs
             </h2>

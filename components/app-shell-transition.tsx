@@ -31,13 +31,13 @@ export function AppShellWipe() {
     <motion.div
       animate={{ x: "101%" }}
       aria-hidden="true"
-      className="pointer-events-none fixed inset-0 z-[60] flex items-center justify-center bg-black"
+      className="pointer-events-none fixed inset-0 z-[60] flex items-center justify-center bg-ink"
       initial={{ x: 0 }}
       transition={{ delay: 0.08, duration: 0.7, ease: [0.76, 0, 0.24, 1] }}
     >
       <motion.span
         animate={{ letterSpacing: "0.3em", opacity: 1 }}
-        className="font-mono text-xs font-medium uppercase text-ivory"
+        className="font-mono text-xs font-medium uppercase text-paper"
         initial={{ letterSpacing: "0.55em", opacity: 0 }}
         transition={{ duration: 0.45, ease: "easeOut" }}
       >

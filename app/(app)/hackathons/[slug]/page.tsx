@@ -226,12 +226,12 @@ function getStatusPill(status: string) {
 // Notion-style property row: muted label column on the left, value on the right.
 function Property({ children, icon: Icon, label }: { children: ReactNode; icon: LucideIcon; label: string }) {
   return (
-    <div className="flex items-start gap-4 rounded-md px-2 py-1.5 transition-colors hover:bg-ivory dark:hover:bg-white/10">
-      <div className="flex w-40 shrink-0 items-center gap-2 pt-px text-sm text-navy/55 dark:text-wheat/55">
+    <div className="flex items-start gap-4 px-2 py-1.5 transition-colors hover:bg-ink/5">
+      <div className="flex w-40 shrink-0 items-center gap-2 pt-px text-sm text-ink/55">
         <Icon aria-hidden="true" className="size-4 shrink-0" />
         <span className="truncate">{label}</span>
       </div>
-      <div className="min-w-0 flex-1 text-sm text-navy dark:text-wheat">{children}</div>
+      <div className="min-w-0 flex-1 text-sm text-ink">{children}</div>
     </div>
   );
 }
@@ -328,10 +328,10 @@ export default async function HackathonDetailPage({ params }: PageProps) {
     }));
 
   return (
-    <main className="min-h-screen px-5 pb-40 pt-10 text-navy dark:text-wheat sm:px-8 lg:px-12">
+    <main className="min-h-screen px-5 pb-40 pt-10 sm:px-8 lg:px-12">
       <div className="mx-auto w-full max-w-[860px]">
         <Link
-          className="inline-flex items-center gap-1.5 font-mono text-xs font-medium uppercase tracking-[0.14em] text-navy/55 dark:text-wheat/55 hover:text-cabernet dark:hover:text-[#e4a3ab]"
+          className="inline-flex items-center gap-1.5 font-mono text-xs font-medium uppercase tracking-[0.14em] text-ink/55 transition-colors hover:text-pine"
           href="/hackathons"
         >
           <ArrowLeft aria-hidden="true" className="size-3.5" />
@@ -339,7 +339,7 @@ export default async function HackathonDetailPage({ params }: PageProps) {
         </Link>
 
         <header className="mt-8 flex items-start gap-5">
-          <div className="relative grid size-20 shrink-0 place-items-center border border-navy/10 dark:border-white/10 bg-ivory dark:bg-white/5">
+          <div className="relative grid size-20 shrink-0 place-items-center border border-ink/15 bg-paper">
             {hackathon.imageUrl ? (
               <Image
                 alt={`${hackathon.name} logo`}
@@ -349,20 +349,20 @@ export default async function HackathonDetailPage({ params }: PageProps) {
                 src={hackathonLogoSrc(hackathon.id, hackathon.imageUrl)}
               />
             ) : (
-              <span className="text-xl font-semibold text-cabernet dark:text-[#e4a3ab]">{getInitials(hackathon.name) || "HN"}</span>
+              <span className="text-xl font-semibold text-pine">{getInitials(hackathon.name) || "HN"}</span>
             )}
           </div>
           <div className="min-w-0 self-center">
-            <h1 className="font-serif text-3xl font-semibold tracking-[-0.02em] text-navy dark:text-wheat sm:text-4xl">{hackathon.name}</h1>
+            <h1 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl">{hackathon.name}</h1>
           </div>
         </header>
 
         <section className="mt-8">
-          <p className="px-2 text-sm font-medium text-navy/55 dark:text-wheat/55">Properties</p>
+          <p className="px-2 text-sm font-medium text-ink/55">Properties</p>
           <div className="mt-2 space-y-0.5">
             <Property icon={CalendarDays} label="Date">
               <span className="font-medium">{formatDateRange(hackathon.startsAt, hackathon.endsAt)}</span>
-              <span className="ml-2 text-navy/55 dark:text-wheat/55">
+              <span className="ml-2 text-ink/55">
                 {formatDuration(hackathon.startsAt, hackathon.endsAt, hackathon.format)}
               </span>
             </Property>
@@ -383,7 +383,7 @@ export default async function HackathonDetailPage({ params }: PageProps) {
 
             <Property icon={MapPin} label="Location">
               <span className="font-medium">{formatLocation(hackathon)}</span>
-              {hackathon.venue ? <span className="ml-2 text-navy/55 dark:text-wheat/55">{hackathon.venue}</span> : null}
+              {hackathon.venue ? <span className="ml-2 text-ink/55">{hackathon.venue}</span> : null}
             </Property>
 
             <Property icon={Globe} label="Format">
@@ -407,7 +407,7 @@ export default async function HackathonDetailPage({ params }: PageProps) {
                 <div className="flex flex-wrap gap-1.5">
                   {propertyTags.map((tag) => (
                     <span
-                      className="rounded-full bg-cabernet/5 dark:bg-[#e4a3ab]/10 px-2 py-0.5 text-xs font-medium text-cabernet dark:text-[#e4a3ab]"
+                      className="bg-pine/10 px-2 py-0.5 text-xs font-medium text-pine"
                       key={tag}
                     >
                       {tag}
@@ -419,7 +419,7 @@ export default async function HackathonDetailPage({ params }: PageProps) {
 
             <Property icon={CircleDot} label="Status">
               <span
-                className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-sm font-medium"
+                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-sm font-medium"
                 style={{ backgroundColor: statusPill.bg, color: statusPill.text }}
               >
                 <span
@@ -435,8 +435,8 @@ export default async function HackathonDetailPage({ params }: PageProps) {
 
         {hackathon.shortDescription ? (
           <section className="mt-8">
-            <p className="px-2 text-sm font-medium text-navy/55 dark:text-wheat/55">Description</p>
-            <p className="mt-2 max-w-[640px] px-2 text-base leading-7 text-navy/70 dark:text-wheat/70">
+            <p className="px-2 text-sm font-medium text-ink/55">Description</p>
+            <p className="mt-2 max-w-[640px] px-2 text-base leading-7 text-ink/70">
               {hackathon.shortDescription}
             </p>
           </section>
@@ -461,7 +461,7 @@ export default async function HackathonDetailPage({ params }: PageProps) {
           ) : null}
           {applyUrl ? (
             <a
-              className="inline-flex rounded-full min-h-11 items-center justify-center gap-1.5 border border-cabernet dark:border-[#e4a3ab]/50 bg-cabernet px-6 text-sm font-semibold text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white transition-colors hover:bg-[#5c151c]"
+              className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full px-5 text-sm font-medium text-ink transition-colors hover:bg-pine hover:text-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine"
               href={applyUrl}
               rel="noopener noreferrer"
               target="_blank"
@@ -472,7 +472,7 @@ export default async function HackathonDetailPage({ params }: PageProps) {
           ) : null}
           {discordChannelLink ? (
             <a
-              className="inline-flex rounded-full min-h-11 items-center justify-center gap-1.5 border border-[#5865F2] bg-[#5865F2] px-6 text-sm font-semibold text-white transition-colors hover:bg-[#4752c4]"
+              className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full px-5 text-sm font-medium text-ink transition-colors hover:bg-[#5865F2] hover:text-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine"
               href={discordChannelLink}
               rel="noopener noreferrer"
               target="_blank"
@@ -483,7 +483,7 @@ export default async function HackathonDetailPage({ params }: PageProps) {
           ) : null}
           {hackathon.websiteUrl && hackathon.websiteUrl !== applyUrl ? (
             <a
-              className="inline-flex rounded-full min-h-11 items-center justify-center gap-1.5 border border-cabernet dark:border-[#e4a3ab]/50 px-6 text-sm font-semibold text-cabernet dark:text-[#e4a3ab] transition-colors hover:bg-cabernet hover:text-wheat"
+              className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full px-5 text-sm font-medium text-ink transition-colors hover:bg-ink hover:text-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine"
               href={hackathon.websiteUrl}
               rel="noopener noreferrer"
               target="_blank"
@@ -494,9 +494,9 @@ export default async function HackathonDetailPage({ params }: PageProps) {
           ) : null}
         </div>
 
-        <section className="mt-8 rounded-xl border border-navy/10 dark:border-white/10 bg-ivory dark:bg-white/5 p-5">
-          <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-rust">Your status</h2>
-          <p className="mt-2 text-sm text-navy/55 dark:text-wheat/55">
+        <section className="mt-8 border border-ink/15 p-5">
+          <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-pine">Your status</h2>
+          <p className="mt-2 text-sm text-ink/55">
             Set where you are with this hackathon and we&apos;ll remind you about the right deadlines: applications,
             acceptance, and check in.
           </p>
@@ -508,7 +508,7 @@ export default async function HackathonDetailPage({ params }: PageProps) {
               />
             ) : (
               <Link
-                className="inline-flex rounded-full min-h-10 items-center justify-center border border-cabernet dark:border-[#e4a3ab]/50 px-5 text-sm font-semibold text-cabernet dark:text-[#e4a3ab] transition-colors hover:bg-cabernet hover:text-wheat"
+                className="inline-flex min-h-10 items-center justify-center rounded-full px-5 text-sm font-medium text-ink transition-colors hover:bg-pine hover:text-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine"
                 href="/sign-in"
               >
                 Sign in to track this hackathon
@@ -522,10 +522,10 @@ export default async function HackathonDetailPage({ params }: PageProps) {
             />
           ) : null}
           {upcomingReminders.length ? (
-            <ul className="mt-5 space-y-2 border-t border-navy/10 dark:border-white/10 pt-4">
+            <ul className="mt-5 space-y-2 border-t border-ink/10 pt-4">
               {upcomingReminders.map((reminder) => (
-                <li className="flex items-center gap-2 text-sm text-navy/70 dark:text-wheat/70" key={reminder.id}>
-                  <BellRing aria-hidden="true" className="size-3.5 shrink-0 text-cabernet dark:text-[#e4a3ab]" />
+                <li className="flex items-center gap-2 text-sm text-ink/70" key={reminder.id}>
+                  <BellRing aria-hidden="true" className="size-3.5 shrink-0 text-pine" />
                   <span>
                     {reminderTypeLabels[reminder.type] ?? reminder.type} · {formatReminderDate(reminder.scheduledFor)}
                   </span>

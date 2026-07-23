@@ -8,9 +8,9 @@
  *     as genuinely prestigious (major student hackathons, well-known branded
  *     events), matched by name.
  *  2. Everyone else falls back to a formula blending prize money (log-scaled,
- *     since a $500k prize pool shouldn't linearly dwarf a $5k one),
- *     dataConfidenceScore, and the existing thumbs-up/down voteScore — all
- *     signals already on the row, no manual judgment required.
+ *     since a $500k prize pool shouldn't linearly dwarf a $5k one) and
+ *     dataConfidenceScore — all signals already on the row, no manual
+ *     judgment required.
  * A small flat bonus is added on top of either tier when the name mentions a
  * recognizable tech-industry sponsor (Anthropic, Snowflake, etc.) — sponsor
  * backing is a real, checkable signal distinct from "this specific event is
@@ -70,7 +70,6 @@ type HackathonRow = {
   name: string;
   prizeAmountUsd: number | null;
   dataConfidenceScore: string | null;
-  voteScore: number;
 };
 
 function formulaElo(row: HackathonRow): number {
@@ -82,7 +81,6 @@ function formulaElo(row: HackathonRow): number {
 
   const confidence = Number(row.dataConfidenceScore ?? 0.5);
   score += Math.round((confidence - 0.5) * 60);
-  score += Math.max(-40, Math.min(40, row.voteScore * 5));
 
   return Math.round(score);
 }
@@ -119,7 +117,6 @@ async function main() {
       name: hackathons.name,
       prizeAmountUsd: hackathons.prizeAmountUsd,
       dataConfidenceScore: hackathons.dataConfidenceScore,
-      voteScore: hackathons.voteScore,
       faceoffWins: hackathons.faceoffWins,
       faceoffLosses: hackathons.faceoffLosses,
     })

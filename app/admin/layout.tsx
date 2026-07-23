@@ -13,7 +13,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   }
 
   return (
-    <main className="relative min-h-screen text-navy dark:text-wheat lg:flex">
+    <main className="relative min-h-screen text-ink lg:flex">
       <AppAtmosphere />
       <AdminSidebar />
       <div className="relative z-10 min-w-0 flex-1 px-5 py-8 sm:px-8 lg:px-12">

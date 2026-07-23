@@ -47,18 +47,18 @@ type ProfileLink = {
 };
 
 const inputClassName =
-  "w-full rounded-xl border border-navy/15 dark:border-white/15 bg-white dark:bg-white/[0.06] px-3 py-2.5 text-sm text-navy dark:text-wheat outline-none transition placeholder:text-navy/55 dark:placeholder:text-wheat/40 focus:border-cabernet focus:bg-white dark:focus:bg-white/[0.08] focus:ring-2 focus:ring-cabernet/15";
+  "w-full border border-ink/20 bg-paper px-3 py-2.5 text-sm text-ink outline-none transition-colors placeholder:text-ink/40 focus:border-pine";
 const prefixGroupClassName =
-  "flex w-full items-stretch overflow-hidden rounded-xl border bg-white dark:bg-white/[0.06] transition focus-within:border-cabernet focus-within:ring-2 focus-within:ring-cabernet/15";
+  "flex w-full items-stretch overflow-hidden border bg-paper transition-colors focus-within:border-pine";
 const prefixLabelClassName =
-  "flex select-none items-center border-r border-navy/10 dark:border-white/10 bg-navy/[0.03] dark:bg-white/[0.04] px-3 text-sm text-navy/55 dark:text-wheat/55";
+  "flex select-none items-center border-r border-ink/10 bg-ink/[0.03] px-3 text-sm text-ink/55";
 const prefixInputClassName =
-  "w-full min-w-0 flex-1 bg-transparent px-3 py-2.5 text-sm text-navy dark:text-wheat outline-none placeholder:text-navy/55 dark:placeholder:text-wheat/40";
-const labelClassName = "mb-1.5 block text-sm font-semibold text-navy dark:text-wheat";
-const headingClassName = "text-sm font-semibold uppercase tracking-[0.2em] text-rust";
-const fieldErrorClassName = "mt-1.5 text-xs font-semibold text-[#B42318]";
-const errorBorderClassName = "border-[#B42318]";
-const defaultBorderClassName = "border-navy/15 dark:border-white/15";
+  "w-full min-w-0 flex-1 bg-transparent px-3 py-2.5 text-sm text-ink outline-none placeholder:text-ink/40";
+const labelClassName = "mb-1.5 block text-sm font-semibold text-ink";
+const headingClassName = "text-sm font-semibold uppercase tracking-[0.2em] text-pine";
+const fieldErrorClassName = "mt-1.5 text-xs font-semibold text-cabernet";
+const errorBorderClassName = "border-cabernet";
+const defaultBorderClassName = "border-ink/20";
 
 const PROFANITY_MESSAGE = "Please remove the inappropriate language.";
 const SOCIAL_FIELDS: SocialPlatformKey[] = ["linkedinUrl", "instagramUrl", "xUrl", "devpostUrl", "githubUrl"];
@@ -302,16 +302,16 @@ export function AccountProfileForm({ firstName, lastName, profile }: ProfileForm
       <div className="relative py-8 sm:py-14">
         <div className="items-center gap-8 sm:gap-12">
           <div className="min-w-0">
-            <h1 className="font-serif text-[clamp(3rem,8vw,4.75rem)] font-semibold leading-[0.92] tracking-[-0.055em] text-navy dark:text-wheat">
+            <h1 className="text-[clamp(3rem,8vw,4.75rem)] font-medium leading-[0.92] tracking-tight text-ink">
               {displayName ? <>Hi, I&apos;m {displayName}</> : "Hi there"}
             </h1>
             {values.school ? (
-              <p className="mt-5 text-xl font-medium leading-snug text-navy dark:text-wheat sm:text-2xl">
+              <p className="mt-5 text-xl font-medium leading-snug text-ink sm:text-2xl">
                 {values.school}
               </p>
             ) : null}
             {values.bio ? (
-              <p className="mt-8 max-w-xl text-base leading-7 text-navy/55 dark:text-wheat/60 sm:text-lg">
+              <p className="mt-8 max-w-xl text-base leading-7 text-ink/55 sm:text-lg">
                 {values.bio}
               </p>
             ) : null}
@@ -327,7 +327,7 @@ export function AccountProfileForm({ firstName, lastName, profile }: ProfileForm
             setFieldErrors({});
             setIsEditing(true);
           }}
-          className="mt-8 inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-cabernet/40 px-4 text-sm font-semibold text-cabernet transition hover:bg-cabernet hover:text-wheat dark:border-[#e4a3ab]/50 dark:text-[#e4a3ab] dark:hover:bg-[#e4a3ab] dark:hover:text-[#141414] sm:absolute sm:right-0 sm:top-0 sm:mt-0"
+          className="mt-8 inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-medium text-ink transition-colors hover:bg-pine hover:text-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine sm:absolute sm:right-0 sm:top-0 sm:mt-0"
         >
           <Pencil aria-hidden="true" className="size-4" />
           Edit profile

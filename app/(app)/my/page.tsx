@@ -46,8 +46,6 @@ type PipelineRow = {
   imageUrl: string | null;
   venue: string | null;
   format: "online" | "in_person";
-  voteDisplayOffset: number;
-  voteScore: number;
   city: string | null;
   region: string | null;
   country: string | null;
@@ -80,9 +78,6 @@ function toCardData(row: PipelineRow, hasDiscord: boolean, source: HackathonSour
     name: row.hackathonName,
     slug: row.slug,
     source,
-    userVote: 0,
-    voteDisplayOffset: row.voteDisplayOffset,
-    voteScore: row.voteScore,
   };
 }
 
@@ -107,8 +102,6 @@ export default async function MyHackathonsPage() {
       imageUrl: hackathons.imageUrl,
       venue: hackathons.venue,
       format: hackathons.format,
-      voteDisplayOffset: hackathons.voteDisplayOffset,
-      voteScore: hackathons.voteScore,
       city: hackathonLocations.city,
       region: hackathonLocations.region,
       country: hackathonLocations.country,
@@ -224,19 +217,19 @@ export default async function MyHackathonsPage() {
   }));
 
   return (
-    <main className="min-h-screen px-5 pb-20 pt-14 text-navy dark:text-wheat sm:px-8 sm:pt-16 lg:px-12">
+    <main className="min-h-screen px-5 pb-20 pt-14 sm:px-8 sm:pt-16 lg:px-12">
       <div className="mx-auto w-full max-w-[1400px]">
         <CountryAlertSection subscription={countryAlert} />
 
         {activeCount === 0 ? (
-          <div className="mx-auto mt-10 w-full max-w-[980px] rounded-xl border border-navy/10 dark:border-white/10 bg-ivory dark:bg-white/5 p-8 text-center">
-            <p className="text-base font-semibold text-navy dark:text-wheat">Nothing in your pipeline yet.</p>
-            <p className="mt-2 text-sm text-navy/55 dark:text-wheat/55">
+          <div className="mx-auto mt-10 w-full max-w-[980px] border border-ink/15 p-8 text-center">
+            <p className="text-base font-semibold text-ink">Nothing in your pipeline yet.</p>
+            <p className="mt-2 text-sm text-ink/55">
               Browse the database and mark hackathons you&apos;re interested in. Deadlines and reminders will show up
               here.
             </p>
             <Link
-              className="mt-6 inline-flex rounded-full min-h-10 items-center justify-center border border-cabernet dark:border-[#e4a3ab]/50 px-5 text-sm font-semibold text-cabernet dark:text-[#e4a3ab] transition-colors hover:bg-cabernet hover:text-wheat"
+              className="mt-6 inline-flex min-h-10 items-center justify-center rounded-full px-5 text-sm font-medium text-ink transition-colors hover:bg-pine hover:text-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine"
               href="/hackathons"
             >
               Browse the Hackathons DB
@@ -248,8 +241,8 @@ export default async function MyHackathonsPage() {
         )}
 
         {pastRows.length ? (
-          <section className="mt-12 w-full border-t border-navy/10 dark:border-white/10 pt-8">
-            <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-navy/55 dark:text-wheat/55">Past</h2>
+          <section className="mt-12 w-full border-t border-ink/10 pt-8">
+            <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-ink/55">Past</h2>
             <div className="mt-4 space-y-3">
               {pastRows.map((row) => {
                 const status =

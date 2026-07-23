@@ -4,16 +4,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowBigDown, ArrowBigUp, BellPlus, Bookmark, Check, ChevronDown, Swords } from "lucide-react";
+import { BellPlus, Bookmark, Check, ChevronDown, Swords } from "lucide-react";
 
 import { DiscordGlyph } from "@/components/discord-glyph";
 import { hackathonLogoSrc, isDirectImageUrl } from "@/lib/hackathons/logo-hosts";
 import { formatReminderDate } from "@/lib/hackathons/reminder-labels";
 import type { SelectableReminderType } from "@/lib/hackathons/reminder-plan";
 import type { HackathonSourceBadge } from "@/lib/hackathons/source-badges";
-import { filmGrainClassName } from "@/lib/tailwind";
-
-type Vote = -1 | 0 | 1;
 
 export type HackathonCardData = {
   /** Search metadata sent with the cached catalog snapshot. */
@@ -46,10 +43,6 @@ export type HackathonCardData = {
   source?: HackathonSourceBadge | null;
   startsAt?: string | null;
   travelReimbursement?: boolean;
-  userVote: Vote;
-  /** Beta-only presentation override; never included in vote calculations. */
-  voteDisplayOffset?: number;
-  voteScore: number;
 };
 
 function handleUnauthenticated() {
@@ -156,8 +149,8 @@ function BookmarkButton({
       aria-disabled={preview || undefined}
       aria-pressed={saved}
       disabled={saving}
-      className={`relative z-10 grid size-10 shrink-0 place-items-center transition-colors hover:text-cabernet dark:hover:text-[#e4a3ab] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40 ${
-        saved ? "text-cabernet dark:text-[#e4a3ab]" : "text-navy dark:text-wheat"
+      className={`relative z-10 grid size-10 shrink-0 place-items-center transition-colors hover:text-pine focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine ${
+        saved ? "text-pine" : "text-ink"
       } disabled:cursor-wait disabled:opacity-70`}
       onClick={toggleSaved}
       type="button"
@@ -168,113 +161,6 @@ function BookmarkButton({
         strokeWidth={2.35}
       />
     </button>
-  );
-}
-
-function VoteControl({
-  hackathonId,
-  initialVote,
-  initialVoteDisplayOffset = 0,
-  initialVoteScore,
-  name,
-  preview = false,
-}: {
-  hackathonId: string;
-  initialVote: Vote;
-  initialVoteDisplayOffset?: number;
-  initialVoteScore: number;
-  name: string;
-  preview?: boolean;
-}) {
-  const [vote, setVote] = useState<Vote>(initialVote);
-  const [score, setScore] = useState(initialVoteScore + initialVoteDisplayOffset);
-  const [savingVote, setSavingVote] = useState(false);
-
-  async function toggleVote(targetVote: Vote) {
-    if (preview) {
-      return;
-    }
-
-    const nextVote = vote === targetVote ? 0 : targetVote;
-    const previousVote = vote;
-    const previousScore = score;
-
-    setVote(nextVote);
-    setScore((current) => current + nextVote - previousVote);
-    setSavingVote(true);
-
-    try {
-      const response = await fetch(`/api/hackathons/${encodeURIComponent(hackathonId)}/vote`, {
-        body: JSON.stringify({ vote: nextVote }),
-        headers: { "Content-Type": "application/json" },
-        method: "PATCH",
-      });
-
-      if (response.status === 401) {
-        handleUnauthenticated();
-        return;
-      }
-
-      if (!response.ok) {
-        throw new Error("Could not vote on hackathon.");
-      }
-
-      const payload = (await response.json()) as { data?: { score?: number; vote?: Vote } };
-      setVote(payload.data?.vote ?? nextVote);
-      setScore(
-        (payload.data?.score ?? previousScore + nextVote - previousVote - initialVoteDisplayOffset) + initialVoteDisplayOffset
-      );
-    } catch {
-      setVote(previousVote);
-      setScore(previousScore);
-    } finally {
-      setSavingVote(false);
-    }
-  }
-
-  return (
-    <div
-      aria-label={`${name} community score`}
-      className="relative z-10 flex h-9 shrink-0 items-center gap-1 text-navy dark:text-wheat"
-    >
-      <button
-        aria-label={`Upvote ${name}`}
-        aria-disabled={preview || undefined}
-        aria-pressed={vote === 1}
-        disabled={savingVote}
-        className={`grid size-8 place-items-center rounded-full transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40 ${
-          vote === 1 ? "text-cabernet dark:text-[#e4a3ab]" : "text-navy/55 dark:text-wheat/55"
-        } disabled:cursor-wait disabled:opacity-70`}
-        onClick={() => toggleVote(1)}
-        type="button"
-      >
-        <ArrowBigUp
-          aria-hidden="true"
-          className={`size-5 ${vote === 1 ? "fill-current" : ""}`}
-          strokeWidth={2}
-        />
-      </button>
-      <span className="min-w-7 text-center text-lg font-semibold leading-none">
-        {score}
-      </span>
-      <button
-        aria-label={`Downvote ${name}`}
-        aria-disabled={preview || undefined}
-        aria-pressed={vote === -1}
-        disabled={savingVote}
-        className={`grid size-8 place-items-center rounded-full transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40 ${
-          vote === -1 ? "text-[#5A6CFF]" : "text-navy/55 dark:text-wheat/55"
-        } disabled:cursor-wait disabled:opacity-70`}
-        onClick={() => toggleVote(-1)}
-        type="button"
-      >
-        <ArrowBigDown
-          aria-hidden="true"
-          className={`size-5 ${vote === -1 ? "fill-current" : ""}`}
-          strokeWidth={2}
-        />
-      </button>
-    </div>
   );
 }
 
@@ -289,7 +175,7 @@ function HackathonLogoMark({
 }) {
   return (
     <div
-      className={`relative grid shrink-0 place-items-center overflow-hidden rounded-xl bg-[radial-gradient(120%_120%_at_30%_20%,#d9c3a5_0%,#c4a882_55%,#b0946a_100%)] ${
+      className={`relative grid shrink-0 place-items-center overflow-hidden bg-ink/5 ${
         compact ? "size-14" : "size-[4.5rem]"
       }`}
     >
@@ -308,7 +194,7 @@ function HackathonLogoMark({
           unoptimized={!logoSrc.startsWith("/") && !isDirectImageUrl(logoSrc)}
         />
       ) : (
-        <div className="grid size-full place-items-center bg-[rgb(var(--hackathon-accent-rgb)/0.92)] px-2 text-center text-lg font-semibold text-white">
+        <div className="grid size-full place-items-center bg-[rgb(var(--hackathon-accent-rgb)/0.92)] px-2 text-center text-lg font-semibold text-paper">
           {getInitials(hackathon.name) || "HN"}
         </div>
       )}
@@ -421,10 +307,8 @@ function ReminderControl({ hackathonId, statusLabel, options: initialOptions }: 
     <div className="relative z-10" ref={rootRef}>
       <button
         aria-expanded={open}
-        className={`inline-flex min-h-8 items-center gap-1.5 rounded-full px-3 text-xs font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40 ${
-          open
-            ? "bg-cabernet text-wheat dark:bg-[#e4a3ab]/15 dark:text-[#e4a3ab]"
-            : "text-cabernet hover:bg-cabernet/10 dark:text-[#e4a3ab] dark:hover:bg-[#e4a3ab]/10"
+        className={`inline-flex min-h-9 items-center gap-1.5 rounded-full px-3 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine ${
+          open ? "bg-pine text-paper" : "text-ink hover:bg-pine hover:text-paper"
         }`}
         onClick={() => setOpen((current) => !current)}
         type="button"
@@ -441,7 +325,7 @@ function ReminderControl({ hackathonId, statusLabel, options: initialOptions }: 
         <div className="mt-2 flex flex-wrap gap-1.5">
           {enabledOptions.map((option) => (
             <span
-              className="inline-flex items-center gap-1 rounded-full border border-cabernet/30 dark:border-[#e4a3ab]/40 bg-cabernet/5 dark:bg-[#e4a3ab]/10 px-2.5 py-1 text-xs font-semibold text-cabernet dark:text-[#e4a3ab]"
+              className="inline-flex items-center gap-1 bg-pine/10 px-2.5 py-1 text-xs font-medium text-pine"
               key={option.type}
             >
               <BellPlus aria-hidden="true" className="size-3" />
@@ -452,8 +336,8 @@ function ReminderControl({ hackathonId, statusLabel, options: initialOptions }: 
       ) : null}
 
       {open ? (
-        <div className="mt-2 rounded-2xl border border-navy/10 dark:border-white/10 bg-white dark:bg-[#1b1b1b] p-3 shadow-[0_18px_45px_rgb(0_0_0/0.12)]">
-          <p className="px-1 font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-cabernet dark:text-[#e4a3ab]">
+        <div className="mt-2 border border-ink/15 bg-paper p-3 shadow-sm">
+          <p className="px-1 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-pine">
             {statusLabel}
           </p>
           {options.length ? (
@@ -463,16 +347,16 @@ function ReminderControl({ hackathonId, statusLabel, options: initialOptions }: 
 
                 return (
                   <label
-                    className={`flex cursor-pointer items-center justify-between gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors ${
+                    className={`flex cursor-pointer items-center justify-between gap-3 border px-3 py-2.5 text-left transition-colors ${
                       option.enabled
-                        ? "border-cabernet/35 dark:border-[#e4a3ab]/40 bg-cabernet/5 dark:bg-[#e4a3ab]/10"
-                        : "border-navy/10 dark:border-white/10 bg-white dark:bg-white/[0.06] hover:border-navy/20 hover:bg-ivory dark:hover:bg-white/10"
+                        ? "border-pine/35 bg-pine/5"
+                        : "border-ink/15 bg-paper hover:border-ink/40"
                     }`}
                     key={option.type}
                   >
                     <span className="min-w-0">
-                      <span className="block text-sm font-semibold text-navy dark:text-wheat">{option.label}</span>
-                      <span className="mt-0.5 block text-xs text-navy/55 dark:text-wheat/55">
+                      <span className="block text-sm font-medium text-ink">{option.label}</span>
+                      <span className="mt-0.5 block text-xs text-ink/55">
                         {option.scheduledFor
                           ? formatReminderDate(new Date(option.scheduledFor))
                           : "Date TBA — we'll email you the moment they open"}
@@ -490,8 +374,8 @@ function ReminderControl({ hackathonId, statusLabel, options: initialOptions }: 
                       aria-hidden="true"
                       className={`grid size-6 shrink-0 place-items-center rounded-full border ${
                         option.enabled
-                          ? "border-cabernet dark:border-[#e4a3ab]/50 bg-cabernet text-wheat dark:bg-wheat dark:text-[#141414]"
-                          : "border-navy/15 dark:border-white/15 text-transparent"
+                          ? "border-pine bg-pine text-paper"
+                          : "border-ink/15 text-transparent"
                       }`}
                     >
                       <Check className="size-3.5" strokeWidth={3} />
@@ -501,33 +385,18 @@ function ReminderControl({ hackathonId, statusLabel, options: initialOptions }: 
               })}
             </div>
           ) : (
-            <p className="mt-2 px-1 pb-1 text-xs text-navy/55 dark:text-wheat/55">
+            <p className="mt-2 px-1 pb-1 text-xs text-ink/55">
               No reminders are available yet. We&apos;ll offer them once this hackathon&apos;s key dates are confirmed.
             </p>
           )}
           {limitNotice ? (
-            <p className="mt-2 px-1 pb-1 text-xs font-semibold text-cabernet dark:text-[#e4a3ab]">
+            <p className="mt-2 px-1 pb-1 text-xs font-medium text-cabernet">
               For now, you&apos;re limited to five emails per week. Turn another reminder off to make room.
             </p>
           ) : null}
         </div>
       ) : null}
     </div>
-  );
-}
-
-function CardAccentEdges() {
-  return (
-    <>
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute right-2 top-2 h-7 w-7 border-r border-t border-navy/25 dark:border-white/25"
-      />
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute bottom-4 left-4 h-6 w-6 border-b border-l border-navy/10 dark:border-white/10"
-      />
-    </>
   );
 }
 
@@ -546,7 +415,7 @@ export function HackathonCard({
   cornerAction?: ReactNode;
   hackathon: HackathonCardData;
   preview?: boolean;
-  /* When set, the footer swaps the vote/save controls for an inline reminder
+  /* When set, the footer swaps the save control for an inline reminder
      picker that expands below the card — used on the My Hackathons board. */
   reminder?: HackathonCardReminder;
 }) {
@@ -558,13 +427,13 @@ export function HackathonCard({
     : null;
   return (
     <article
-      className={`group relative flex min-w-0 flex-col overflow-hidden rounded-2xl border border-navy/10 bg-[linear-gradient(to_bottom_left,rgb(var(--hackathon-accent-rgb)_/_0.1),transparent_45%,transparent_55%,rgb(var(--hackathon-accent-rgb)_/_0.1)),radial-gradient(circle_130px_at_10%_8%,rgb(178_142_100_/_0.05),transparent_72%),radial-gradient(circle_150px_at_65%_130%,rgb(178_142_100_/_0.05),transparent_72%),linear-gradient(160deg,#ffffff_0%,#f7f3ea_100%)] shadow-[0_18px_45px_rgb(0_0_0/0.06)] transition-[transform,opacity,filter] duration-200 ease-out hover:z-10 hover:scale-105 after:pointer-events-none after:absolute after:inset-0 after:bg-[linear-gradient(to_bottom_left,rgb(var(--hackathon-accent-rgb)_/_0.08),transparent_45%,transparent_55%,rgb(var(--hackathon-accent-rgb)_/_0.08))] after:opacity-0 after:transition-opacity after:duration-[450ms] after:ease-out after:content-[''] group-hover:after:opacity-100 group-focus-within:after:opacity-100 dark:border-white/10 dark:bg-[linear-gradient(to_bottom_left,rgb(var(--hackathon-accent-rgb)_/_0.14),transparent_45%,transparent_55%,rgb(var(--hackathon-accent-rgb)_/_0.14)),radial-gradient(circle_130px_at_10%_8%,rgb(178_142_100_/_0.07),transparent_72%),radial-gradient(circle_150px_at_65%_130%,rgb(178_142_100_/_0.07),transparent_72%),linear-gradient(160deg,#181a19_0%,#0f1110_100%)] dark:shadow-[0_18px_45px_rgb(0_0_0/0.5)] dark:after:bg-[linear-gradient(to_bottom_left,rgb(var(--hackathon-accent-rgb)_/_0.1),transparent_45%,transparent_55%,rgb(var(--hackathon-accent-rgb)_/_0.1))] ${
+      className={`group relative flex min-w-0 flex-col border border-ink/15 bg-paper transition-colors hover:border-ink/40 ${
         compact ? "p-4" : "p-5 sm:p-6"
       } ${
-        /* Past editions read as faded — dimmed and desaturated just enough to
-           signal "already happened" without hurting text legibility. Hover
-           restores full strength so the card is still easy to inspect. */
-        hackathon.isPast ? "opacity-80 saturate-[0.55] hover:opacity-100 hover:saturate-100 focus-within:opacity-100 focus-within:saturate-100" : ""
+        /* Past editions read as faded — dimmed just enough to signal "already
+           happened" without hurting text legibility. Hover restores full
+           strength so the card is still easy to inspect. */
+        hackathon.isPast ? "opacity-70 hover:opacity-100 focus-within:opacity-100" : ""
       }`}
       style={accentStyle}
     >
@@ -576,12 +445,6 @@ export function HackathonCard({
           href={`/hackathons/${hackathon.slug}`}
         />
       ) : null}
-      {/* Film grain keeps the aurora tactile, matching the hero. */}
-      <span
-        aria-hidden="true"
-        className={`${filmGrainClassName} pointer-events-none absolute inset-0 opacity-[0.05] mix-blend-overlay dark:opacity-[0.09]`}
-      />
-      <CardAccentEdges />
 
       <div className={`flex items-start ${compact ? "gap-3" : "gap-4"}`}>
         {/* The column is pinned to the logo's width so the provenance badge
@@ -591,30 +454,30 @@ export function HackathonCard({
           {/* Provenance label — names where this hackathon's data came from.
               Absent when we have no source on file. */}
           {hackathon.source ? (
-            <span className="relative z-10 max-w-full truncate font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-navy/55 dark:text-wheat/55">
+            <span className="relative z-10 max-w-full truncate font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-ink/55">
               {hackathon.source.label}
             </span>
           ) : null}
         </div>
         <div className="min-w-0 pt-1">
           <h2
-            className={`line-clamp-2 font-semibold text-navy dark:text-wheat ${
+            className={`line-clamp-2 font-semibold tracking-tight text-ink ${
               compact ? "text-lg leading-6" : "text-xl leading-6 sm:text-[1.35rem]"
             }`}
           >
             {hackathon.name}
           </h2>
           {hackathon.isPast ? (
-            <p className="mt-2 text-[15px] font-semibold leading-5 text-navy/40 dark:text-wheat/40">
+            <p className="mt-2 text-[15px] leading-5 text-ink/40">
               Last held {hackathon.date} · next edition TBA
             </p>
           ) : (
-            <p className="mt-2 text-[15px] font-semibold leading-5 text-navy/55 dark:text-wheat/55">
+            <p className="mt-2 text-[15px] leading-5 text-ink/55">
               {hackathon.date}
             </p>
           )}
           <p
-            className="mt-1 truncate text-[15px] font-semibold leading-5 text-navy/55 dark:text-wheat/55"
+            className="mt-1 truncate text-[15px] leading-5 text-ink/55"
             title={[hackathon.country ? getCountryDisplay(hackathon.country).label : null, hackathon.location]
               .filter(Boolean)
               .join(", ")}
@@ -641,7 +504,7 @@ export function HackathonCard({
             <div className="mt-2 flex flex-wrap items-center gap-2">
               {typeof hackathon.eloRating === "number" ? (
                 <span
-                  className="relative z-10 inline-flex items-center gap-1 rounded-full border border-navy/15 bg-navy/[0.03] px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-navy/55 dark:border-white/15 dark:bg-white/[0.04] dark:text-wheat/55"
+                  className="relative z-10 inline-flex items-center gap-1 bg-ink/5 px-2.5 py-1 font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-ink/55"
                   title="Face Off Elo rating"
                 >
                   <Swords aria-hidden="true" className="size-3" />
@@ -649,17 +512,17 @@ export function HackathonCard({
                 </span>
               ) : null}
               {hackathon.beginnerFriendly ? (
-                <span className="relative z-10 inline-flex items-center rounded-full border border-cabernet/20 bg-cabernet/[0.05] px-2.5 py-1 text-[11px] font-semibold text-cabernet dark:border-[#e4a3ab]/30 dark:bg-[#e4a3ab]/10 dark:text-[#e4a3ab]">
+                <span className="relative z-10 inline-flex items-center bg-pine/10 px-2.5 py-1 text-[11px] font-medium text-pine">
                   Beginner friendly
                 </span>
               ) : null}
               {hackathon.travelReimbursement ? (
-                <span className="relative z-10 inline-flex items-center rounded-full border border-cabernet/20 bg-cabernet/[0.05] px-2.5 py-1 text-[11px] font-semibold text-cabernet dark:border-[#e4a3ab]/30 dark:bg-[#e4a3ab]/10 dark:text-[#e4a3ab]">
+                <span className="relative z-10 inline-flex items-center bg-pine/10 px-2.5 py-1 text-[11px] font-medium text-pine">
                   Travel support
                 </span>
               ) : null}
               {hackathon.highSchoolersOnly ? (
-                <span className="relative z-10 inline-flex items-center rounded-full border border-cabernet/20 bg-cabernet/[0.05] px-2.5 py-1 text-[11px] font-semibold text-cabernet dark:border-[#e4a3ab]/30 dark:bg-[#e4a3ab]/10 dark:text-[#e4a3ab]">
+                <span className="relative z-10 inline-flex items-center bg-pine/10 px-2.5 py-1 text-[11px] font-medium text-pine">
                   High school only
                 </span>
               ) : null}
@@ -685,16 +548,7 @@ export function HackathonCard({
             {cornerAction ? <div className="relative z-20 shrink-0">{cornerAction}</div> : null}
           </div>
         ) : (
-          <div className="flex items-center justify-between gap-3">
-            <VoteControl
-              hackathonId={hackathon.id}
-              initialVote={hackathon.userVote}
-              initialVoteDisplayOffset={hackathon.voteDisplayOffset}
-              initialVoteScore={hackathon.voteScore}
-              key={`${hackathon.id}-${hackathon.userVote}-${hackathon.voteDisplayOffset ?? 0}-${hackathon.voteScore}`}
-              name={hackathon.name}
-              preview={preview}
-            />
+          <div className="flex items-center justify-end gap-3">
             <BookmarkButton
               hackathonId={hackathon.id}
               hackathonName={hackathon.name}

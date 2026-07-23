@@ -75,8 +75,6 @@ export function previewPayloadToCard(payload: PreviewPayload, id = "admin-previe
     location: locationText(payload),
     name,
     travelReimbursement: payload.travelReimbursement === true,
-    userVote: 0,
-    voteScore: 0,
   };
 }
 

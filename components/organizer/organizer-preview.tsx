@@ -8,7 +8,7 @@ import {
 } from "@/components/organizer/organizer-hackathon-manager";
 
 const inputClassName =
-  "w-full rounded-xl border border-navy/15 dark:border-white/15 bg-white dark:bg-white/[0.06] px-3 py-2 text-sm text-navy dark:text-wheat outline-none focus:border-cabernet focus:ring-2 focus:ring-cabernet/15";
+  "w-full border border-ink/20 bg-paper px-3 py-2 text-sm text-ink outline-none focus:border-pine";
 
 /**
  * Admin-only tool: pick any hackathon and see exactly what its organizer sees
@@ -21,7 +21,7 @@ export function OrganizerPreview({ hackathons }: { hackathons: OrganizerHackatho
 
   if (!hackathons.length) {
     return (
-      <p className="rounded-xl p-6 text-sm leading-6 text-navy/55 dark:text-wheat/55">
+      <p className="p-6 text-sm leading-6 text-ink/55">
         There are no published hackathons to preview yet.
       </p>
     );
@@ -29,8 +29,8 @@ export function OrganizerPreview({ hackathons }: { hackathons: OrganizerHackatho
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl p-5">
-        <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.14em] text-navy/55 dark:text-wheat/55" htmlFor="preview-hackathon">
+      <div className="p-5">
+        <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.14em] text-ink/55" htmlFor="preview-hackathon">
           Hackathon
         </label>
         <select
@@ -45,7 +45,7 @@ export function OrganizerPreview({ hackathons }: { hackathons: OrganizerHackatho
             </option>
           ))}
         </select>
-        <p className="mt-2 text-sm leading-6 text-navy/55 dark:text-wheat/55">
+        <p className="mt-2 text-sm leading-6 text-ink/55">
           This is the live organizer console for the selected hackathon. Changes you save here are real.
         </p>
       </div>

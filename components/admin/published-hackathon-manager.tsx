@@ -97,8 +97,6 @@ function AdminHackathonCard({
         hackathon={{
           ...previewPayloadToCard(itemToPreviewPayload(item), item.id),
           isSaved: false,
-          voteDisplayOffset: item.voteDisplayOffset,
-          voteScore: item.voteScore,
         }}
         preview
       />

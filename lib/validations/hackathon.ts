@@ -243,11 +243,7 @@ export const adminHackathonImportSchema = z.preprocess(
 const adminHackathonUpdatePayloadSchema = normalizedHackathonPayloadBaseSchema
   // `recurring` is managed by the dedicated admin toggle route, never by
   // full-payload edits (this schema is shared with the organizer editor).
-  .omit({ organizationId: true, organizationName: true, sourceUrl: true, timeNote: true, recurring: true })
-  .extend({
-    // Beta-only display override. This intentionally does not modify voteScore.
-    voteDisplayOffset: z.coerce.number().int().min(-100_000).max(100_000).optional(),
-  });
+  .omit({ organizationId: true, organizationName: true, sourceUrl: true, timeNote: true, recurring: true });
 
 export const adminHackathonUpdateSchema = adminHackathonUpdatePayloadSchema
   .strip()
@@ -479,10 +475,6 @@ export const attendanceAnomalyResolveSchema = z.object({
   userId: z.string().uuid(),
   hackathonId: z.string().uuid(),
   action: z.enum(["verify", "revoke"]),
-});
-
-export const hackathonVoteSchema = z.object({
-  vote: z.union([z.literal(-1), z.literal(0), z.literal(1)]),
 });
 
 export const faceoffVoteSchema = z

@@ -4,13 +4,15 @@ import dynamic from "next/dynamic";
 
 import { LazyMount } from "@/components/lazy-mount";
 
-/* Heavy below-fold landing visuals. Each is split into its own chunk
-   (next/dynamic, no SSR) and only mounted once scrolled near the viewport via
-   LazyMount, so cobe's WebGL globe and the motion-driven feature mocks stay
-   off the landing page's critical path. Placeholder sizing approximates each
-   visual's rendered height to avoid layout shift. */
-const LandingGlobe = dynamic(
-  () => import("@/components/landing-globe").then((mod) => mod.LandingGlobe),
+/* Below-fold landing visuals. Each is split into its own chunk (next/dynamic,
+   no SSR) and only mounted once scrolled near the viewport via LazyMount.
+   Placeholder sizing approximates each visual's rendered height to avoid
+   layout shift. */
+const LandingWorldMap = dynamic(
+  () =>
+    import("@/components/landing-world-map").then(
+      (mod) => mod.LandingWorldMap,
+    ),
   { ssr: false },
 );
 
@@ -30,11 +32,10 @@ const SearchSpotlightVisual = dynamic(
   { ssr: false },
 );
 
-export function LazyLandingGlobe() {
+export function LazyLandingWorldMap() {
   return (
-    /* The globe canvas renders as a square, so the placeholder matches. */
-    <LazyMount className="mx-auto aspect-square w-full max-w-[560px]">
-      <LandingGlobe />
+    <LazyMount className="mx-auto aspect-[16/10] w-full sm:aspect-[2/1]">
+      <LandingWorldMap />
     </LazyMount>
   );
 }

@@ -50,17 +50,17 @@ export function AppSidebar({
   return (
     <motion.aside
       animate={{ opacity: 1, x: 0 }}
-      className="z-40 border-b border-navy/10 bg-white/75 backdrop-blur-xl dark:border-white/10 dark:bg-[#141414]/60 lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-64 lg:shrink-0 lg:flex-col lg:border-b-0 lg:border-r"
+      className="z-40 border-b border-ink/15 bg-paper lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-64 lg:shrink-0 lg:flex-col lg:border-b-0 lg:border-r"
       initial={prefersReducedMotion ? false : { opacity: 0, x: "-1.75rem" }}
       transition={{ delay: 0.3, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
     >
       <div className="flex items-center justify-between gap-4 px-5 pb-0 pt-5 lg:block lg:px-5">
         <Link className="block" href={isSignedIn ? "/?home" : "/"}>
-          <span className="font-serif text-2xl font-semibold leading-none text-navy dark:text-wheat">HNA</span>
+          <span className="text-2xl font-semibold leading-none tracking-tight text-ink">HNA</span>
         </Link>
         {!isSignedIn ? (
           <Link
-            className="inline-flex rounded-full min-h-9 items-center justify-center border border-cabernet dark:border-[#e4a3ab]/50 px-4 font-mono text-xs font-medium uppercase tracking-[0.14em] text-cabernet dark:text-[#e4a3ab] transition-colors hover:bg-cabernet hover:text-wheat lg:hidden"
+            className="inline-flex min-h-9 items-center justify-center rounded-full px-4 font-mono text-xs font-medium uppercase tracking-[0.14em] text-ink transition-colors hover:bg-pine hover:text-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine lg:hidden"
             href="/sign-in"
           >
             Login
@@ -78,8 +78,8 @@ export function AppSidebar({
           return (
             <Link
               aria-current={active ? "page" : undefined}
-              className={`inline-flex min-h-10 shrink-0 items-center gap-3 rounded-full px-3 text-sm font-semibold transition-colors ${
-                active ? "bg-cabernet text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white" : "text-navy/70 dark:text-wheat/70 hover:bg-ivory dark:hover:bg-white/10 hover:text-navy dark:hover:text-wheat"
+              className={`inline-flex min-h-10 shrink-0 items-center gap-3 px-3 text-sm font-medium transition-colors ${
+                active ? "bg-ink text-paper" : "text-ink/55 hover:bg-ink/10 hover:text-ink"
               }`}
               href={href}
               key={href}
@@ -93,7 +93,7 @@ export function AppSidebar({
 
       <div className="mt-auto px-3 pb-3">
         <Link
-          className="inline-flex min-h-10 w-full shrink-0 items-center gap-3 rounded-full px-3 text-sm font-semibold text-navy/70 transition-colors hover:bg-ivory hover:text-navy dark:text-wheat/70 dark:hover:bg-white/10 dark:hover:text-wheat"
+          className="inline-flex min-h-10 w-full shrink-0 items-center gap-3 px-3 text-sm font-medium text-ink/55 transition-colors hover:bg-ink/10 hover:text-ink"
           href="https://discord.gg/wcNfUUVgqe"
           rel="noreferrer"
           target="_blank"
@@ -106,7 +106,7 @@ export function AppSidebar({
       {!isSignedIn ? (
         <div className="hidden px-5 pb-6 lg:block">
           <Link
-            className="inline-flex rounded-full min-h-10 w-full items-center justify-center border border-cabernet dark:border-[#e4a3ab]/50 px-4 font-mono text-xs font-medium uppercase tracking-[0.14em] text-cabernet dark:text-[#e4a3ab] transition-colors hover:bg-cabernet hover:text-wheat"
+            className="inline-flex min-h-10 w-full items-center justify-center rounded-full px-4 font-mono text-xs font-medium uppercase tracking-[0.14em] text-ink transition-colors hover:bg-pine hover:text-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine"
             href="/sign-in"
           >
             Login

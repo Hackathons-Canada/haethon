@@ -44,7 +44,6 @@ const appTables = [
   "tags",
   "user_hackathons",
   "user_hackathon_attendance_days",
-  "user_hackathon_votes",
   "user_profiles",
   "users",
 ];

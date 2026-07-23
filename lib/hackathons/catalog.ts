@@ -8,7 +8,6 @@ import {
   hackathons,
   hackathonSeries,
   userHackathons,
-  userHackathonVotes,
 } from "@/lib/db/schema";
 import { formatDateRange, formatLocationParts } from "@/lib/hackathons/card-format";
 import { isPastCatalogRow, pastRecurringSeriesIds, selectVisibleCatalogRows } from "@/lib/hackathons/catalog-visibility";
@@ -20,7 +19,7 @@ import { sourceBadge, type HackathonSourceBadge } from "@/lib/hackathons/source-
 export const CATALOG_PAGE_SIZE = 30;
 
 /* Public catalog entries change on ingest/admin actions, not per request, so a
-   10-minute window trades a little vote-score freshness for skipping the whole
+   10-minute window trades a little freshness for skipping the whole
    query fan-out on nearly every page view. */
 const CATALOG_REVALIDATE_SECONDS = 600;
 
@@ -83,8 +82,6 @@ type PublicHackathonCard = {
   source: HackathonSourceBadge | null;
   startsAt: string | null;
   travelReimbursement: boolean;
-  voteDisplayOffset: number;
-  voteScore: number;
 };
 
 export type CatalogPage = {
@@ -134,8 +131,6 @@ async function queryCatalogPage(query: CatalogQuery): Promise<CatalogPage> {
       beginnerFriendly: hackathons.beginnerFriendly,
       travelReimbursement: hackathons.travelReimbursement,
       highSchoolersOnly: hackathons.highSchoolersOnly,
-      voteDisplayOffset: hackathons.voteDisplayOffset,
-      voteScore: hackathons.voteScore,
       eloRating: hackathons.eloRating,
       faceoffWins: hackathons.faceoffWins,
       faceoffLosses: hackathons.faceoffLosses,
@@ -250,8 +245,6 @@ async function queryCatalogPage(query: CatalogQuery): Promise<CatalogPage> {
         source: row.source ? sourceBadge(row.source) : null,
         startsAt: row.startsAt?.toISOString() ?? null,
         travelReimbursement: row.travelReimbursement,
-        voteDisplayOffset: row.voteDisplayOffset,
-        voteScore: row.voteScore,
       };
     }),
     hasMore,
@@ -320,42 +313,31 @@ export function getPublicHackathonCatalogSnapshot(): Promise<CatalogPage> {
 }
 
 /**
- * Overlays the signed-in user's saved/vote state onto cached public cards.
- * These are the only per-request queries the catalog surfaces need, and both
- * hit unique indexes on (user_id, hackathon_id).
+ * Overlays the signed-in user's saved state onto cached public cards.
+ * This is the only per-request query the catalog surfaces need, and it
+ * hits the unique index on (user_id, hackathon_id).
  */
 export async function applyUserCardState<Card extends { id: string }>(
   cards: Card[],
   userId: string | null | undefined
-): Promise<(Card & { isSaved: boolean; userVote: -1 | 0 | 1 })[]> {
+): Promise<(Card & { isSaved: boolean })[]> {
   const hackathonIds = cards.map((card) => card.id);
 
-  const [savedRows, voteRows] =
+  const savedRows =
     userId && hackathonIds.length
-      ? await Promise.all([
-          db
-            .select({
-              hackathonId: userHackathons.hackathonId,
-              isSaved: userHackathons.isSaved,
-            })
-            .from(userHackathons)
-            .where(and(eq(userHackathons.userId, userId), inArray(userHackathons.hackathonId, hackathonIds))),
-          db
-            .select({
-              hackathonId: userHackathonVotes.hackathonId,
-              vote: userHackathonVotes.vote,
-            })
-            .from(userHackathonVotes)
-            .where(and(eq(userHackathonVotes.userId, userId), inArray(userHackathonVotes.hackathonId, hackathonIds))),
-        ])
-      : [[], []];
+      ? await db
+          .select({
+            hackathonId: userHackathons.hackathonId,
+            isSaved: userHackathons.isSaved,
+          })
+          .from(userHackathons)
+          .where(and(eq(userHackathons.userId, userId), inArray(userHackathons.hackathonId, hackathonIds)))
+      : [];
 
   const savedByHackathon = new Map(savedRows.map((row) => [row.hackathonId, row.isSaved]));
-  const voteByHackathon = new Map(voteRows.map((row) => [row.hackathonId, row.vote]));
 
   return cards.map((card) => ({
     ...card,
     isSaved: savedByHackathon.get(card.id) ?? false,
-    userVote: (voteByHackathon.get(card.id) ?? 0) as -1 | 0 | 1,
   }));
 }

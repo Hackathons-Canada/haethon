@@ -200,8 +200,6 @@ export function HackathonCreateForm() {
           hackathon={{
             ...previewPayloadToCard(previewPayload),
             isSaved: false,
-            voteDisplayOffset: 0,
-            voteScore: 0,
           }}
           preview
         />

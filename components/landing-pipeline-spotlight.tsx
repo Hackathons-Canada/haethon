@@ -1,6 +1,5 @@
 "use client";
 
-import type { CSSProperties } from "react";
 import Image from "next/image";
 import { motion, useReducedMotion } from "motion/react";
 import { BellPlus, Check, ChevronDown } from "lucide-react";
@@ -33,27 +32,19 @@ const backdropColumns: BackdropColumn[] = [
     cards: [
       {
         card: {
-          country: "Canada",
-          date: "Oct 3-4, 2026",
-          id: "pipeline-conuhacks",
-          image: "/photos/konyuhack-logo.png",
-          isSaved: true,
-          location: "Montreal, QC",
-          name: "ConUHacks XI",
-          userVote: 0,
-          voteScore: 93,
+          country: "United States",
+          date: "Oct 23-25, 2026",
+          id: "pipeline-xai",
+          image: "/photos/xai-logo.png",
+          isSaved: false,
+          location: "San Francisco, CA",
+          name: "xAI Hackathon",
         },
-        reminder: backdropReminder("pipeline-conuhacks", "Interested", [
+        reminder: backdropReminder("pipeline-xai", "Interested", [
           {
-            type: "application_week_before",
-            label: "1 week before applications open",
-            scheduledFor: "2026-08-14T16:00:00.000Z",
-            enabled: false,
-          },
-          {
-            type: "application_day_before",
-            label: "1 day before applications open",
-            scheduledFor: "2026-08-20T16:00:00.000Z",
+            type: "hackathon_week_before",
+            label: "1 week before",
+            scheduledFor: "2026-10-16T16:00:00.000Z",
             enabled: false,
           },
         ]),
@@ -67,8 +58,6 @@ const backdropColumns: BackdropColumn[] = [
           isSaved: true,
           location: "San Francisco, CA",
           name: "Anthropic Hackathon",
-          userVote: 0,
-          voteScore: 76,
         },
         reminder: backdropReminder("pipeline-anthropic", "Interested", [
           {
@@ -93,8 +82,6 @@ const backdropColumns: BackdropColumn[] = [
           isSaved: true,
           location: "Cambridge, MA",
           name: "HackMIT",
-          userVote: 1,
-          voteScore: 168,
         },
         reminder: backdropReminder("pipeline-hackmit", "Applied", [
           {
@@ -107,21 +94,25 @@ const backdropColumns: BackdropColumn[] = [
       },
       {
         card: {
-          country: "United States",
-          date: "Oct 23-25, 2026",
-          id: "pipeline-xai",
-          image: "/photos/xai-logo.png",
-          isSaved: false,
-          location: "San Francisco, CA",
-          name: "xAI Hackathon",
-          userVote: 0,
-          voteScore: 141,
+          country: "Canada",
+          date: "Oct 3-4, 2026",
+          id: "pipeline-conuhacks",
+          image: "/photos/konyuhack-logo.png",
+          isSaved: true,
+          location: "Montreal, QC",
+          name: "ConUHacks XI",
         },
-        reminder: backdropReminder("pipeline-xai", "Applied", [
+        reminder: backdropReminder("pipeline-conuhacks", "Applied", [
           {
-            type: "hackathon_week_before",
-            label: "1 week before",
-            scheduledFor: "2026-10-16T16:00:00.000Z",
+            type: "application_week_before",
+            label: "1 week before applications open",
+            scheduledFor: "2026-08-14T16:00:00.000Z",
+            enabled: false,
+          },
+          {
+            type: "application_day_before",
+            label: "1 day before applications open",
+            scheduledFor: "2026-08-20T16:00:00.000Z",
             enabled: false,
           },
         ]),
@@ -140,8 +131,6 @@ const backdropColumns: BackdropColumn[] = [
           isSaved: true,
           location: "Stanford, CA",
           name: "TreeHacks",
-          userVote: 1,
-          voteScore: 152,
         },
         reminder: backdropReminder("pipeline-treehacks", "Accepted", [
           {
@@ -167,8 +156,6 @@ const backdropColumns: BackdropColumn[] = [
           isSaved: false,
           location: "Atlanta, GA",
           name: "HackGT",
-          userVote: 0,
-          voteScore: 87,
         },
         reminder: backdropReminder("pipeline-hackgt", "Accepted", [
           {
@@ -224,20 +211,20 @@ function BackdropBoard() {
     <div
       aria-hidden="true"
       inert
-      className="pointer-events-none hidden select-none overflow-hidden rounded-[1.75rem] border border-white/10 bg-white/[0.03] p-6 [mask-image:linear-gradient(to_bottom,black_45%,transparent_97%)] md:block lg:p-8"
+      className="pointer-events-none hidden select-none overflow-hidden rounded-[1.75rem] border border-ink/10 bg-white/45 p-6 [mask-image:linear-gradient(to_bottom,black_45%,transparent_97%)] md:block lg:p-8"
     >
       <div className="flex items-start gap-5 opacity-80">
         {backdropColumns.map((column) => (
           <section
-            className="w-[320px] shrink-0 rounded-2xl border border-white/10 bg-white/5 p-3"
+            className="w-[320px] shrink-0 rounded-2xl border border-ink/10 bg-white/55 p-3"
             key={column.title}
           >
             <div className="flex items-center gap-2 px-1 py-1">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#e4a3ab]/15 px-2.5 py-1 font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-[#e4a3ab]">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-pine/10 px-2.5 py-1 font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-pine">
                 <span aria-hidden="true" className="size-1.5 rounded-full bg-current" />
                 {column.title}
               </span>
-              <span className="text-sm font-semibold text-wheat/45">{column.cards.length}</span>
+              <span className="text-sm font-semibold text-ink/45">{column.cards.length}</span>
             </div>
 
             <div className="mt-2 space-y-3">
@@ -260,14 +247,10 @@ function BackdropBoard() {
 
 /* The card brought forward — a board card mid-flow, with the reminder picker
    expanded and the week-before option just checked. A static replica of
-   HackathonCard's compact dark rendering so the panel can sit open without the
+   HackathonCard's compact rendering so the panel can sit open without the
    live control's fetch wiring. */
 function SpotlightReminderCard() {
   const prefersReducedMotion = useReducedMotion();
-
-  const accentStyle = {
-    "--hackathon-accent-rgb": "217 4 61",
-  } as CSSProperties & { "--hackathon-accent-rgb": string };
 
   return (
     <motion.div
@@ -279,22 +262,10 @@ function SpotlightReminderCard() {
     >
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -inset-8 rounded-[3rem] bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,1),rgba(0,0,0,0.85)_55%,transparent_80%)] blur-3xl"
+        className="pointer-events-none absolute -inset-8 rounded-[3rem] bg-[radial-gradient(ellipse_at_center,rgba(0,115,84,0.14),rgba(0,115,84,0.06)_55%,transparent_80%)] blur-3xl"
       />
 
-      <div
-        className="relative overflow-hidden rounded-2xl border border-white/15 bg-[linear-gradient(to_bottom_left,rgb(var(--hackathon-accent-rgb)_/_0.14),transparent_45%,transparent_55%,rgb(var(--hackathon-accent-rgb)_/_0.14)),radial-gradient(circle_130px_at_10%_8%,rgb(178_142_100_/_0.07),transparent_72%),radial-gradient(circle_150px_at_65%_130%,rgb(178_142_100_/_0.07),transparent_72%),linear-gradient(160deg,#181a19_0%,#0f1110_100%)] p-4 shadow-[0_45px_90px_-25px_rgba(0,0,0,0.85)]"
-        style={accentStyle}
-      >
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute right-2 top-2 h-7 w-7 border-r border-t border-white/25"
-        />
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute bottom-4 left-4 h-6 w-6 border-b border-l border-white/10"
-        />
-
+      <div className="relative border border-ink/15 bg-paper p-4 shadow-[0_32px_70px_-32px_rgba(27,25,23,0.38)]">
         <div className="flex items-start gap-3">
           <div className="relative grid size-14 shrink-0 place-items-center overflow-hidden rounded-xl bg-[radial-gradient(120%_120%_at_30%_20%,#d9c3a5_0%,#c4a882_55%,#b0946a_100%)]">
             <Image
@@ -306,13 +277,13 @@ function SpotlightReminderCard() {
             />
           </div>
           <div className="min-w-0 pt-1">
-            <h3 className="line-clamp-2 text-lg font-semibold leading-6 text-wheat">
+            <h3 className="line-clamp-2 text-lg font-semibold leading-6 text-ink">
               Hack the North
             </h3>
-            <p className="mt-2 text-[15px] font-semibold leading-5 text-wheat/55">
+            <p className="mt-2 text-[15px] leading-5 text-ink/55">
               Sep 18-20, 2026
             </p>
-            <p className="mt-1 truncate text-[15px] font-semibold leading-5 text-wheat/55">
+            <p className="mt-1 truncate text-[15px] leading-5 text-ink/55">
               <span className="underline decoration-[#D9043D] underline-offset-2">Canada</span>
               , Waterloo, ON
             </p>
@@ -320,14 +291,14 @@ function SpotlightReminderCard() {
         </div>
 
         <div className="mt-auto pt-3 text-base leading-6">
-          <span className="inline-flex min-h-8 items-center gap-1.5 rounded-full bg-[#e4a3ab]/15 px-3 text-xs font-semibold text-[#e4a3ab]">
+          <span className="inline-flex min-h-8 items-center gap-1.5 rounded-full bg-pine px-3 text-xs font-semibold text-paper">
             <BellPlus aria-hidden="true" className="size-3.5" />
             Add Reminder
             <ChevronDown aria-hidden="true" className="size-3.5 rotate-180" />
           </span>
 
-          <div className="mt-2 rounded-2xl border border-white/10 bg-[#1b1b1b] p-3 shadow-[0_18px_45px_rgb(0_0_0/0.45)]">
-            <p className="px-1 font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-[#e4a3ab]">
+          <div className="mt-2 border border-ink/15 bg-paper p-3 shadow-sm">
+            <p className="px-1 font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-pine">
               Interested
             </p>
             <div className="mt-2 space-y-1.5">
@@ -337,20 +308,20 @@ function SpotlightReminderCard() {
                   variants={cardItemVariants}
                   className={`flex items-center justify-between gap-3 rounded-xl border px-3 py-2.5 ${
                     option.selected
-                      ? "border-[#e4a3ab]/40 bg-[#e4a3ab]/10"
-                      : "border-white/10 bg-white/[0.06]"
+                      ? "border-pine/35 bg-pine/5"
+                      : "border-ink/15 bg-paper"
                   }`}
                 >
                   <span className="min-w-0">
-                    <span className="block text-sm font-semibold text-wheat">{option.label}</span>
-                    <span className="mt-0.5 block text-xs text-wheat/55">{option.date}</span>
+                    <span className="block text-sm font-medium text-ink">{option.label}</span>
+                    <span className="mt-0.5 block text-xs text-ink/55">{option.date}</span>
                   </span>
                   <span
                     aria-hidden="true"
                     className={`grid size-6 shrink-0 place-items-center rounded-full border ${
                       option.selected
-                        ? "border-[#e4a3ab]/50 bg-wheat text-[#141414]"
-                        : "border-white/15 text-transparent"
+                        ? "border-pine bg-pine text-paper"
+                        : "border-ink/15 text-transparent"
                     }`}
                   >
                     <Check className="size-3.5" strokeWidth={3} />
