@@ -7,6 +7,7 @@
 export type EloRankable = {
   id: string;
   eloRating: number;
+  rankTier?: TierLabel;
   countryCode?: string | null;
   faceoffWins?: number;
   faceoffLosses?: number;
@@ -15,16 +16,27 @@ export type EloRankable = {
 export const TIER_LABELS = ["S", "A", "B", "C", "D"] as const;
 export type TierLabel = (typeof TIER_LABELS)[number];
 
-/* Percentile cutoffs (top to bottom) rather than fixed Elo bands: as votes
-   push the whole population's ratings up or down over time, fixed bands would
-   eventually empty out or overflow a single tier. Ranking by percentile of
-   the *current* filtered set keeps all five tiers populated. */
-const ESTABLISHED_TIER_CUTOFFS: { tier: Exclude<TierLabel, "D">; through: number }[] = [
-  { tier: "S", through: 0.1 },
-  { tier: "A", through: 0.35 },
-  { tier: "B", through: 0.7 },
-  { tier: "C", through: 1 },
-];
+export const TIER_PERCENTAGES: Record<TierLabel, number> = {
+  S: 1,
+  A: 10,
+  B: 20,
+  C: 30,
+  D: 39,
+};
+
+export type RankDirection = "higher" | "lower";
+
+/**
+ * Rank #1 is higher than rank #2, so rank direction is the inverse of the
+ * numeric comparison. Equal ranks are accepted in either direction.
+ */
+export function isRankGuessCorrect(
+  leftRank: number,
+  rightRank: number,
+  direction: RankDirection
+): boolean {
+  return direction === "higher" ? rightRank <= leftRank : rightRank >= leftRank;
+}
 
 export function sortByEloDescending<T extends EloRankable>(cards: readonly T[]): T[] {
   return [...cards].sort((a, b) => b.eloRating - a.eloRating || a.id.localeCompare(b.id));
@@ -61,37 +73,18 @@ export type TierGroup<T> = {
   hackathons: T[];
 };
 
+/**
+ * Groups by the global tier already persisted with each rating. This helper
+ * deliberately does not derive percentiles from `cards`: a country, date, or
+ * search filter must never change a hackathon's rank.
+ */
 export function assignTiers<T extends EloRankable>(cards: readonly T[]): TierGroup<T>[] {
-  const established = sortByEloDescending(
-    cards.filter((card) => {
-      if (card.faceoffWins === undefined || card.faceoffLosses === undefined) {
-        return true;
-      }
-
-      return card.faceoffWins + card.faceoffLosses >= 10;
-    })
-  );
-  const provisional = sortByEloDescending(
-    cards.filter(
-      (card) =>
-        card.faceoffWins !== undefined &&
-        card.faceoffLosses !== undefined &&
-        card.faceoffWins + card.faceoffLosses < 10
-    )
-  );
-  const total = established.length;
   const groups: TierGroup<T>[] = TIER_LABELS.map((tier) => ({ tier, hackathons: [] }));
 
-  established.forEach((card, index) => {
-    const rank = total === 1 ? 0 : index / (total - 1);
-    const cutoff =
-      ESTABLISHED_TIER_CUTOFFS.find((entry) => rank <= entry.through) ??
-      ESTABLISHED_TIER_CUTOFFS[ESTABLISHED_TIER_CUTOFFS.length - 1];
-    const group = groups.find((entry) => entry.tier === cutoff.tier);
-    group?.hackathons.push(card);
-  });
-
-  groups.find((entry) => entry.tier === "D")?.hackathons.push(...provisional);
+  for (const card of sortByEloDescending(cards)) {
+    const tier = card.rankTier && TIER_LABELS.includes(card.rankTier) ? card.rankTier : "D";
+    groups.find((group) => group.tier === tier)?.hackathons.push(card);
+  }
 
   return groups;
 }

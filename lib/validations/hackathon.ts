@@ -478,7 +478,6 @@ export const attendanceAnomalyResolveSchema = z.object({
 });
 
 export const faceoffVoteSchema = z.object({
-  matchupId: z.string().uuid(),
   winnerId: z.string().uuid(),
-  requestId: z.string().uuid(),
+  loserId: z.string().uuid(),
 });

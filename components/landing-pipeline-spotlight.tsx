@@ -233,6 +233,7 @@ function BackdropBoard() {
                   compact
                   hackathon={item.card}
                   key={item.card.id}
+                  layout="bookmark"
                   preview
                   reminder={item.reminder}
                 />

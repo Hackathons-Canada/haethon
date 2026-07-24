@@ -29,6 +29,14 @@ describe("pickMatchup", () => {
 
     expect(pair).not.toBeNull();
   });
+
+  it("replaces both hackathons when a skipped pair is added to recent history", () => {
+    const pool = ["a", "b", "c", "d"].map((id) => candidate(id, 1500));
+
+    const pair = pickMatchup(pool, ["a", "b"], () => 0);
+
+    expect(pair?.map(({ id }) => id).sort()).toEqual(["c", "d"]);
+  });
 });
 
 describe("pushRecentIds", () => {

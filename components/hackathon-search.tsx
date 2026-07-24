@@ -7,7 +7,6 @@ import {
   Archive,
   CalendarDays,
   Check,
-  ChevronDown,
   Globe2,
   LayoutGrid,
   ListOrdered,
@@ -17,7 +16,6 @@ import {
   Navigation,
   Search,
   Settings2,
-  SlidersHorizontal,
   Trophy,
   X,
 } from "lucide-react";
@@ -30,6 +28,7 @@ import type { GeoPoint } from "@/lib/geo";
 import { countryOptions } from "@/lib/hackathons/countries";
 import { filterLocalHackathonCatalog } from "@/lib/hackathons/local-catalog-search";
 import { assignTiers, sortByEloDescending, sortByEloWithLocalBoost } from "@/lib/hackathons/ranking";
+import type { TierLabel } from "@/lib/hackathons/ranking";
 import { activeRegionPreset, regionPresets } from "@/lib/hackathons/region-presets";
 import type { RegionPresetId } from "@/lib/hackathons/region-presets";
 import { datePeriodOptions, distanceOptions, viewModeOptions } from "@/lib/hackathons/search-filters";
@@ -218,6 +217,7 @@ export function HackathonSearch({
           eloRating: number;
           faceoffWins: number;
           faceoffLosses: number;
+          rankTier: TierLabel;
         }[];
       };
       const ratingsById = new Map(body.data.map((rating) => [rating.id, rating]));
@@ -1003,16 +1003,11 @@ export function HackathonSearch({
               <button
                 aria-controls={moreFiltersId}
                 aria-expanded={moreFiltersOpen}
-                className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border border-navy/15 dark:border-white/15 px-4 text-sm font-semibold text-navy dark:text-wheat transition-colors hover:border-navy dark:hover:border-white/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine/35 dark:focus-visible:outline-wheat/40"
+                className="shrink-0 px-4 py-3 text-sm font-semibold text-navy dark:text-wheat transition-colors hover:text-pine dark:hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine/35 dark:focus-visible:outline-wheat/40"
                 onClick={() => setMoreFiltersOpen((open) => !open)}
                 type="button"
               >
-                <SlidersHorizontal aria-hidden="true" className="size-4" />
                 {moreFiltersOpen ? "Fewer" : "More"}
-                <ChevronDown
-                  aria-hidden="true"
-                  className={`size-4 transition-transform ${moreFiltersOpen ? "rotate-180" : ""}`}
-                />
               </button>
             </div>
             </div>

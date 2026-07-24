@@ -176,6 +176,13 @@
       "when": 1784866505851,
       "tag": "0024_heavy_norrin_radd",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1784867768022,
+      "tag": "0025_persist_hackathon_rank_tiers",
+      "breakpoints": true
     }
   ]
 }

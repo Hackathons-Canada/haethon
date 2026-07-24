@@ -16,11 +16,11 @@ const TIER_STYLES: Record<TierLabel, string> = {
 };
 
 const TIER_DESCRIPTIONS: Record<TierLabel, string> = {
-  S: "Elite — top 10% by confidence-adjusted score",
-  A: "Excellent",
-  B: "Solid",
-  C: "Up and coming",
-  D: "Unranked / needs more matchups",
+  S: "Elite — top 1% globally",
+  A: "Excellent — next 10%",
+  B: "Strong — next 20%",
+  C: "Established — next 30%",
+  D: "Developing — remaining 39%",
 };
 
 function getInitials(name: string) {

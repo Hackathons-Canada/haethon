@@ -190,6 +190,7 @@ export function MyPipelineBoard({ columns: initialColumns }: { columns: Pipeline
                     }
                     hackathon={item.card}
                     key={item.userHackathonId}
+                    layout="bookmark"
                     reminder={item.reminder}
                   />
                 </div>

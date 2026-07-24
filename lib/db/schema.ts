@@ -213,11 +213,17 @@ export const hackathonFaceoffRatings = pgTable(
     eloRating: integer("elo_rating").notNull().default(1500),
     faceoffWins: integer("faceoff_wins").notNull().default(0),
     faceoffLosses: integer("faceoff_losses").notNull().default(0),
+    /* Global percentile tier, maintained in PostgreSQL whenever Elo changes.
+       Keeping it beside the rating makes catalog filters presentation-only:
+       they cannot silently change a hackathon's tier. */
+    rankTier: varchar("rank_tier", { length: 1 }).notNull().default("D"),
     version: integer("version").notNull().default(0),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
     index("hackathon_faceoff_ratings_elo_idx").on(table.eloRating, table.hackathonId),
+    index("hackathon_faceoff_ratings_tier_idx").on(table.rankTier, table.eloRating, table.hackathonId),
+    check("hackathon_faceoff_ratings_tier_valid", sql`${table.rankTier} in ('S', 'A', 'B', 'C', 'D')`),
     check("hackathon_faceoff_ratings_wins_nonnegative", sql`${table.faceoffWins} >= 0`),
     check("hackathon_faceoff_ratings_losses_nonnegative", sql`${table.faceoffLosses} >= 0`),
     check("hackathon_faceoff_ratings_version_nonnegative", sql`${table.version} >= 0`),

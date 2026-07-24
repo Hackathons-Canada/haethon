@@ -26,6 +26,23 @@ The raw rating remains the source of truth for subsequent Elo updates. New and
 unplayed editions start at a neutral 1500; prize money, sponsors, and catalog
 data completeness do not affect the prior.
 
+## Rank tiers
+
+Each eligible, published hackathon has one global tier stored on its Face Off
+rating row. Tiers use the confidence-adjusted score above, with the hackathon
+id as the deterministic tie-breaker:
+
+- S: top 1%
+- A: next 10%
+- B: next 20%
+- C: next 30%
+- D: remaining 39%
+
+PostgreSQL backfills the tiers and recomputes them whenever an Elo rating
+changes. Publishing, unpublishing, or changing an eligible status also
+recomputes the population. UI filters only group the stored tiers; they do not
+recalculate them.
+
 ## Request flow
 
 1. `GET /api/faceoff/matchup` chooses under-exposed candidates and favors

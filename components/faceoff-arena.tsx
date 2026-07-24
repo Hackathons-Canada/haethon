@@ -1,14 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { Check, ChevronDown, ChevronUp, Crown, Loader2, RotateCcw, SkipForward, Swords, Trophy, X } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, RotateCcw, Swords, X } from "lucide-react";
 
 import { displayEloRating, isProvisional } from "@/lib/hackathons/elo";
 import { pushRecentIds } from "@/lib/hackathons/faceoff-pairing";
-import { sortByEloDescending } from "@/lib/hackathons/ranking";
+import { isRankGuessCorrect, sortByEloDescending } from "@/lib/hackathons/ranking";
 
 export type FaceoffHackathon = {
   id: string;
@@ -37,8 +36,9 @@ type Phase = "idle" | "revealing" | "gameover";
    so live Elo refreshes can't contradict the verdict mid-reveal. */
 type Reveal = {
   leftElo: number;
+  leftRank: number;
   rightElo: number;
-  direction: "higher" | "lower";
+  rightRank: number;
   correct: boolean;
 };
 
@@ -300,19 +300,12 @@ function CountUp({ reduceMotion, value }: { reduceMotion: boolean; value: number
   return <>{display}</>;
 }
 
-/* Gold/silver/bronze for the top 3 — same "medal" shorthand as a podium, so
-   the mini leaderboard reads at a glance instead of five identical numerals. */
-const RANK_MEDAL_STYLES: Record<number, string> = {
-  1: "bg-gradient-to-b from-[#EFCB6E] to-[#B9812B] text-[#2a1c04]",
-  2: "bg-gradient-to-b from-[#DEE3E9] to-[#A9B2BE] text-[#20242b]",
-  3: "bg-gradient-to-b from-[#D69A63] to-[#9C5F2C] text-[#2a1604]",
-};
-
 function ArenaSide({
   burstId,
   hackathon,
   onGuess,
   opponentName,
+  overallRank,
   phase,
   reduceMotion,
   reveal,
@@ -322,6 +315,7 @@ function ArenaSide({
   hackathon: FaceoffHackathon;
   onGuess: (direction: "higher" | "lower") => void;
   opponentName: string;
+  overallRank: number;
   phase: Phase;
   reduceMotion: boolean;
   reveal: Reveal | null;
@@ -340,7 +334,7 @@ function ArenaSide({
 
   return (
     <div
-      className="relative flex flex-col items-center justify-center gap-5 px-6 py-12 text-center sm:min-h-[32rem] sm:px-10 sm:py-16"
+      className="relative flex flex-col items-center justify-center gap-5 px-6 py-12 text-center sm:min-h-[32rem] sm:px-10 sm:py-16 lg:min-h-screen"
       style={{ background: sideBackground(color) }}
     >
       <div className="relative grid size-24 shrink-0 place-items-center overflow-hidden rounded-2xl bg-white/25 text-2xl font-semibold text-white shadow-[0_16px_40px_-12px_rgba(0,0,0,0.45)] backdrop-blur-sm sm:size-28">
@@ -377,10 +371,20 @@ function ArenaSide({
       <div className="flex min-h-[8.5rem] flex-col items-center justify-center gap-2">
         {side === "left" ? (
           <>
-            <p className={`font-mono text-4xl font-bold tabular-nums ${heading}`}>
-              {reveal ? reveal.leftElo : hackathon.eloRating}
-            </p>
-            <p className={`font-mono text-[11px] font-semibold uppercase tracking-[0.16em] ${faint}`}>prestige</p>
+            <div className="grid grid-cols-2 items-center gap-5">
+              <div>
+                <p className={`font-mono text-4xl font-bold tabular-nums ${heading}`}>
+                  {reveal ? reveal.leftElo : hackathon.eloRating}
+                </p>
+                <p className={`font-mono text-[11px] font-semibold uppercase tracking-[0.16em] ${faint}`}>ELO</p>
+              </div>
+              <div className={`border-l pl-5 ${lightBg ? "border-navy/20" : "border-white/25"}`}>
+                <p className={`font-mono text-3xl font-bold tabular-nums ${heading}`}>#{overallRank}</p>
+                <p className={`font-mono text-[11px] font-semibold uppercase tracking-[0.12em] ${faint}`}>
+                  Overall rank
+                </p>
+              </div>
+            </div>
             <p className={`font-mono text-[11px] ${faint}`}>
               {hackathon.faceoffWins}W&ndash;{hackathon.faceoffLosses}L
               {isProvisional(gamesPlayed) ? " · provisional" : ""}
@@ -389,10 +393,20 @@ function ArenaSide({
         ) : reveal ? (
           <div className="relative flex flex-col items-center gap-2">
             {reveal.correct && phase === "revealing" && !reduceMotion ? <ConfettiBurst burstId={burstId} /> : null}
-            <p className={`font-mono text-4xl font-bold tabular-nums ${heading}`}>
-              <CountUp reduceMotion={reduceMotion} value={reveal.rightElo} />
-            </p>
-            <p className={`font-mono text-[11px] font-semibold uppercase tracking-[0.16em] ${faint}`}>prestige</p>
+            <div className="grid grid-cols-2 items-center gap-5">
+              <div>
+                <p className={`font-mono text-4xl font-bold tabular-nums ${heading}`}>
+                  <CountUp reduceMotion={reduceMotion} value={reveal.rightElo} />
+                </p>
+                <p className={`font-mono text-[11px] font-semibold uppercase tracking-[0.16em] ${faint}`}>ELO</p>
+              </div>
+              <div className={`border-l pl-5 ${lightBg ? "border-navy/20" : "border-white/25"}`}>
+                <p className={`font-mono text-3xl font-bold tabular-nums ${heading}`}>#{overallRank}</p>
+                <p className={`font-mono text-[11px] font-semibold uppercase tracking-[0.12em] ${faint}`}>
+                  Overall rank
+                </p>
+              </div>
+            </div>
             <motion.span
               animate={{ opacity: 1, scale: 1 }}
               className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-mono text-xs font-bold uppercase tracking-wide text-white shadow-lg ${
@@ -430,7 +444,7 @@ function ArenaSide({
               <ChevronDown aria-hidden="true" className="size-4" />
             </button>
             <p className={`mt-1 max-w-[16rem] text-[13px] font-semibold ${soft}`}>
-              prestige than {limitWords(opponentName)}
+              rank than {limitWords(opponentName)}
             </p>
           </>
         )}
@@ -461,6 +475,11 @@ export function FaceoffArena({ pool }: { pool: FaceoffHackathon[] }) {
     const right = livePool.find((hackathon) => hackathon.id === issuedMatchup.rightId);
     return left && right ? [left, right] : null;
   }, [issuedMatchup, livePool]);
+  const rankedPool = useMemo(() => sortByEloDescending(livePool), [livePool]);
+  const overallRanks = useMemo(
+    () => new Map(rankedPool.map((hackathon, index) => [hackathon.id, index + 1])),
+    [rankedPool]
+  );
 
   useEffect(() => {
     try {
@@ -583,13 +602,22 @@ export function FaceoffArena({ pool }: { pool: FaceoffHackathon[] }) {
       }
 
       const [left, right] = matchup;
-      /* The verdict compares the display ratings the player can actually see —
-         ties count as correct either way, since "equal" is neither higher nor
-         lower once display rounding is in play. */
-      const correct = direction === "higher" ? right.eloRating >= left.eloRating : right.eloRating <= left.eloRating;
+      const leftRank = overallRanks.get(left.id) ?? livePool.length;
+      const rightRank = overallRanks.get(right.id) ?? livePool.length;
+      /* Judge the same overall ranks that the reveal shows. Rank #1 is higher
+         than rank #2, so "lower" means a larger ordinal number. Freezing both
+         ranks here also prevents a live leaderboard refresh from changing the
+         visible evidence after the verdict has been decided. */
+      const correct = isRankGuessCorrect(leftRank, rightRank, direction);
       const winnerId = direction === "higher" ? right.id : left.id;
 
-      setReveal({ leftElo: left.eloRating, rightElo: right.eloRating, direction, correct });
+      setReveal({
+        leftElo: left.eloRating,
+        leftRank,
+        rightElo: right.eloRating,
+        rightRank,
+        correct,
+      });
       setPhase("revealing");
       void recordVote(issuedMatchup.id, winnerId);
 
@@ -614,7 +642,18 @@ export function FaceoffArena({ pool }: { pool: FaceoffHackathon[] }) {
         setTimeout(() => setPhase("gameover"), reduceMotion ? 900 : 1900);
       }
     },
-    [advanceMatchup, highScore, issuedMatchup, matchup, phase, recordVote, reduceMotion, score]
+    [
+      advanceMatchup,
+      highScore,
+      issuedMatchup,
+      livePool.length,
+      matchup,
+      overallRanks,
+      phase,
+      recordVote,
+      reduceMotion,
+      score,
+    ]
   );
 
   const playAgain = useCallback(() => {
@@ -639,9 +678,9 @@ export function FaceoffArena({ pool }: { pool: FaceoffHackathon[] }) {
       headers: { "Content-Type": "application/json" },
       method: "PATCH",
     });
-    // Mid-streak, only the challenger is skipped; the champion stays anchored.
-    advanceMatchup([matchup[0].id, matchup[1].id], score > 0 ? matchup[0].id : undefined);
-  }, [advanceMatchup, issuedMatchup, matchup, phase, score]);
+    // A skip replaces the whole pairing, even in the middle of a streak.
+    advanceMatchup([matchup[0].id, matchup[1].id]);
+  }, [advanceMatchup, issuedMatchup, matchup, phase]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => void requestMatchup([]), 0);
@@ -691,8 +730,6 @@ export function FaceoffArena({ pool }: { pool: FaceoffHackathon[] }) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [matchup, phase, guess, skipMatchup]);
 
-  const leaderboard = useMemo(() => sortByEloDescending(livePool).slice(0, 5), [livePool]);
-
   /* Screen readers can't see the count-up or the verdict badge, so the
      outcome gets a plain-language echo here once a guess resolves. */
   const announcement = useMemo(() => {
@@ -702,9 +739,11 @@ export function FaceoffArena({ pool }: { pool: FaceoffHackathon[] }) {
 
     const [left, right] = matchup;
 
-    return `${reveal.correct ? "Correct" : "Wrong"} — ${right.name} has ${reveal.rightElo} prestige versus ${
-      reveal.leftElo
-    } for ${left.name}. ${reveal.correct ? `Streak at ${score}.` : "Streak over."}`;
+    return `${reveal.correct ? "Correct" : "Wrong"} — ${right.name} has ${reveal.rightElo} ELO and is ranked #${
+      reveal.rightRank
+    } overall, versus ${reveal.leftElo} ELO and rank #${reveal.leftRank} for ${left.name}. ${
+      reveal.correct ? `Streak at ${score}.` : "Streak over."
+    }`;
   }, [reveal, matchup, notice, score]);
 
   if (livePool.length < 2) {
@@ -719,34 +758,12 @@ export function FaceoffArena({ pool }: { pool: FaceoffHackathon[] }) {
   }
 
   return (
-    <div className="relative isolate mx-auto flex max-w-[1200px] flex-col gap-10">
-      {/* Ambient spotlight — a soft wash behind the arena so the page doesn't
-          read as a bare form. Cabernet in light mode, gold in dark, echoing
-          the accent colors already used for the Face Off badge and trophy. */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-[-15%] -top-16 -z-10 h-[420px] bg-[radial-gradient(closest-side,rgba(114,28,36,0.1),transparent)] blur-3xl dark:bg-[radial-gradient(closest-side,rgba(217,164,65,0.12),transparent)]"
-      />
-
+    <div className="relative isolate w-full">
       <div aria-live="polite" className="sr-only">
         {announcement}
       </div>
 
-      <div className="flex flex-col items-center gap-2 text-center">
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-cabernet/20 bg-cabernet/5 px-3 py-1 font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-cabernet dark:border-[#e4a3ab]/30 dark:bg-[#e4a3ab]/10 dark:text-[#e4a3ab]">
-          <Swords aria-hidden="true" className="size-3.5" />
-          Face Off
-        </span>
-        <h1 className="font-serif text-3xl font-semibold tracking-[-0.02em] text-navy dark:text-wheat sm:text-4xl">
-          Higher or lower?
-        </h1>
-        <p className="max-w-md text-sm leading-6 text-navy/55 dark:text-wheat/55">
-          Guess whether the challenger carries more prestige. Every guess counts as a community vote, and new ratings
-          stay provisional until ten matchups.
-        </p>
-      </div>
-
-      <div className="relative overflow-hidden rounded-[2rem] border border-navy/10 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.35)] dark:border-white/10">
+      <div className="relative min-h-screen w-full overflow-hidden">
         <AnimatePresence mode="wait">
           {matchup ? (
             <motion.div
@@ -763,6 +780,7 @@ export function FaceoffArena({ pool }: { pool: FaceoffHackathon[] }) {
                 key={matchup[0].id}
                 onGuess={guess}
                 opponentName={matchup[1].name}
+                overallRank={reveal?.leftRank ?? overallRanks.get(matchup[0].id) ?? livePool.length}
                 phase={phase}
                 reduceMotion={reduceMotion}
                 reveal={reveal}
@@ -774,26 +792,46 @@ export function FaceoffArena({ pool }: { pool: FaceoffHackathon[] }) {
                 key={matchup[1].id}
                 onGuess={guess}
                 opponentName={matchup[0].name}
+                overallRank={reveal?.rightRank ?? overallRanks.get(matchup[1].id) ?? livePool.length}
                 phase={phase}
                 reduceMotion={reduceMotion}
                 reveal={reveal}
                 side="right"
               />
             </motion.div>
+          ) : isLoadingMatchup ? (
+            <div
+              aria-label="Loading matchup"
+              className="relative grid min-h-screen grid-cols-2 overflow-hidden bg-[#182a44]"
+              key="matchup-loading"
+              role="status"
+            >
+              <div className="bg-[linear-gradient(168deg,#445a78_0%,#223653_55%,#111c2e_100%)]" />
+              <div className="bg-[linear-gradient(168deg,#a74854_0%,#721c24_55%,#3d0f14_100%)]" />
+              <motion.div
+                animate={reduceMotion ? undefined : { opacity: [0.55, 1, 0.55], scale: [0.96, 1.04, 0.96] }}
+                aria-hidden="true"
+                className="absolute left-1/2 top-1/2 grid size-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-4 border-white bg-white font-serif text-sm font-bold text-black shadow-[0_8px_24px_-4px_rgba(0,0,0,0.5)]"
+                transition={reduceMotion ? undefined : { duration: 1.4, ease: "easeInOut", repeat: Infinity }}
+              >
+                VS
+              </motion.div>
+            </div>
           ) : (
-            <div className="grid min-h-[26rem] place-items-center bg-white/70 dark:bg-white/5" key="matchup-loading">
-              <div className="flex flex-col items-center gap-3 text-sm font-semibold text-navy/45 dark:text-wheat/45">
-                {isLoadingMatchup ? <Loader2 aria-hidden="true" className="size-6 animate-spin" /> : null}
-                <span>{isLoadingMatchup ? "Finding a worthy challenger…" : "No matchup is ready."}</span>
-                {!isLoadingMatchup ? (
-                  <button
-                    className="rounded-full border border-navy/15 px-4 py-2 text-navy dark:border-white/15 dark:text-wheat"
-                    onClick={() => void requestMatchup(recentIds)}
-                    type="button"
-                  >
-                    Try again
-                  </button>
-                ) : null}
+            <div
+              className="grid min-h-screen place-items-center bg-[linear-gradient(168deg,#445a78_0%,#223653_55%,#111c2e_100%)] px-6 text-center"
+              key="matchup-error"
+            >
+              <div className="flex max-w-sm flex-col items-center gap-4 text-white">
+                <Swords aria-hidden="true" className="size-7 opacity-70" />
+                <p className="text-sm font-semibold">{notice ?? "No matchup is ready."}</p>
+                <button
+                  className="rounded-full border border-white/50 bg-white/10 px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-white/20"
+                  onClick={() => void requestMatchup(recentIds)}
+                  type="button"
+                >
+                  Try again
+                </button>
               </div>
             </div>
           )}
@@ -801,22 +839,31 @@ export function FaceoffArena({ pool }: { pool: FaceoffHackathon[] }) {
 
         {matchup ? (
           <>
-            <span className="absolute left-1/2 top-4 z-20 -translate-x-1/2 rounded-full bg-cabernet px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-wheat shadow-lg">
-              Ranked
+            <span className="absolute left-1/2 top-4 z-20 -translate-x-1/2 font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-white drop-shadow-md">
+              Rank
             </span>
             <motion.div
               animate={reduceMotion ? undefined : { scale: [1, 1.06, 1] }}
-              className="pointer-events-none absolute left-1/2 top-1/2 z-20 grid size-14 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-4 border-ivory bg-cabernet font-serif text-sm font-bold text-wheat shadow-[0_8px_24px_-4px_rgba(0,0,0,0.5)] dark:border-[#141414] sm:size-16"
+              className="pointer-events-none absolute left-1/2 top-1/2 z-20 grid size-14 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-4 border-white bg-white font-serif text-sm font-bold text-black shadow-[0_8px_24px_-4px_rgba(0,0,0,0.5)] sm:size-16"
               transition={reduceMotion ? undefined : { duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
             >
               VS
             </motion.div>
-            <span className="absolute bottom-4 left-5 z-20 rounded-full bg-black/35 px-3 py-1 font-mono text-xs font-bold text-white backdrop-blur-sm">
+            <span className="absolute bottom-4 left-5 z-20 font-mono text-xs font-bold text-white drop-shadow-md">
               High Score: {highScore}
             </span>
-            <span className="absolute bottom-4 right-5 z-20 rounded-full bg-black/35 px-3 py-1 font-mono text-xs font-bold text-white backdrop-blur-sm">
+            <span className="absolute bottom-4 right-5 z-20 font-mono text-xs font-bold text-white drop-shadow-md">
               Score: {score}
             </span>
+            <button
+              aria-label="Skip both hackathons and show a new matchup"
+              className="absolute bottom-16 left-1/2 z-20 min-h-10 -translate-x-1/2 text-sm font-bold text-white drop-shadow-md transition-opacity hover:opacity-75 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:cursor-not-allowed disabled:opacity-50 sm:bottom-4"
+              disabled={phase !== "idle" || isLoadingMatchup}
+              onClick={skipMatchup}
+              type="button"
+            >
+              Skip
+            </button>
           </>
         ) : null}
 
@@ -838,8 +885,9 @@ export function FaceoffArena({ pool }: { pool: FaceoffHackathon[] }) {
                   Streak over
                 </p>
                 <h2 className="mt-2 font-serif text-xl font-semibold leading-7 text-navy dark:text-wheat">
-                  {limitWords(matchup[1].name)} sat at {reveal.rightElo} prestige —{" "}
-                  {reveal.rightElo >= reveal.leftElo ? "higher" : "lower"} than {limitWords(matchup[0].name)}.
+                  {limitWords(matchup[1].name)} was ranked #{reveal.rightRank} —{" "}
+                  {reveal.rightRank <= reveal.leftRank ? "higher" : "lower"} than {limitWords(matchup[0].name)} at #
+                  {reveal.leftRank}.
                 </h2>
                 <p className="mt-3 font-mono text-sm font-semibold text-navy/60 dark:text-wheat/60">
                   Score {score} &middot; Best {highScore}
@@ -856,103 +904,6 @@ export function FaceoffArena({ pool }: { pool: FaceoffHackathon[] }) {
             </motion.div>
           ) : null}
         </AnimatePresence>
-      </div>
-
-      <div className="flex flex-col items-center gap-3">
-        <button
-          className="inline-flex min-h-10 items-center gap-2 rounded-full border border-navy/15 px-5 text-sm font-semibold text-navy transition-colors hover:border-navy disabled:opacity-40 dark:border-white/15 dark:text-wheat dark:hover:border-white/60"
-          disabled={phase !== "idle" || !matchup || isLoadingMatchup}
-          onClick={skipMatchup}
-          type="button"
-        >
-          <SkipForward aria-hidden="true" className="size-4" />
-          Skip this one
-        </button>
-        <p className="hidden font-mono text-[11px] text-navy/35 dark:text-wheat/35 sm:block">
-          ↑ higher &middot; ↓ lower &middot; space to skip
-        </p>
-        <p className="font-mono text-[11px] text-navy/35 dark:text-wheat/35 sm:hidden">Tap higher or lower to guess</p>
-        <AnimatePresence>
-          {notice ? (
-            <motion.p
-              animate={{ opacity: 1 }}
-              className="text-xs font-semibold text-cabernet dark:text-[#e4a3ab]"
-              exit={{ opacity: 0 }}
-              initial={{ opacity: 0 }}
-              role="status"
-            >
-              {notice}
-            </motion.p>
-          ) : null}
-        </AnimatePresence>
-      </div>
-
-      <div className="mx-auto w-full max-w-xl rounded-2xl border border-navy/10 bg-ivory/60 p-5 dark:border-white/10 dark:bg-white/5">
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="flex items-center gap-1.5 font-serif text-lg font-semibold text-navy dark:text-wheat">
-            <Trophy aria-hidden="true" className="size-4 text-[#D9A441]" />
-            Current top 5
-          </h2>
-          <div className="flex items-center gap-3">
-            <span className="hidden items-center gap-1.5 rounded-full bg-navy/5 px-2 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-[0.1em] text-navy/40 dark:bg-white/5 dark:text-wheat/40 sm:inline-flex">
-              <span aria-hidden="true" className="relative flex size-1.5">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#18785C] opacity-60 motion-reduce:animate-none" />
-                <span className="relative inline-flex size-1.5 rounded-full bg-[#18785C]" />
-              </span>
-              Live
-            </span>
-            <Link
-              className="text-xs font-semibold text-cabernet hover:underline dark:text-[#e4a3ab]"
-              href="/hackathons?view=ranking"
-            >
-              Full rankings →
-            </Link>
-          </div>
-        </div>
-        <ol className="flex flex-col gap-1">
-          {leaderboard.map((hackathon, index) => {
-            const rank = index + 1;
-            const medalClass = RANK_MEDAL_STYLES[rank];
-            const rowContent = (
-              <>
-                <span
-                  className={`grid size-6 shrink-0 place-items-center rounded-full font-mono text-[11px] font-bold ${
-                    medalClass ?? "bg-navy/5 text-navy/40 dark:bg-white/5 dark:text-wheat/40"
-                  }`}
-                >
-                  {rank}
-                </span>
-                <span className="flex min-w-0 items-center gap-1.5">
-                  {rank === 1 ? <Crown aria-hidden="true" className="size-3.5 shrink-0 text-[#D9A441]" /> : null}
-                  <span className="truncate font-semibold text-navy dark:text-wheat">{hackathon.name}</span>
-                </span>
-              </>
-            );
-
-            return (
-              <li key={hackathon.id}>
-                {hackathon.slug ? (
-                  <Link
-                    className="flex items-center justify-between gap-3 rounded-xl px-2 py-1.5 text-sm transition-colors hover:bg-navy/[0.03] dark:hover:bg-white/[0.05]"
-                    href={`/hackathons/${hackathon.slug}`}
-                  >
-                    <span className="flex min-w-0 items-center gap-2">{rowContent}</span>
-                    <span className="shrink-0 font-mono text-xs text-navy/50 dark:text-wheat/50">
-                      {hackathon.eloRating}
-                    </span>
-                  </Link>
-                ) : (
-                  <div className="flex items-center justify-between gap-3 rounded-xl px-2 py-1.5 text-sm">
-                    <span className="flex min-w-0 items-center gap-2">{rowContent}</span>
-                    <span className="shrink-0 font-mono text-xs text-navy/50 dark:text-wheat/50">
-                      {hackathon.eloRating}
-                    </span>
-                  </div>
-                )}
-              </li>
-            );
-          })}
-        </ol>
       </div>
     </div>
   );

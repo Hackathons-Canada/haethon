@@ -6,14 +6,17 @@ import {
   hackathonDates,
   hackathonFaceoffRatings,
   hackathonLocations,
+  hackathonTags,
   hackathons,
   hackathonSeries,
+  tags as hackathonTagDefinitions,
   userHackathons,
 } from "@/lib/db/schema";
 import { formatDateRange, formatLocationParts } from "@/lib/hackathons/card-format";
 import { isPastCatalogRow, pastRecurringSeriesIds, selectVisibleCatalogRows } from "@/lib/hackathons/catalog-visibility";
 import { getHackathonIdsWithDiscord } from "@/lib/hackathons/discord-cards";
 import { displayEloRating } from "@/lib/hackathons/elo";
+import type { TierLabel } from "@/lib/hackathons/ranking";
 import { sourceBadge, type HackathonSourceBadge } from "@/lib/hackathons/source-badges";
 
 /* One page of catalog results. The listing page and the search API both read
@@ -50,9 +53,9 @@ type CatalogQuery = {
   offset: number;
 };
 
-/* The user-independent portion of a hackathon card. Everything here is a
-   plain string/number/boolean because it crosses the unstable_cache JSON
-   boundary — dates are pre-formatted, no Date objects. */
+/* The user-independent portion of a hackathon card. Everything here is
+   JSON-safe because it crosses the unstable_cache boundary — dates are
+   pre-formatted, with no Date objects. */
 type PublicHackathonCard = {
   beginnerFriendly: boolean;
   country: string | null;
@@ -78,6 +81,7 @@ type PublicHackathonCard = {
   location: string;
   name: string;
   prizeAmountUsd: number | null;
+  rankTier: TierLabel;
   slug: string;
   /* True when the event's dates have passed. Only recurring-series editions
      survive in the catalog once past, badged as "last held" until the next
@@ -85,6 +89,7 @@ type PublicHackathonCard = {
   isPast: boolean;
   source: HackathonSourceBadge | null;
   startsAt: string | null;
+  tags: string[];
   travelReimbursement: boolean;
 };
 
@@ -139,6 +144,7 @@ async function queryCatalogPage(query: CatalogQuery): Promise<CatalogPage> {
       eloRating: sql<number>`coalesce(${hackathonFaceoffRatings.eloRating}, 1500)::integer`,
       faceoffWins: sql<number>`coalesce(${hackathonFaceoffRatings.faceoffWins}, 0)::integer`,
       faceoffLosses: sql<number>`coalesce(${hackathonFaceoffRatings.faceoffLosses}, 0)::integer`,
+      rankTier: sql<TierLabel>`coalesce(${hackathonFaceoffRatings.rankTier}, 'D')`,
       city: hackathonLocations.city,
       region: hackathonLocations.region,
       country: hackathonLocations.country,
@@ -224,7 +230,27 @@ async function queryCatalogPage(query: CatalogQuery): Promise<CatalogPage> {
   // Dropping rows after the LIMIT can shorten a paginated API page by at most
   // one row per recurring series; hasMore already reflects the underlying set.
   const pageRows = selectVisibleCatalogRows(fetchedRows, seriesWithCurrentEdition, now);
-  const discordHackathonIds = await getHackathonIdsWithDiscord(pageRows);
+  const [discordHackathonIds, tagRows] = await Promise.all([
+    getHackathonIdsWithDiscord(pageRows),
+    pageRows.length
+      ? db
+          .select({
+            hackathonId: hackathonTags.hackathonId,
+            name: hackathonTagDefinitions.name,
+          })
+          .from(hackathonTags)
+          .innerJoin(hackathonTagDefinitions, eq(hackathonTagDefinitions.id, hackathonTags.tagId))
+          .where(inArray(hackathonTags.hackathonId, pageRows.map((row) => row.id)))
+          .orderBy(asc(hackathonTagDefinitions.name))
+      : Promise.resolve([]),
+  ]);
+  const tagNamesByHackathonId = new Map<string, string[]>();
+
+  for (const tag of tagRows) {
+    const names = tagNamesByHackathonId.get(tag.hackathonId) ?? [];
+    names.push(tag.name);
+    tagNamesByHackathonId.set(tag.hackathonId, names);
+  }
 
   return {
     cards: pageRows.map((row) => {
@@ -251,9 +277,11 @@ async function queryCatalogPage(query: CatalogQuery): Promise<CatalogPage> {
         location: location.locality ?? "Location TBA",
         name: row.name,
         prizeAmountUsd: row.prizeAmountUsd,
+        rankTier: row.rankTier,
         slug: row.slug,
         source: row.source ? sourceBadge(row.source) : null,
         startsAt: row.startsAt?.toISOString() ?? null,
+        tags: tagNamesByHackathonId.get(row.id) ?? [],
         travelReimbursement: row.travelReimbursement,
       };
     }),

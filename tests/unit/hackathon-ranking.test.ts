@@ -1,9 +1,20 @@
 import { describe, expect, it } from "vitest";
 
-import { assignTiers, sortByEloDescending, sortByEloWithLocalBoost } from "@/lib/hackathons/ranking";
+import {
+  assignTiers,
+  isRankGuessCorrect,
+  sortByEloDescending,
+  sortByEloWithLocalBoost,
+  TIER_PERCENTAGES,
+} from "@/lib/hackathons/ranking";
 
-function card(id: string, eloRating: number, countryCode: string | null = null) {
-  return { id, eloRating, countryCode };
+function card(
+  id: string,
+  eloRating: number,
+  countryCode: string | null = null,
+  rankTier: "S" | "A" | "B" | "C" | "D" = "D"
+) {
+  return { id, eloRating, countryCode, rankTier };
 }
 
 describe("sortByEloDescending", () => {
@@ -11,6 +22,23 @@ describe("sortByEloDescending", () => {
     const result = sortByEloDescending([card("b", 1500), card("a", 1600), card("c", 1500)]);
 
     expect(result.map((entry) => entry.id)).toEqual(["a", "b", "c"]);
+  });
+});
+
+describe("isRankGuessCorrect", () => {
+  it("treats a larger rank number as a lower overall rank", () => {
+    expect(isRankGuessCorrect(12, 33, "lower")).toBe(true);
+    expect(isRankGuessCorrect(12, 33, "higher")).toBe(false);
+  });
+
+  it("treats a smaller rank number as a higher overall rank", () => {
+    expect(isRankGuessCorrect(33, 12, "higher")).toBe(true);
+    expect(isRankGuessCorrect(33, 12, "lower")).toBe(false);
+  });
+
+  it("accepts either direction when ranks are tied", () => {
+    expect(isRankGuessCorrect(12, 12, "higher")).toBe(true);
+    expect(isRankGuessCorrect(12, 12, "lower")).toBe(true);
   });
 });
 
@@ -37,31 +65,43 @@ describe("sortByEloWithLocalBoost", () => {
 });
 
 describe("assignTiers", () => {
-  it("splits a population into five percentile-based tiers, highest first", () => {
-    const cards = Array.from({ length: 20 }, (_, index) => card(`h${index}`, 2000 - index * 10));
+  it("defines a complete 1/10/20/30/39 percentile distribution", () => {
+    expect(TIER_PERCENTAGES).toEqual({ S: 1, A: 10, B: 20, C: 30, D: 39 });
+    expect(Object.values(TIER_PERCENTAGES).reduce((total, percentage) => total + percentage, 0)).toBe(100);
+  });
+
+  it("groups the persisted global tiers, highest first", () => {
+    const cards = [
+      card("s", 2000, null, "S"),
+      card("a", 1900, null, "A"),
+      card("b", 1800, null, "B"),
+      card("c", 1700, null, "C"),
+      card("d", 1600, null, "D"),
+    ];
 
     const groups = assignTiers(cards);
 
     expect(groups.map((group) => group.tier)).toEqual(["S", "A", "B", "C", "D"]);
-    // Every hackathon is accounted for exactly once.
-    expect(groups.reduce((total, group) => total + group.hackathons.length, 0)).toBe(20);
-    // Tiers stay ordered highest-to-lowest.
-    expect(groups[0].hackathons[0]?.id).toBe("h0");
-    expect(groups.find((group) => group.tier === "C")?.hackathons.at(-1)?.id).toBe("h19");
+    expect(groups.map((group) => group.hackathons.map((entry) => entry.id))).toEqual([
+      ["s"],
+      ["a"],
+      ["b"],
+      ["c"],
+      ["d"],
+    ]);
   });
 
-  it("keeps every tier non-negative and handles a tiny population", () => {
-    const groups = assignTiers([card("only", 1500)]);
+  it("does not change tiers when the displayed set is filtered", () => {
+    const groups = assignTiers([card("filtered-a", 1400, null, "A"), card("filtered-d", 1900, null, "D")]);
 
-    expect(groups.reduce((total, group) => total + group.hackathons.length, 0)).toBe(1);
+    expect(groups.find((group) => group.tier === "A")?.hackathons.map((entry) => entry.id)).toEqual(["filtered-a"]);
+    expect(groups.find((group) => group.tier === "D")?.hackathons.map((entry) => entry.id)).toEqual(["filtered-d"]);
   });
 
-  it("keeps entries with fewer than ten matchups in the provisional D tier", () => {
-    const provisional = { ...card("new", 1800), faceoffWins: 8, faceoffLosses: 1 };
-    const established = { ...card("known", 1600), faceoffWins: 8, faceoffLosses: 2 };
-    const groups = assignTiers([provisional, established]);
+  it("falls back safely to D for legacy data without a stored tier", () => {
+    const legacy = { id: "legacy", eloRating: 1800 };
+    const groups = assignTiers([legacy]);
 
-    expect(groups.find((group) => group.tier === "D")?.hackathons.map((entry) => entry.id)).toEqual(["new"]);
-    expect(groups.find((group) => group.tier === "S")?.hackathons.map((entry) => entry.id)).toEqual(["known"]);
+    expect(groups.find((group) => group.tier === "D")?.hackathons.map((entry) => entry.id)).toEqual(["legacy"]);
   });
 });

@@ -1,13 +1,28 @@
-import { and, eq, inArray, isNotNull, lt, sql } from "drizzle-orm";
+import { unstable_cache } from "next/cache";
+import { and, eq, inArray, isNotNull } from "drizzle-orm";
 
 import { db } from "@/lib/db";
-import { hackathonFaceoffMatchups, hackathonFaceoffRatings, hackathons } from "@/lib/db/schema";
+import { hackathonFaceoffRatings, hackathons } from "@/lib/db/schema";
 import { displayEloRating } from "@/lib/hackathons/elo";
+import type { TierLabel } from "@/lib/hackathons/ranking";
 
-const MATCHUP_RETENTION_DAYS = 90;
+export const FACEOFF_CACHE_SECONDS = 60;
 const publicStatuses = ["upcoming", "live", "completed"] as const;
 
-export async function getLiveFaceoffRatings() {
+function tierForPosition(position: number, population: number): TierLabel {
+  if (position <= Math.ceil(population * 0.01)) return "S";
+  if (position <= Math.ceil(population * 0.11)) return "A";
+  if (position <= Math.ceil(population * 0.31)) return "B";
+  if (position <= Math.ceil(population * 0.61)) return "C";
+  return "D";
+}
+
+/**
+ * The rating table is the complete Face Off source of truth. Rank and tier are
+ * derived from that narrow table once per cache window instead of being written
+ * across the whole population after every vote.
+ */
+async function queryLiveFaceoffRatings() {
   const rows = await db
     .select({
       id: hackathons.id,
@@ -25,34 +40,26 @@ export async function getLiveFaceoffRatings() {
       )
     );
 
-  return rows.map((row) => ({
-    id: row.id,
-    eloRating: displayEloRating(row.rawEloRating, row.faceoffWins + row.faceoffLosses),
-    faceoffWins: row.faceoffWins,
-    faceoffLosses: row.faceoffLosses,
+  const ranked = rows
+    .map((row) => ({
+      id: row.id,
+      eloRating: displayEloRating(row.rawEloRating, row.faceoffWins + row.faceoffLosses),
+      faceoffWins: row.faceoffWins,
+      faceoffLosses: row.faceoffLosses,
+    }))
+    .sort((a, b) => b.eloRating - a.eloRating || a.id.localeCompare(b.id));
+
+  return ranked.map((row, index) => ({
+    ...row,
+    overallRank: index + 1,
+    rankTier: tierForPosition(index + 1, ranked.length),
   }));
 }
 
-export async function getFaceoffImpressionCounts() {
-  const result = await db.execute<{ id: string; impressions: number }>(sql`
-    select hackathon_id as id, count(*)::integer as impressions
-    from (
-      select left_id as hackathon_id from hackathon_faceoff_matchups
-      union all
-      select right_id from hackathon_faceoff_matchups
-    ) shown
-    group by hackathon_id
-  `);
+const getCachedLiveFaceoffRatings = unstable_cache(queryLiveFaceoffRatings, ["faceoff-live-ratings"], {
+  revalidate: FACEOFF_CACHE_SECONDS,
+});
 
-  return result.rows;
-}
-
-export async function cleanupOldFaceoffMatchups(now = new Date()) {
-  const retentionBoundary = new Date(now.getTime() - MATCHUP_RETENTION_DAYS * 24 * 60 * 60 * 1000);
-  const deleted = await db
-    .delete(hackathonFaceoffMatchups)
-    .where(lt(hackathonFaceoffMatchups.expiresAt, retentionBoundary))
-    .returning({ id: hackathonFaceoffMatchups.id });
-
-  return deleted.length;
+export function getLiveFaceoffRatings() {
+  return getCachedLiveFaceoffRatings();
 }

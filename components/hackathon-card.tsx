@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { BellPlus, Bookmark, Check, ChevronDown } from "lucide-react";
+import { BellPlus, Bookmark, Check, ChevronDown, Swords } from "lucide-react";
 
+import { DiscordGlyph } from "@/components/discord-glyph";
+import { hackathonLogoSrc, isDirectImageUrl } from "@/lib/hackathons/logo-hosts";
 import { formatReminderDate } from "@/lib/hackathons/reminder-labels";
 import type { SelectableReminderType } from "@/lib/hackathons/reminder-plan";
 import type { TierLabel } from "@/lib/hackathons/ranking";
@@ -37,11 +39,13 @@ export type HackathonCardData = {
   longitude?: number | null;
   location: string;
   name: string;
+  rankTier?: TierLabel;
   slug?: string | null;
   /* Catalog metadata retained for card-data compatibility; cards do not
      surface source provenance in their UI. */
   source?: HackathonSourceBadge | null;
   startsAt?: string | null;
+  tags?: string[];
   travelReimbursement?: boolean;
 };
 
@@ -49,18 +53,45 @@ function handleUnauthenticated() {
   window.location.href = "/sign-in";
 }
 
-function getCountryDisplay(country: string) {
+function getBookmarkCountryDisplay(country: string): { label: string; underlineClass: string } {
   const key = country.trim().toLowerCase();
 
   if (key === "united states" || key === "united states of america" || key === "usa") {
-    return "United States";
+    return { label: "United States", underlineClass: "underline decoration-[#5A6CFF] underline-offset-2" };
   }
 
   if (key === "canada") {
-    return "Canada";
+    return { label: "Canada", underlineClass: "underline decoration-[#D9043D] underline-offset-2" };
   }
 
-  return country.trim();
+  return { label: country.trim(), underlineClass: "" };
+}
+
+function getInitials(name: string) {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0]?.toUpperCase())
+    .join("");
+}
+
+function getAccentStyle(name: string) {
+  const palette = [
+    [102, 0, 0],
+    [217, 4, 61],
+    [31, 93, 135],
+    [24, 120, 92],
+    [138, 83, 18],
+    [86, 64, 148],
+    [160, 62, 43],
+  ] as const;
+  const hash = Array.from(name).reduce((total, character) => total + character.charCodeAt(0), 0);
+  const [r, g, b] = palette[hash % palette.length] ?? palette[0];
+
+  return {
+    "--hackathon-accent-rgb": `${r} ${g} ${b}`,
+  } as CSSProperties & { "--hackathon-accent-rgb": string };
 }
 
 /* Classic tier-list color ramp: S red through D blue. Backgrounds are solid so
@@ -72,24 +103,6 @@ const TIER_BADGE_STYLES: Record<TierLabel, string> = {
   C: "bg-[#16A34A] text-white",
   D: "bg-[#2563EB] text-white",
 };
-
-function getLocationColor(country?: string | null) {
-  const normalizedCountry = country?.trim().toLowerCase();
-
-  if (normalizedCountry === "canada") {
-    return "text-[#d80621]";
-  }
-
-  if (
-    normalizedCountry === "united states" ||
-    normalizedCountry === "united states of america" ||
-    normalizedCountry === "usa"
-  ) {
-    return "text-[#3c3b6e]";
-  }
-
-  return "text-ink/85";
-}
 
 function BookmarkButton({
   hackathonId,
@@ -270,6 +283,33 @@ function cardDescription(hackathon: HackathonCardData) {
   }
 
   return `${hackathon.name} brings hackers together to build, learn, and connect.`;
+}
+
+function BookmarkCardLogo({ hackathon, preview }: { hackathon: HackathonCardData; preview: boolean }) {
+  const logoSrc = hackathon.image
+    ? preview
+      ? hackathon.image
+      : hackathonLogoSrc(hackathon.id, hackathon.image)
+    : null;
+
+  return (
+    <div className="relative grid size-14 shrink-0 place-items-center overflow-hidden bg-ink/5">
+      {logoSrc ? (
+        <Image
+          alt={`${hackathon.name} logo`}
+          className="object-contain"
+          fill
+          sizes="56px"
+          src={logoSrc}
+          unoptimized={!logoSrc.startsWith("/") && !isDirectImageUrl(logoSrc)}
+        />
+      ) : (
+        <div className="grid size-full place-items-center bg-[rgb(var(--hackathon-accent-rgb)/0.92)] px-2 text-center text-lg font-semibold text-paper">
+          {getInitials(hackathon.name) || "HN"}
+        </div>
+      )}
+    </div>
+  );
 }
 
 type ReminderOption = {
@@ -470,10 +510,138 @@ function ReminderControl({ hackathonId, statusLabel, options: initialOptions }: 
   );
 }
 
+function BookmarkPageCard({
+  cornerAction,
+  hackathon,
+  preview,
+  reminder,
+}: {
+  cornerAction?: ReactNode;
+  hackathon: HackathonCardData;
+  preview: boolean;
+  reminder?: HackathonCardReminder;
+}) {
+  const countryDisplay = hackathon.country ? getBookmarkCountryDisplay(hackathon.country) : null;
+  const location = [countryDisplay?.label, hackathon.location].filter(Boolean).join(", ");
+
+  return (
+    <article
+      className={`group relative flex min-w-0 flex-col border border-ink/15 bg-paper p-4 transition-colors hover:border-ink/40 ${
+        hackathon.isPast ? "opacity-70 hover:opacity-100 focus-within:opacity-100" : ""
+      }`}
+      style={getAccentStyle(hackathon.name)}
+    >
+      {hackathon.slug && !preview ? (
+        <Link
+          aria-label={`View ${hackathon.name} details`}
+          className="absolute inset-0 z-[1]"
+          draggable={false}
+          href={`/hackathons/${hackathon.slug}`}
+        />
+      ) : null}
+
+      <div className="flex items-start gap-3">
+        <div className="flex w-14 shrink-0 flex-col items-center gap-2">
+          <BookmarkCardLogo hackathon={hackathon} preview={preview} />
+          {hackathon.source ? (
+            <span className="relative z-10 max-w-full truncate font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-ink/55">
+              {hackathon.source.label}
+            </span>
+          ) : null}
+        </div>
+
+        <div className="min-w-0 pt-1">
+          <h2 className="line-clamp-2 text-lg font-semibold leading-6 tracking-tight text-ink">
+            {hackathon.name}
+          </h2>
+          {hackathon.isPast ? (
+            <p className="mt-2 text-[15px] leading-5 text-ink/40">
+              Last held {hackathon.date} · next edition TBA
+            </p>
+          ) : (
+            <p className="mt-2 text-[15px] leading-5 text-ink/55">{hackathon.date}</p>
+          )}
+          <p className="mt-1 truncate text-[15px] leading-5 text-ink/55" title={location}>
+            {countryDisplay ? (
+              <>
+                <span className={countryDisplay.underlineClass}>{countryDisplay.label}</span>
+                {", "}
+              </>
+            ) : null}
+            {hackathon.location}
+          </p>
+
+          {hackathon.beginnerFriendly ||
+          hackathon.travelReimbursement ||
+          hackathon.highSchoolersOnly ||
+          hackathon.hasDiscord ||
+          typeof hackathon.eloRating === "number" ? (
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              {typeof hackathon.eloRating === "number" ? (
+                <span
+                  className="relative z-10 inline-flex items-center gap-1 bg-ink/5 px-2.5 py-1 font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-ink/55"
+                  title="Face Off Elo rating"
+                >
+                  <Swords aria-hidden="true" className="size-3" />
+                  {hackathon.eloRating}
+                </span>
+              ) : null}
+              {hackathon.beginnerFriendly ? (
+                <span className="relative z-10 inline-flex items-center bg-pine/10 px-2.5 py-1 text-[11px] font-medium text-pine">
+                  Beginner friendly
+                </span>
+              ) : null}
+              {hackathon.travelReimbursement ? (
+                <span className="relative z-10 inline-flex items-center bg-pine/10 px-2.5 py-1 text-[11px] font-medium text-pine">
+                  Travel support
+                </span>
+              ) : null}
+              {hackathon.highSchoolersOnly ? (
+                <span className="relative z-10 inline-flex items-center bg-pine/10 px-2.5 py-1 text-[11px] font-medium text-pine">
+                  High school only
+                </span>
+              ) : null}
+              {hackathon.hasDiscord ? (
+                <span className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-[0.08em] text-[#5865F2]">
+                  <DiscordGlyph className="size-3.5" />
+                  Discord
+                </span>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="relative z-10 mt-auto pt-3 text-base leading-6">
+        {reminder ? (
+          <div className="flex items-start justify-between gap-2">
+            <ReminderControl
+              hackathonId={reminder.hackathonId}
+              options={reminder.options}
+              statusLabel={reminder.statusLabel}
+            />
+            {cornerAction ? <div className="relative z-20 shrink-0">{cornerAction}</div> : null}
+          </div>
+        ) : (
+          <div className="flex items-center justify-end gap-3">
+            <BookmarkButton
+              hackathonId={hackathon.id}
+              hackathonName={hackathon.name}
+              initialSaved={hackathon.isSaved}
+              preview={preview}
+            />
+          </div>
+        )}
+      </div>
+    </article>
+  );
+}
+
 export function HackathonCard({
   compact = false,
   cornerAction,
   hackathon,
+  layout = "cover",
   preview = false,
   reminder,
   tier,
@@ -483,18 +651,37 @@ export function HackathonCard({
   /* Optional footer control, such as the pipeline board's remove button. */
   cornerAction?: ReactNode;
   hackathon: HackathonCardData;
+  /* The bookmark page keeps the original compact, square-logo card design. */
+  layout?: "cover" | "bookmark";
   preview?: boolean;
   /* When set, the footer swaps the save control for an inline reminder
      picker that expands below the card — used on the My Hackathons board. */
   reminder?: HackathonCardReminder;
   tier?: TierLabel;
 }) {
+  if (layout === "bookmark") {
+    return (
+      <BookmarkPageCard
+        cornerAction={cornerAction}
+        hackathon={hackathon}
+        preview={preview}
+        reminder={reminder}
+      />
+    );
+  }
+
   const date = splitDateRange(hackathon.date);
   const weekday = getWeekday(hackathon.startsAt);
-  const countryDisplay = hackathon.country ? getCountryDisplay(hackathon.country) : null;
-  // Full string powers the hover title / truncation; the country and the rest
-  // of the place render as separate spans so only the country picks up color.
-  const location = [countryDisplay, hackathon.location].filter(Boolean).join(", ");
+  const cardTags = Array.from(
+    new Set(
+      [
+        hackathon.beginnerFriendly ? "Beginner friendly" : null,
+        hackathon.travelReimbursement ? "Travel support" : null,
+        hackathon.highSchoolersOnly ? "High school only" : null,
+        ...(hackathon.tags ?? []),
+      ].filter((tag): tag is string => Boolean(tag))
+    )
+  );
 
   return (
     <article
@@ -581,31 +768,36 @@ export function HackathonCard({
                 {cornerAction ? <div className="relative z-20 shrink-0">{cornerAction}</div> : null}
               </div>
             ) : (
-              <div className="flex min-w-0 items-center gap-3">
-                <p
-                  className="min-w-0 flex-1 truncate text-[13px] text-ink/70"
-                  title={location}
+              <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
+                <div
+                  aria-label={cardTags.length ? `Tags: ${cardTags.join(", ")}` : "No tags"}
+                  className="flex h-6 w-full max-w-60 min-w-0 flex-wrap items-start gap-x-1.5 gap-y-2 overflow-hidden"
+                  title={cardTags.join(", ")}
                 >
-                  <span aria-hidden="true" className="mr-2 text-[9px] align-middle">
-                    ●
-                  </span>
-                  {countryDisplay ? (
-                    <span className={getLocationColor(hackathon.country)}>{countryDisplay}</span>
+                  {cardTags.map((tag) => (
+                    <span
+                      className="max-w-full shrink-0 truncate bg-pine/10 px-2 py-1 text-[11px] font-medium leading-4 text-pine"
+                      key={tag}
+                      title={tag}
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+                <div className="flex shrink-0 items-center gap-3">
+                  {hackathon.hasDiscord ? (
+                    <span className="inline-flex shrink-0 items-center gap-1.5 text-[12px] font-medium text-[#5865F2]">
+                      <DiscordGlyph className="size-4" />
+                      Discord
+                    </span>
                   ) : null}
-                  {countryDisplay && hackathon.location ? ", " : ""}
-                  {hackathon.location}
-                </p>
-                <BookmarkButton
-                  hackathonId={hackathon.id}
-                  hackathonName={hackathon.name}
-                  initialSaved={hackathon.isSaved}
-                  preview={preview}
-                />
-                {hackathon.slug && !preview ? (
-                  <span className="shrink-0 font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-ink">
-                    View details <span aria-hidden="true">↗</span>
-                  </span>
-                ) : null}
+                  <BookmarkButton
+                    hackathonId={hackathon.id}
+                    hackathonName={hackathon.name}
+                    initialSaved={hackathon.isSaved}
+                    preview={preview}
+                  />
+                </div>
               </div>
             )}
           </div>

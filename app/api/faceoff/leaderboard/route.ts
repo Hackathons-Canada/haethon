@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getLiveFaceoffRatings } from "@/lib/hackathons/faceoff-service";
+import { FACEOFF_CACHE_SECONDS, getLiveFaceoffRatings } from "@/lib/hackathons/faceoff-service";
 
 export async function GET() {
   const rows = await getLiveFaceoffRatings();
@@ -9,6 +9,10 @@ export async function GET() {
     {
       data: rows,
     },
-    { headers: { "Cache-Control": "no-store" } }
+    {
+      headers: {
+        "Cache-Control": `public, s-maxage=${FACEOFF_CACHE_SECONDS}, stale-while-revalidate=${FACEOFF_CACHE_SECONDS * 5}`,
+      },
+    }
   );
 }

@@ -59,6 +59,14 @@ function locationText(payload: PreviewPayload) {
   return "Location to be announced";
 }
 
+function tagNames(payload: PreviewPayload) {
+  if (!Array.isArray(payload.tags)) {
+    return [];
+  }
+
+  return payload.tags.map((tag) => text(tag).trim()).filter(Boolean);
+}
+
 export function previewPayloadToCard(payload: PreviewPayload, id = "admin-preview"): HackathonCardData {
   const name = text(payload.name, "Untitled hackathon");
   const source = HACKATHON_SOURCES.find((type) => type === payload.source);
@@ -75,6 +83,7 @@ export function previewPayloadToCard(payload: PreviewPayload, id = "admin-previe
     country: text(payload.format, "in_person") === "online" ? null : text(payload.country) || null,
     location: locationText(payload),
     name,
+    tags: tagNames(payload),
     travelReimbursement: payload.travelReimbursement === true,
   };
 }

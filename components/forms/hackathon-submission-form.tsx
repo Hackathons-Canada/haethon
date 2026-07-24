@@ -131,7 +131,7 @@ export function HackathonSubmissionForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="border border-navy/10 dark:border-white/10 bg-white dark:bg-white/[0.06] text-navy dark:text-wheat">
+    <form onSubmit={onSubmit} className="border border-navy/10 bg-transparent text-navy dark:border-white/10 dark:text-wheat">
       <div className="flex border-b border-navy/10 dark:border-white/10" role="tablist" aria-label="Submission type">
         {[
           {
