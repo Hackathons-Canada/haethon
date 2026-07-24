@@ -59,14 +59,14 @@ export function HackathonCheckinForm({ hackathonId }: { hackathonId: string }) {
           <input
             aria-label="Check-in code"
             autoFocus
-            className="h-9 w-36 rounded-xl border border-navy/15 dark:border-white/15 bg-white dark:bg-white/[0.06] px-3 font-mono text-sm uppercase tracking-widest text-navy dark:text-wheat outline-none focus:border-cabernet"
+            className="h-9 w-36 rounded-xl border border-navy/15 dark:border-white/15 bg-white dark:bg-white/[0.06] px-3 font-mono text-sm uppercase tracking-widest text-navy dark:text-wheat outline-none focus:border-pine"
             maxLength={20}
             onChange={(event) => setCode(event.target.value.toUpperCase())}
             placeholder="CODE"
             value={code}
           />
           <button
-            className="h-9 rounded-xl bg-cabernet px-3 text-sm font-semibold text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white transition hover:bg-[#5c151c] disabled:opacity-50"
+            className="h-9 rounded-xl bg-pine px-3 text-sm font-semibold text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white transition hover:bg-pine/90 disabled:opacity-50"
             disabled={pending || !code.trim()}
             type="submit"
           >
@@ -85,7 +85,7 @@ export function HackathonCheckinForm({ hackathonId }: { hackathonId: string }) {
         </form>
       ) : (
         <button
-          className="text-sm font-semibold text-cabernet dark:text-[#e4a3ab] underline-offset-2 hover:underline"
+          className="text-sm font-semibold text-pine dark:text-moss underline-offset-2 hover:underline"
           onClick={() => setOpen(true)}
           type="button"
         >

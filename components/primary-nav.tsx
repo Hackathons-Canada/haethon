@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { DiscordIcon } from "@/components/discord-icon";
+import { TracedBorder } from "@/components/traced-border";
 
 export function PrimaryNav() {
   return (
@@ -32,26 +33,29 @@ export function PrimaryNav() {
 
         <div className="flex shrink-0 items-center gap-2">
           <Link
-            className="rounded-full px-3 py-2 text-[0.8rem] font-medium text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine sm:px-4"
-            href="/about"
-          >
-            About
-          </Link>
-          <Link
-            className="inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-[0.8rem] font-medium text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine sm:px-5"
+            className="group relative inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-[0.8rem] font-medium text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine sm:px-5"
             href="https://discord.gg/wcNfUUVgqe"
             rel="noreferrer"
             target="_blank"
           >
             <span className="hidden sm:inline">Join our Discord</span>
             <span className="sm:hidden">Discord</span>
-            <DiscordIcon className="h-4 w-auto" />
+            <DiscordIcon className="h-[0.8rem] w-auto" />
+            <TracedBorder />
           </Link>
           <Link
-            className="rounded-full px-4 py-2 text-[0.8rem] font-medium text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine sm:px-5"
+            className="group relative rounded-full px-3 py-2 text-[0.8rem] font-medium text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine sm:px-4"
+            href="/about"
+          >
+            About
+            <TracedBorder />
+          </Link>
+          <Link
+            className="group relative rounded-full px-4 py-2 text-[0.8rem] font-medium text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine sm:px-5"
             href="/hackathons"
           >
             Open App
+            <TracedBorder />
           </Link>
         </div>
       </nav>

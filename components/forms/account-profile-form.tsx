@@ -340,7 +340,7 @@ export function AccountProfileForm({ firstName, lastName, profile }: ProfileForm
           <div className="mt-5 flex flex-wrap items-center gap-2.5">
             {links.map(({ href, icon: Icon, label }) => (
               <a
-                className="inline-flex min-h-10 items-center gap-2 rounded-full border border-navy/10 bg-ivory px-3.5 py-2 text-sm text-navy/65 transition hover:border-cabernet hover:text-cabernet dark:border-white/10 dark:bg-white/5 dark:text-wheat/65 dark:hover:border-[#e4a3ab]/60 dark:hover:text-[#e4a3ab]"
+                className="inline-flex min-h-10 items-center gap-2 rounded-full border border-navy/10 bg-ivory px-3.5 py-2 text-sm text-navy/65 transition hover:border-pine hover:text-pine dark:border-white/10 dark:bg-white/5 dark:text-wheat/65 dark:hover:border-moss/60 dark:hover:text-moss"
                 href={href}
                 key={href}
                 rel="noreferrer"
@@ -560,7 +560,7 @@ export function AccountProfileForm({ firstName, lastName, profile }: ProfileForm
             <button
               disabled={status === "saving"}
               type="submit"
-              className="inline-flex min-h-10 items-center gap-2 rounded-full bg-cabernet px-4 text-sm font-semibold text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white transition hover:bg-[#5c151c] disabled:opacity-60"
+              className="inline-flex min-h-10 items-center gap-2 rounded-full bg-pine px-4 text-sm font-semibold text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white transition hover:bg-pine/90 disabled:opacity-60"
             >
               <Save aria-hidden="true" className="size-4" />
               {status === "saving" ? "Saving" : "Save profile"}

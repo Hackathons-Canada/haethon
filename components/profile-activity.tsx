@@ -58,7 +58,7 @@ export function ProfileActivity({
             <button
               className={`rounded-xl px-3 py-1.5 text-sm font-semibold transition-colors ${
                 year.year === active.year
-                  ? "bg-cabernet text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white"
+                  ? "bg-pine text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white"
                   : "bg-white dark:bg-white/[0.06] text-navy/55 dark:text-wheat/55 hover:text-navy dark:hover:text-wheat"
               }`}
               key={year.year}
@@ -82,7 +82,7 @@ export function ProfileActivity({
           {weeks.map((week) => (
             <div
               className={`h-8 rounded-[4px] ${
-                week.count > 2 ? "bg-cabernet dark:bg-[#e4a3ab]" : week.count > 0 ? "bg-cabernet/60 dark:bg-[#e4a3ab]/60" : "bg-navy/10 dark:bg-white/10"
+                week.count > 2 ? "bg-pine dark:bg-moss" : week.count > 0 ? "bg-pine/60 dark:bg-moss/60" : "bg-navy/10 dark:bg-white/10"
               }`}
               key={week.key}
               title={`Week of ${week.key}: ${week.count} attended hackathon day${week.count === 1 ? "" : "s"}`}
@@ -99,15 +99,15 @@ export function ProfileActivity({
         <div className="mt-3 flex items-center justify-end gap-2 text-xs text-navy/55 dark:text-wheat/55">
           <span>Less</span>
           <span className="size-3 rounded-[3px] bg-navy/10 dark:bg-white/10" />
-          <span className="size-3 rounded-[3px] bg-cabernet/60 dark:bg-[#e4a3ab]/60" />
-          <span className="size-3 rounded-[3px] bg-cabernet dark:bg-[#e4a3ab]" />
+          <span className="size-3 rounded-[3px] bg-pine/60 dark:bg-moss/60" />
+          <span className="size-3 rounded-[3px] bg-pine dark:bg-moss" />
           <span>More</span>
         </div>
       </div>
 
       {latestAttended ? (
         <div className="mt-2 flex items-center gap-2 text-sm text-navy/55 dark:text-wheat/55">
-          <CalendarDays aria-hidden="true" className="size-4 shrink-0 text-cabernet dark:text-[#e4a3ab]" />
+          <CalendarDays aria-hidden="true" className="size-4 shrink-0 text-pine dark:text-moss" />
           <span>
             Latest attended:{" "}
             <span className="font-semibold text-navy dark:text-wheat">{latestAttended.name}</span>

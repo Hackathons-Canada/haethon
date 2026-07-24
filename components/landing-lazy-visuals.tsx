@@ -34,7 +34,9 @@ const SearchSpotlightVisual = dynamic(
 
 export function LazyLandingWorldMap() {
   return (
-    <LazyMount className="mx-auto aspect-[16/10] w-full sm:aspect-[2/1]">
+    // Aspect matches the dotted map's generated ratio (~159/60) so the
+    // placeholder reserves the right height and avoids layout shift.
+    <LazyMount className="aspect-[159/60] w-full">
       <LandingWorldMap />
     </LazyMount>
   );

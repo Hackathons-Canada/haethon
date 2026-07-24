@@ -4,6 +4,7 @@ import { and, asc, eq, gte, ilike, inArray, isNotNull, isNull, lte, or, sql } fr
 import { db } from "@/lib/db";
 import {
   hackathonDates,
+  hackathonFaceoffRatings,
   hackathonLocations,
   hackathons,
   hackathonSeries,
@@ -12,6 +13,7 @@ import {
 import { formatDateRange, formatLocationParts } from "@/lib/hackathons/card-format";
 import { isPastCatalogRow, pastRecurringSeriesIds, selectVisibleCatalogRows } from "@/lib/hackathons/catalog-visibility";
 import { getHackathonIdsWithDiscord } from "@/lib/hackathons/discord-cards";
+import { displayEloRating } from "@/lib/hackathons/elo";
 import { sourceBadge, type HackathonSourceBadge } from "@/lib/hackathons/source-badges";
 
 /* One page of catalog results. The listing page and the search API both read
@@ -75,6 +77,7 @@ type PublicHackathonCard = {
   longitude: number | null;
   location: string;
   name: string;
+  prizeAmountUsd: number | null;
   slug: string;
   /* True when the event's dates have passed. Only recurring-series editions
      survive in the catalog once past, badged as "last held" until the next
@@ -132,9 +135,10 @@ async function queryCatalogPage(query: CatalogQuery): Promise<CatalogPage> {
       beginnerFriendly: hackathons.beginnerFriendly,
       travelReimbursement: hackathons.travelReimbursement,
       highSchoolersOnly: hackathons.highSchoolersOnly,
-      eloRating: hackathons.eloRating,
-      faceoffWins: hackathons.faceoffWins,
-      faceoffLosses: hackathons.faceoffLosses,
+      prizeAmountUsd: hackathons.prizeAmountUsd,
+      eloRating: sql<number>`coalesce(${hackathonFaceoffRatings.eloRating}, 1500)::integer`,
+      faceoffWins: sql<number>`coalesce(${hackathonFaceoffRatings.faceoffWins}, 0)::integer`,
+      faceoffLosses: sql<number>`coalesce(${hackathonFaceoffRatings.faceoffLosses}, 0)::integer`,
       city: hackathonLocations.city,
       region: hackathonLocations.region,
       country: hackathonLocations.country,
@@ -146,6 +150,7 @@ async function queryCatalogPage(query: CatalogQuery): Promise<CatalogPage> {
       endsAt: hackathonDates.endsAt,
     })
     .from(hackathons)
+    .leftJoin(hackathonFaceoffRatings, eq(hackathonFaceoffRatings.hackathonId, hackathons.id))
     .leftJoin(hackathonLocations, eq(hackathonLocations.hackathonId, hackathons.id))
     .leftJoin(hackathonDates, eq(hackathonDates.hackathonId, hackathons.id))
     .leftJoin(hackathonSeries, eq(hackathonSeries.id, hackathons.seriesId))
@@ -224,6 +229,7 @@ async function queryCatalogPage(query: CatalogQuery): Promise<CatalogPage> {
   return {
     cards: pageRows.map((row) => {
       const location = formatLocationParts(row);
+      const gamesPlayed = row.faceoffWins + row.faceoffLosses;
 
       return {
         beginnerFriendly: row.beginnerFriendly,
@@ -231,7 +237,7 @@ async function queryCatalogPage(query: CatalogQuery): Promise<CatalogPage> {
         countryCode: row.countryCode ?? null,
         date: formatDateRange(row.startsAt, row.endsAt),
         description: row.description,
-        eloRating: row.eloRating,
+        eloRating: displayEloRating(row.eloRating, gamesPlayed),
         faceoffWins: row.faceoffWins,
         faceoffLosses: row.faceoffLosses,
         format: row.format,
@@ -244,6 +250,7 @@ async function queryCatalogPage(query: CatalogQuery): Promise<CatalogPage> {
         longitude: row.longitude === null ? null : Number(row.longitude),
         location: location.locality ?? "Location TBA",
         name: row.name,
+        prizeAmountUsd: row.prizeAmountUsd,
         slug: row.slug,
         source: row.source ? sourceBadge(row.source) : null,
         startsAt: row.startsAt?.toISOString() ?? null,

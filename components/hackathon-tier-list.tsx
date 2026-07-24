@@ -9,14 +9,14 @@ import type { TierLabel } from "@/lib/hackathons/ranking";
 
 const TIER_STYLES: Record<TierLabel, string> = {
   S: "bg-gradient-to-b from-[#E8B84B] to-[#B9812B] text-[#2a1c04]",
-  A: "bg-cabernet text-wheat dark:bg-[#e4a3ab] dark:text-[#141414]",
+  A: "bg-pine text-wheat dark:bg-moss dark:text-[#141414]",
   B: "bg-[#5A6CFF] text-white",
   C: "bg-navy/70 text-wheat dark:bg-white/25 dark:text-wheat",
   D: "bg-navy/25 text-navy dark:bg-white/10 dark:text-wheat/80",
 };
 
 const TIER_DESCRIPTIONS: Record<TierLabel, string> = {
-  S: "Elite — top 10% by Elo",
+  S: "Elite — top 10% by confidence-adjusted score",
   A: "Excellent",
   B: "Solid",
   C: "Up and coming",
@@ -64,7 +64,7 @@ export function HackathonTierList({ hackathons }: { hackathons: (HackathonCardDa
                   className="group flex w-[8.75rem] flex-col items-center gap-1.5 rounded-xl p-2 text-center transition-colors hover:bg-ivory dark:hover:bg-white/10"
                   href={hackathon.slug ? `/hackathons/${hackathon.slug}` : "#"}
                   key={hackathon.id}
-                  title={`${hackathon.name} · ${hackathon.eloRating} Elo`}
+                  title={`${hackathon.name} · ${hackathon.eloRating} confidence-adjusted score`}
                 >
                   <div className="grid size-14 place-items-center overflow-hidden rounded-full bg-navy/5 text-sm font-semibold text-navy transition-transform group-hover:scale-105 dark:bg-white/10 dark:text-wheat">
                     {hackathon.image ? (

@@ -332,7 +332,7 @@ export function HackathonJsonImporter() {
                 </div>
               </div>
             ) : pendingDiscord && pendingDiscord.discord.action !== "create" ? (
-              <div className="flex flex-col justify-between rounded-xl border border-cabernet/20 dark:border-[#e4a3ab]/40 bg-cabernet/5 dark:bg-[#e4a3ab]/10 p-4">
+              <div className="flex flex-col justify-between rounded-xl border border-pine/20 dark:border-moss/40 bg-pine/5 dark:bg-moss/10 p-4">
                 <div>
                   <p className="text-sm font-semibold text-navy dark:text-wheat">Create a Discord channel?</p>
                   <p className="mt-2 text-sm leading-6 text-navy/55 dark:text-wheat/55">
@@ -413,7 +413,7 @@ export function HackathonJsonImporter() {
 
         {pendingDiscord && pendingDiscord.discord.action === "create" ? (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6">
-            <div className="w-full max-w-2xl rounded-2xl border border-cabernet/20 dark:border-[#e4a3ab]/40 bg-white dark:bg-[#141414] p-8 shadow-2xl sm:p-12">
+            <div className="w-full max-w-2xl rounded-2xl border border-pine/20 dark:border-moss/40 bg-white dark:bg-[#141414] p-8 shadow-2xl sm:p-12">
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-rust">New Discord channel</p>
               <h2 className="mt-3 text-3xl font-semibold text-navy dark:text-wheat">Create a Discord channel?</h2>
               <p className="mt-4 text-base leading-7 text-navy/55 dark:text-wheat/55">
@@ -475,7 +475,7 @@ export function HackathonJsonImporter() {
           <h2 className="mt-2 text-2xl font-semibold text-navy dark:text-wheat">Scraped hackathons JSON</h2>
         </div>
         <button
-          className="inline-flex min-h-10 items-center gap-2 rounded-full bg-cabernet hover:bg-[#5c151c] px-4 text-sm font-semibold text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white disabled:opacity-50"
+          className="inline-flex min-h-10 items-center gap-2 rounded-full bg-pine hover:bg-pine/90 px-4 text-sm font-semibold text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white disabled:opacity-50"
           disabled={status === "submitting" || !jsonText.trim()}
           type="submit"
         >
@@ -486,7 +486,7 @@ export function HackathonJsonImporter() {
 
       <textarea
         aria-label="Hackathon import JSON"
-        className="min-h-72 w-full rounded-xl border border-navy/15 dark:border-white/15 bg-ivory dark:bg-white/5 p-4 font-mono text-xs leading-5 text-navy dark:text-wheat outline-none focus:border-cabernet focus:ring-2 focus:ring-cabernet/15"
+        className="min-h-72 w-full rounded-xl border border-navy/15 dark:border-white/15 bg-ivory dark:bg-white/5 p-4 font-mono text-xs leading-5 text-navy dark:text-wheat outline-none focus:border-pine focus:ring-2 focus:ring-pine/15"
         onChange={(event) => setJsonText(event.target.value)}
         placeholder={sampleJson}
         spellCheck={false}

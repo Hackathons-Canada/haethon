@@ -10,9 +10,9 @@ import { HACKATHON_SOURCES, sourceBadge } from "@/lib/hackathons/source-provenan
 import { dateToInputValue } from "@/lib/hackathons/utils";
 
 const inputClassName =
-  "w-full rounded-xl border border-navy/15 dark:border-white/15 bg-white dark:bg-white/[0.06] px-3 py-2 text-sm text-navy dark:text-wheat outline-none focus:border-cabernet focus:ring-2 focus:ring-cabernet/15";
+  "w-full rounded-xl border border-navy/15 dark:border-white/15 bg-white dark:bg-white/[0.06] px-3 py-2 text-sm text-navy dark:text-wheat outline-none focus:border-pine focus:ring-2 focus:ring-pine/15";
 const checkboxClassName =
-  "size-4 rounded border-navy/20 dark:border-white/20 text-cabernet dark:text-[#e4a3ab] focus:ring-cabernet/20";
+  "size-4 rounded border-navy/20 dark:border-white/20 text-pine dark:text-moss focus:ring-pine/20";
 const labelClassName = "mb-1 block text-xs font-semibold uppercase tracking-[0.14em] text-navy/55 dark:text-wheat/55";
 
 function itemToPreviewPayload(item: AdminHackathonListItem): Record<string, unknown> {
@@ -416,7 +416,7 @@ export function HackathonEditDialog({
 
             <div className="mt-6 flex flex-wrap items-center gap-3">
               <button
-                className="inline-flex min-h-10 items-center gap-2 rounded-full bg-cabernet px-5 text-sm font-semibold text-wheat hover:bg-[#5c151c] dark:bg-wheat dark:text-[#141414] dark:hover:bg-white disabled:opacity-50"
+                className="inline-flex min-h-10 items-center gap-2 rounded-full bg-pine px-5 text-sm font-semibold text-wheat hover:bg-pine/90 dark:bg-wheat dark:text-[#141414] dark:hover:bg-white disabled:opacity-50"
                 disabled={saving}
                 type="submit"
               >

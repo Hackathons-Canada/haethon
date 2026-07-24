@@ -6,7 +6,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Crown, Flame, Loader2, SkipForward, Swords, Trophy } from "lucide-react";
 
-import { pickMatchup, pushRecentIds } from "@/lib/hackathons/faceoff-pairing";
+import { displayEloRating, isProvisional } from "@/lib/hackathons/elo";
+import { pushRecentIds } from "@/lib/hackathons/faceoff-pairing";
 import { sortByEloDescending } from "@/lib/hackathons/ranking";
 
 export type FaceoffHackathon = {
@@ -28,6 +29,12 @@ type VoteResult = {
   winnerDelta: number;
   loserDelta: number;
   upset: boolean;
+};
+
+type IssuedMatchup = {
+  id: string;
+  leftId: string;
+  rightId: string;
 };
 
 type Phase = "idle" | "voting" | "result";
@@ -61,7 +68,7 @@ function ConfettiBurst({ burstId }: { burstId: number }) {
         id: `${burstId}-${index}`,
         angle: (index / 14) * Math.PI * 2 + ((index * 37) % 10) * 0.04,
         distance: 60 + ((index * 53) % 55),
-        color: ["#721C24", "#D9A441", "#5A6CFF", "#18785C"][index % 4],
+        color: ["#007354", "#D9A441", "#5A6CFF", "#18785C"][index % 4],
       })),
     [burstId]
   );
@@ -141,11 +148,16 @@ function FaceoffCardFace({
       </div>
       <div className="flex items-center gap-2">
         <span className="inline-flex items-center gap-1 rounded-full border border-navy/15 bg-navy/[0.03] px-2.5 py-1 font-mono text-[11px] font-semibold text-navy/60 dark:border-white/15 dark:bg-white/[0.04] dark:text-wheat/60">
-          {hackathon.eloRating} Elo
+          {hackathon.eloRating} score
         </span>
         <span className="font-mono text-[11px] text-navy/40 dark:text-wheat/40">
           {hackathon.faceoffWins}W&ndash;{hackathon.faceoffLosses}L
         </span>
+        {isProvisional(hackathon.faceoffWins + hackathon.faceoffLosses) ? (
+          <span className="rounded-full bg-[#D9A441]/15 px-2 py-1 font-mono text-[9px] font-semibold uppercase tracking-wide text-[#8a621e] dark:text-[#EFCB6E]">
+            Provisional
+          </span>
+        ) : null}
       </div>
     </div>
   );
@@ -153,36 +165,66 @@ function FaceoffCardFace({
 
 export function FaceoffArena({ pool }: { pool: FaceoffHackathon[] }) {
   const reduceMotion = Boolean(useReducedMotion());
-  // Lazy initializers run exactly once, on mount — the sanctioned place for
-  // one-time randomness, and it seeds the first matchup without needing a
-  // set-state-in-effect round trip.
-  const [matchup, setMatchup] = useState<[FaceoffHackathon, FaceoffHackathon] | null>(() => pickMatchup(pool, []));
-  const [recentIds, setRecentIds] = useState<string[]>(() =>
-    matchup ? [matchup[0].id, matchup[1].id] : []
-  );
+  const [livePool, setLivePool] = useState(pool);
+  const [issuedMatchup, setIssuedMatchup] = useState<IssuedMatchup | null>(null);
+  const [recentIds, setRecentIds] = useState<string[]>([]);
   const [phase, setPhase] = useState<Phase>("idle");
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [result, setResult] = useState<VoteResult | null>(null);
   const [sessionVotes, setSessionVotes] = useState(0);
   const [notice, setNotice] = useState<string | null>(null);
   const [burstId, setBurstId] = useState(0);
+  const [isLoadingMatchup, setIsLoadingMatchup] = useState(true);
+
+  const matchup = useMemo<[FaceoffHackathon, FaceoffHackathon] | null>(() => {
+    if (!issuedMatchup) {
+      return null;
+    }
+
+    const left = livePool.find((hackathon) => hackathon.id === issuedMatchup.leftId);
+    const right = livePool.find((hackathon) => hackathon.id === issuedMatchup.rightId);
+    return left && right ? [left, right] : null;
+  }, [issuedMatchup, livePool]);
+
+  const requestMatchup = useCallback(async (excludeIds: string[]) => {
+    setIsLoadingMatchup(true);
+
+    try {
+      const params = new URLSearchParams();
+      excludeIds.slice(0, 8).forEach((id) => params.append("exclude", id));
+      const response = await fetch(`/api/faceoff/matchup?${params.toString()}`, { cache: "no-store" });
+
+      if (!response.ok) {
+        throw new Error("Matchup request failed");
+      }
+
+      const body = (await response.json()) as { data: IssuedMatchup };
+      setIssuedMatchup(body.data);
+    } catch {
+      setIssuedMatchup(null);
+      setNotice("Couldn't load a matchup — try again shortly.");
+    } finally {
+      setIsLoadingMatchup(false);
+    }
+  }, []);
 
   const advanceMatchup = useCallback(
     (justShownIds: string[]) => {
       const nextRecent = pushRecentIds(recentIds, ...justShownIds);
 
       setRecentIds(nextRecent);
-      setMatchup(pickMatchup(pool, nextRecent));
+      setIssuedMatchup(null);
       setResult(null);
       setPendingId(null);
       setPhase("idle");
+      void requestMatchup(nextRecent);
     },
-    [pool, recentIds]
+    [recentIds, requestMatchup]
   );
 
   const castVote = useCallback(
     async (winner: FaceoffHackathon, loser: FaceoffHackathon) => {
-      if (phase !== "idle") {
+      if (phase !== "idle" || !issuedMatchup) {
         return;
       }
 
@@ -191,7 +233,11 @@ export function FaceoffArena({ pool }: { pool: FaceoffHackathon[] }) {
 
       try {
         const response = await fetch("/api/faceoff/vote", {
-          body: JSON.stringify({ winnerId: winner.id, loserId: loser.id }),
+          body: JSON.stringify({
+            matchupId: issuedMatchup.id,
+            winnerId: winner.id,
+            requestId: crypto.randomUUID(),
+          }),
           headers: { "Content-Type": "application/json" },
           method: "POST",
         });
@@ -201,6 +247,9 @@ export function FaceoffArena({ pool }: { pool: FaceoffHackathon[] }) {
           setNotice(body?.error ?? "Give it a second.");
           setPendingId(null);
           setPhase("idle");
+          if (response.status === 409) {
+            advanceMatchup([winner.id, loser.id]);
+          }
           setTimeout(() => setNotice(null), 2200);
           return;
         }
@@ -224,6 +273,31 @@ export function FaceoffArena({ pool }: { pool: FaceoffHackathon[] }) {
           loserDelta: body.data.loser.eloAfter - body.data.loser.eloBefore,
           upset: body.data.upset,
         });
+        setLivePool((current) =>
+          current.map((hackathon) => {
+            if (hackathon.id === winner.id) {
+              const faceoffWins = hackathon.faceoffWins + 1;
+              const gamesPlayed = faceoffWins + hackathon.faceoffLosses;
+              return {
+                ...hackathon,
+                eloRating: displayEloRating(body.data.winner.eloAfter, gamesPlayed),
+                faceoffWins,
+              };
+            }
+
+            if (hackathon.id === loser.id) {
+              const faceoffLosses = hackathon.faceoffLosses + 1;
+              const gamesPlayed = hackathon.faceoffWins + faceoffLosses;
+              return {
+                ...hackathon,
+                eloRating: displayEloRating(body.data.loser.eloAfter, gamesPlayed),
+                faceoffLosses,
+              };
+            }
+
+            return hackathon;
+          })
+        );
         setSessionVotes((count) => count + 1);
         setBurstId((id) => id + 1);
         setPendingId(null);
@@ -237,16 +311,48 @@ export function FaceoffArena({ pool }: { pool: FaceoffHackathon[] }) {
         setTimeout(() => setNotice(null), 2200);
       }
     },
-    [advanceMatchup, phase, reduceMotion]
+    [advanceMatchup, issuedMatchup, phase, reduceMotion]
   );
 
   function skipMatchup() {
-    if (phase !== "idle" || !matchup) {
+    if (phase !== "idle" || !matchup || !issuedMatchup) {
       return;
     }
 
+    void fetch("/api/faceoff/matchup", {
+      body: JSON.stringify({ matchupId: issuedMatchup.id }),
+      headers: { "Content-Type": "application/json" },
+      method: "PATCH",
+    });
     advanceMatchup([matchup[0].id, matchup[1].id]);
   }
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => void requestMatchup([]), 0);
+    return () => window.clearTimeout(timer);
+  }, [requestMatchup]);
+
+  useEffect(() => {
+    const refreshLeaderboard = async () => {
+      const response = await fetch("/api/faceoff/leaderboard", { cache: "no-store" }).catch(() => null);
+
+      if (!response?.ok) {
+        return;
+      }
+
+      const body = (await response.json()) as {
+        data: Pick<FaceoffHackathon, "id" | "eloRating" | "faceoffWins" | "faceoffLosses">[];
+      };
+      const currentById = new Map(body.data.map((rating) => [rating.id, rating]));
+      setLivePool((current) =>
+        current.map((hackathon) => ({ ...hackathon, ...(currentById.get(hackathon.id) ?? {}) }))
+      );
+    };
+    void refreshLeaderboard();
+    const timer = window.setInterval(() => void refreshLeaderboard(), 15_000);
+
+    return () => window.clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -269,7 +375,7 @@ export function FaceoffArena({ pool }: { pool: FaceoffHackathon[] }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matchup, phase, castVote]);
 
-  const leaderboard = useMemo(() => sortByEloDescending(pool).slice(0, 5), [pool]);
+  const leaderboard = useMemo(() => sortByEloDescending(livePool).slice(0, 5), [livePool]);
 
   /* Screen readers can't see the confetti or the floating delta badge, so the
      outcome gets a plain-language echo here once a vote lands. */
@@ -281,10 +387,10 @@ export function FaceoffArena({ pool }: { pool: FaceoffHackathon[] }) {
     const winnerName = matchup[0].id === result.winnerId ? matchup[0].name : matchup[1].name;
     const sign = result.winnerDelta >= 0 ? "+" : "";
 
-    return `${winnerName} wins${result.upset ? " — an upset" : ""}. Elo ${sign}${result.winnerDelta}.`;
+    return `${winnerName} wins${result.upset ? " — an upset" : ""}. Raw Elo ${sign}${result.winnerDelta}.`;
   }, [result, matchup, notice]);
 
-  if (pool.length < 2) {
+  if (livePool.length < 2) {
     return (
       <div className="mx-auto flex max-w-lg flex-col items-center gap-3 rounded-3xl border border-navy/10 bg-ivory p-10 text-center dark:border-white/10 dark:bg-white/5">
         <div className="grid size-12 place-items-center rounded-full bg-navy/5 dark:bg-white/5">
@@ -298,11 +404,11 @@ export function FaceoffArena({ pool }: { pool: FaceoffHackathon[] }) {
   return (
     <div className="relative isolate mx-auto flex max-w-[1080px] flex-col gap-10">
       {/* Ambient spotlight — a soft wash behind the arena so the page doesn't
-          read as a bare form. Cabernet in light mode, gold in dark, echoing
+          read as a bare form. Pine in light mode, gold in dark, echoing
           the accent colors already used for the Face Off badge and trophy. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-[-15%] -top-16 -z-10 h-[420px] bg-[radial-gradient(closest-side,rgba(114,28,36,0.1),transparent)] blur-3xl dark:bg-[radial-gradient(closest-side,rgba(217,164,65,0.12),transparent)]"
+        className="pointer-events-none absolute inset-x-[-15%] -top-16 -z-10 h-[420px] bg-[radial-gradient(closest-side,rgba(0,115,84,0.1),transparent)] blur-3xl dark:bg-[radial-gradient(closest-side,rgba(217,164,65,0.12),transparent)]"
       />
 
       <div aria-live="polite" className="sr-only">
@@ -310,7 +416,7 @@ export function FaceoffArena({ pool }: { pool: FaceoffHackathon[] }) {
       </div>
 
       <div className="flex flex-col items-center gap-2 text-center">
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-cabernet/20 bg-cabernet/5 px-3 py-1 font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-cabernet dark:border-[#e4a3ab]/30 dark:bg-[#e4a3ab]/10 dark:text-[#e4a3ab]">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-pine/20 bg-pine/5 px-3 py-1 font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-pine dark:border-moss/30 dark:bg-moss/10 dark:text-moss">
           <Swords aria-hidden="true" className="size-3.5" />
           Face Off
         </span>
@@ -318,7 +424,8 @@ export function FaceoffArena({ pool }: { pool: FaceoffHackathon[] }) {
           Which hackathon wins?
         </h1>
         <p className="max-w-md text-sm leading-6 text-navy/55 dark:text-wheat/55">
-          Pick a winner, watch the Elo shift, repeat. Every vote reorders the tier list and rankings for everyone.
+          Compare each edition&apos;s community reputation and anticipation. New ratings stay provisional until ten
+          matchups.
         </p>
         <AnimatePresence mode="wait">
           {sessionVotes > 0 ? (
@@ -374,7 +481,7 @@ export function FaceoffArena({ pool }: { pool: FaceoffHackathon[] }) {
                               : { scale: 1, opacity: 1 }
                     }
                     aria-label={`Vote ${hackathon.name} to win over ${opponent.name}`}
-                    className={`group relative overflow-visible rounded-3xl border bg-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cabernet/40 dark:bg-[#1b1b1b] dark:focus-visible:outline-wheat/40 ${outcomeClasses} ${
+                    className={`group relative overflow-visible rounded-3xl border bg-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-pine/40 dark:bg-[#1b1b1b] dark:focus-visible:outline-wheat/40 ${outcomeClasses} ${
                       side === "left"
                         ? "order-1 sm:col-start-1 sm:row-start-1 sm:rounded-r-none sm:border-r-0"
                         : "order-3 sm:col-start-3 sm:row-start-1 sm:rounded-l-none sm:border-l-0"
@@ -420,13 +527,29 @@ export function FaceoffArena({ pool }: { pool: FaceoffHackathon[] }) {
 
               <motion.div
                 animate={reduceMotion ? undefined : { scale: [1, 1.06, 1] }}
-                className="pointer-events-none relative z-20 order-2 mx-auto -my-4 grid size-14 shrink-0 place-items-center rounded-full border-4 border-ivory bg-cabernet font-serif text-sm font-bold text-wheat shadow-[0_8px_24px_-4px_rgba(114,28,36,0.6)] dark:border-[#141414] dark:bg-wheat dark:text-[#141414] dark:shadow-[0_8px_24px_-4px_rgba(0,0,0,0.6)] sm:col-start-2 sm:row-start-1 sm:my-0 sm:size-16 sm:self-center"
+                className="pointer-events-none relative z-20 order-2 mx-auto -my-4 grid size-14 shrink-0 place-items-center rounded-full border-4 border-ivory bg-pine font-serif text-sm font-bold text-wheat shadow-[0_8px_24px_-4px_rgba(0,115,84,0.6)] dark:border-[#141414] dark:bg-wheat dark:text-[#141414] dark:shadow-[0_8px_24px_-4px_rgba(0,0,0,0.6)] sm:col-start-2 sm:row-start-1 sm:my-0 sm:size-16 sm:self-center"
                 transition={reduceMotion ? undefined : { duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
               >
                 VS
               </motion.div>
             </motion.div>
-          ) : null}
+          ) : (
+            <div className="grid min-h-[26rem] place-items-center rounded-3xl border border-navy/10 bg-white/70 dark:border-white/10 dark:bg-white/5">
+              <div className="flex flex-col items-center gap-3 text-sm font-semibold text-navy/45 dark:text-wheat/45">
+                {isLoadingMatchup ? <Loader2 aria-hidden="true" className="size-6 animate-spin" /> : null}
+                <span>{isLoadingMatchup ? "Finding an informative matchup…" : "No matchup is ready."}</span>
+                {!isLoadingMatchup ? (
+                  <button
+                    className="rounded-full border border-navy/15 px-4 py-2 text-navy dark:border-white/15 dark:text-wheat"
+                    onClick={() => void requestMatchup(recentIds)}
+                    type="button"
+                  >
+                    Try again
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          )}
         </AnimatePresence>
 
         <AnimatePresence>
@@ -449,7 +572,7 @@ export function FaceoffArena({ pool }: { pool: FaceoffHackathon[] }) {
       <div className="flex flex-col items-center gap-3">
         <button
           className="inline-flex min-h-10 items-center gap-2 rounded-full border border-navy/15 px-5 text-sm font-semibold text-navy transition-colors hover:border-navy disabled:opacity-40 dark:border-white/15 dark:text-wheat dark:hover:border-white/60"
-          disabled={phase !== "idle"}
+          disabled={phase !== "idle" || !matchup || isLoadingMatchup}
           onClick={skipMatchup}
           type="button"
         >
@@ -490,7 +613,7 @@ export function FaceoffArena({ pool }: { pool: FaceoffHackathon[] }) {
               Live
             </span>
             <Link
-              className="text-xs font-semibold text-cabernet hover:underline dark:text-[#e4a3ab]"
+              className="text-xs font-semibold text-pine hover:underline dark:text-moss"
               href="/hackathons?view=ranking"
             >
               Full rankings →

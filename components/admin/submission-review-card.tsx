@@ -101,8 +101,8 @@ export function submissionReviewIntent(submitter: EventTarget | null) {
 }
 
 const inputClassName =
-  "w-full rounded-xl border border-navy/15 dark:border-white/15 bg-white dark:bg-white/[0.06] px-3 py-2 text-sm text-navy dark:text-wheat outline-none focus:border-cabernet focus:ring-2 focus:ring-cabernet/15";
-const checkboxClassName = "size-4 rounded border-navy/20 dark:border-white/20 text-cabernet dark:text-[#e4a3ab] focus:ring-cabernet/20";
+  "w-full rounded-xl border border-navy/15 dark:border-white/15 bg-white dark:bg-white/[0.06] px-3 py-2 text-sm text-navy dark:text-wheat outline-none focus:border-pine focus:ring-2 focus:ring-pine/15";
+const checkboxClassName = "size-4 rounded border-navy/20 dark:border-white/20 text-pine dark:text-moss focus:ring-pine/20";
 const labelClassName = "mb-1 block text-xs font-semibold uppercase tracking-[0.14em] text-navy/55 dark:text-wheat/55";
 
 function initialPreviewPayload(submission: SubmissionReviewItem) {
@@ -241,7 +241,7 @@ export function SubmissionReviewCard({
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="text-xl font-semibold text-navy dark:text-wheat">{submission.normalizedName}</h3>
-            <span className="rounded-full bg-ivory dark:bg-white/5 px-2.5 py-1 text-xs font-semibold capitalize text-cabernet dark:text-[#e4a3ab]">
+            <span className="rounded-full bg-ivory dark:bg-white/5 px-2.5 py-1 text-xs font-semibold capitalize text-pine dark:text-moss">
               {submission.submitterType}
             </span>
             <span className="rounded-full bg-ivory dark:bg-white/5 px-2.5 py-1 text-xs font-semibold capitalize text-navy/55 dark:text-wheat/55">
@@ -534,7 +534,7 @@ export function SubmissionReviewCard({
             aria-pressed={recurring}
             className={`inline-flex min-h-10 items-center gap-2 rounded-full border px-4 text-sm font-semibold disabled:opacity-50 ${
               recurring
-                ? "border-cabernet bg-cabernet text-wheat dark:border-wheat dark:bg-wheat dark:text-[#141414]"
+                ? "border-pine bg-pine text-wheat dark:border-wheat dark:bg-wheat dark:text-[#141414]"
                 : "border-navy/20 dark:border-white/20 text-navy/70 dark:text-wheat/70"
             }`}
             disabled={disabled}
@@ -558,7 +558,7 @@ export function SubmissionReviewCard({
             Approve new
           </button>
           <button
-            className="inline-flex min-h-10 items-center gap-2 rounded-full bg-cabernet hover:bg-[#5c151c] px-4 text-sm font-semibold text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white disabled:opacity-50"
+            className="inline-flex min-h-10 items-center gap-2 rounded-full bg-pine hover:bg-pine/90 px-4 text-sm font-semibold text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white disabled:opacity-50"
             disabled={disabled}
             name="intent"
             type="submit"

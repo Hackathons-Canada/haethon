@@ -93,10 +93,10 @@ export function HackathonStatusTracker({
               compact ? "min-h-8" : "min-h-9"
             } ${
               active
-                ? "border-cabernet dark:border-[#e4a3ab]/50 bg-cabernet text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white"
+                ? "border-pine dark:border-moss/50 bg-pine text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white"
                 : reached
-                  ? "border-cabernet/40 bg-cabernet/5 dark:bg-[#e4a3ab]/10 text-cabernet dark:text-[#e4a3ab] hover:bg-cabernet/10"
-                  : "border-navy/15 dark:border-white/15 bg-white dark:bg-white/[0.06] text-navy/55 dark:text-wheat/55 hover:border-cabernet/40 dark:hover:border-[#e4a3ab]/40 hover:text-cabernet dark:hover:text-[#e4a3ab]"
+                  ? "border-pine/40 bg-pine/5 dark:bg-moss/10 text-pine dark:text-moss hover:bg-pine/10"
+                  : "border-navy/15 dark:border-white/15 bg-white dark:bg-white/[0.06] text-navy/55 dark:text-wheat/55 hover:border-pine/40 dark:hover:border-moss/40 hover:text-pine dark:hover:text-moss"
             }`}
             disabled={pending || isPastPipeline}
             key={stage.value}

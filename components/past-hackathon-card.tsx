@@ -47,7 +47,7 @@ export function PastHackathonCard({
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
           <Link
-            className="text-lg font-semibold text-navy dark:text-wheat underline-offset-4 hover:text-cabernet dark:hover:text-[#e4a3ab] hover:underline"
+            className="text-lg font-semibold text-navy dark:text-wheat underline-offset-4 hover:text-pine dark:hover:text-moss hover:underline"
             href={`/hackathons/${slug}`}
           >
             {hackathonName}
@@ -65,7 +65,7 @@ export function PastHackathonCard({
         </div>
         <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
           {won ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-cabernet px-3 py-1 font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-pine px-3 py-1 font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white">
               <Trophy aria-hidden="true" className="size-3.5" />
               Winner
             </span>
@@ -75,7 +75,7 @@ export function PastHackathonCard({
             </span>
           )}
           {isPinned ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-cabernet/25 bg-white dark:bg-white/[0.06] px-3 py-1 font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-cabernet dark:text-[#e4a3ab]">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-pine/25 bg-white dark:bg-white/[0.06] px-3 py-1 font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-pine dark:text-moss">
               <Pin aria-hidden="true" className="size-3.5 fill-current" />
               Pinned
             </span>
@@ -92,14 +92,14 @@ export function PastHackathonCard({
       {(won && awardName) || devpostUrl ? (
         <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5">
           {won && awardName ? (
-            <p className="inline-flex items-center gap-1.5 text-sm font-semibold text-cabernet dark:text-[#e4a3ab]">
+            <p className="inline-flex items-center gap-1.5 text-sm font-semibold text-pine dark:text-moss">
               <Trophy aria-hidden="true" className="size-3.5 shrink-0" />
               {awardName}
             </p>
           ) : null}
           {devpostUrl ? (
             <a
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-navy dark:text-wheat underline-offset-4 hover:text-cabernet dark:hover:text-[#e4a3ab] hover:underline"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-navy dark:text-wheat underline-offset-4 hover:text-pine dark:hover:text-moss hover:underline"
               href={devpostUrl}
               rel="noreferrer"
               target="_blank"

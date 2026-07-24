@@ -111,7 +111,7 @@ export function HackathonNotificationPreferences({
   return (
     <div className="mt-5 border-t border-navy/10 dark:border-white/10 pt-4">
       <div className="flex items-center gap-2 text-sm font-semibold text-navy dark:text-wheat">
-        <BellRing aria-hidden="true" className="size-4 text-cabernet dark:text-[#e4a3ab]" />
+        <BellRing aria-hidden="true" className="size-4 text-pine dark:text-moss" />
         Email notifications
       </div>
       {upcomingPreferences.length ? (
@@ -124,16 +124,16 @@ export function HackathonNotificationPreferences({
               <label
                 className={`flex min-h-20 cursor-pointer flex-col justify-between rounded-md border bg-white dark:bg-white/[0.06] p-3 text-sm transition-colors ${
                   preference.enabled
-                    ? "border-cabernet/40 text-navy dark:text-wheat"
+                    ? "border-pine/40 text-navy dark:text-wheat"
                     : "border-navy/10 dark:border-white/10 text-navy/55 dark:text-wheat/55"
-                } hover:border-cabernet/40 dark:hover:border-[#e4a3ab]/40`}
+                } hover:border-pine/40 dark:hover:border-moss/40`}
                 key={preference.type}
               >
                 <span className="flex items-start justify-between gap-3">
                   <span className="font-medium">{reminderTypeLabels[preference.type] ?? preference.type}</span>
                   <input
                     checked={preference.enabled}
-                    className="mt-0.5 size-4 accent-cabernet"
+                    className="mt-0.5 size-4 accent-pine"
                     disabled={pendingType !== null}
                     onChange={(event) => updatePreference(preference.type, event.target.checked)}
                     type="checkbox"
@@ -176,7 +176,7 @@ export function HackathonNotificationPreferences({
                 </p>
                 <div className="mt-6 flex items-center justify-end">
                   <button
-                    className="inline-flex min-h-10 items-center justify-center rounded-full bg-cabernet px-5 text-sm font-semibold text-wheat transition-colors hover:bg-cabernet/90 dark:bg-[#e4a3ab] dark:text-[#141414] dark:hover:bg-[#e9b3ba]"
+                    className="inline-flex min-h-10 items-center justify-center rounded-full bg-pine px-5 text-sm font-semibold text-wheat transition-colors hover:bg-pine/90 dark:bg-moss dark:text-[#141414] dark:hover:bg-moss/90"
                     onClick={() => setLimitNoticeOpen(false)}
                     type="button"
                   >

@@ -316,7 +316,7 @@ export default async function AccountPage() {
                           // No cover image: fall back to a hackathon-specific branded tile
                           // (initials over the accent gradient) rather than a generic trophy.
                           <div className="grid size-full place-items-center bg-[radial-gradient(120%_120%_at_30%_20%,rgba(102,0,0,0.12)_0%,rgba(102,0,0,0.04)_55%,transparent_100%)] dark:bg-[radial-gradient(120%_120%_at_30%_20%,rgba(228,163,171,0.16)_0%,rgba(228,163,171,0.05)_55%,transparent_100%)]">
-                            <span className="text-4xl font-semibold tracking-tight text-cabernet dark:text-[#e4a3ab]">
+                            <span className="text-4xl font-semibold tracking-tight text-pine dark:text-moss">
                               {getInitials(item.hackathonName) || "HN"}
                             </span>
                           </div>
@@ -351,7 +351,7 @@ export default async function AccountPage() {
                         )}
                         {item.devpostUrl ? (
                           <a
-                            className="mt-3 block truncate text-sm font-semibold text-cabernet dark:text-[#e4a3ab] underline decoration-1 underline-offset-4 hover:no-underline"
+                            className="mt-3 block truncate text-sm font-semibold text-pine dark:text-moss underline decoration-1 underline-offset-4 hover:no-underline"
                             href={item.devpostUrl}
                             rel="noreferrer"
                             target="_blank"
@@ -366,7 +366,7 @@ export default async function AccountPage() {
                   <p className="text-sm text-navy/55 dark:text-wheat/55">
                     Pin wins and attended events from{" "}
                     <Link
-                      className="font-semibold text-cabernet dark:text-[#e4a3ab] underline decoration-1 underline-offset-4 hover:no-underline"
+                      className="font-semibold text-pine dark:text-moss underline decoration-1 underline-offset-4 hover:no-underline"
                       href="/my"
                     >
                       My hackathons

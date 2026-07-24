@@ -39,6 +39,7 @@ export function HackathonRankingList({
           Boolean(localCountryCode) && hackathon.countryCode?.toUpperCase() === localCountryCode?.toUpperCase();
         const wins = hackathon.faceoffWins ?? 0;
         const losses = hackathon.faceoffLosses ?? 0;
+        const provisional = wins + losses < 10;
 
         return (
           <li key={hackathon.id}>
@@ -71,7 +72,7 @@ export function HackathonRankingList({
                   {rank === 1 ? <Crown aria-hidden="true" className="size-3.5 shrink-0 text-[#D9A441]" /> : null}
                   <span className="truncate">{hackathon.name}</span>
                   {isLocal ? (
-                    <span className="shrink-0 rounded-full bg-cabernet/10 px-2 py-0.5 text-[10px] font-semibold text-cabernet dark:bg-[#e4a3ab]/10 dark:text-[#e4a3ab]">
+                    <span className="shrink-0 rounded-full bg-pine/10 px-2 py-0.5 text-[10px] font-semibold text-pine dark:bg-moss/10 dark:text-moss">
                       Near you
                     </span>
                   ) : null}
@@ -81,7 +82,7 @@ export function HackathonRankingList({
               <div className="shrink-0 text-right">
                 <p className="font-mono text-sm font-semibold text-navy dark:text-wheat">{hackathon.eloRating}</p>
                 <p className="font-mono text-[10px] text-navy/40 dark:text-wheat/40">
-                  {wins}W&ndash;{losses}L
+                  {wins}W&ndash;{losses}L{provisional ? " · provisional" : ""}
                 </p>
               </div>
             </Link>

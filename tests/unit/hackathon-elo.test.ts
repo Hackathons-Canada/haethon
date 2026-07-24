@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { computeEloUpdate, isUpset, kFactor } from "@/lib/hackathons/elo";
+import { computeEloUpdate, displayEloRating, isProvisional, isUpset, kFactor } from "@/lib/hackathons/elo";
 
 describe("kFactor", () => {
   it("tapers down as a hackathon plays more matchups", () => {
@@ -60,6 +60,31 @@ describe("computeEloUpdate", () => {
     });
 
     expect(established.winnerRatingAfter - 1500).toBeLessThan(provisional.winnerRatingAfter - 1500);
+  });
+
+  it("uses one shared K and conserves rating points for mixed experience", () => {
+    const result = computeEloUpdate({
+      winnerRating: 1500,
+      winnerGamesPlayed: 2,
+      loserRating: 1600,
+      loserGamesPlayed: 50,
+    });
+
+    expect(result.kFactor).toBe(16);
+    expect(result.winnerRatingAfter + result.loserRatingAfter).toBe(3100);
+  });
+});
+
+describe("provisional display rating", () => {
+  it("shrinks low-evidence ratings toward neutral", () => {
+    expect(displayEloRating(1900, 0)).toBe(1500);
+    expect(displayEloRating(1900, 10)).toBe(1700);
+    expect(displayEloRating(1900, 100)).toBeGreaterThan(1800);
+  });
+
+  it("marks ratings provisional until ten matchups", () => {
+    expect(isProvisional(9)).toBe(true);
+    expect(isProvisional(10)).toBe(false);
   });
 });
 

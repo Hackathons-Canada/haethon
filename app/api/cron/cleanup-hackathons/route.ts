@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { deleteExpiredHackathonDiscordChannels } from "@/lib/discord/sync";
 import { env } from "@/lib/env";
+import { cleanupOldFaceoffMatchups } from "@/lib/hackathons/faceoff-service";
 import { cleanupExpiredRateLimits } from "@/lib/security/rate-limit";
 
 export const maxDuration = 60;
@@ -15,10 +16,14 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const [data, expiredRateLimitBuckets] = await Promise.all([
+  const [data, expiredRateLimitBuckets, expiredFaceoffMatchups] = await Promise.all([
     deleteExpiredHackathonDiscordChannels(),
     cleanupExpiredRateLimits(),
+    cleanupOldFaceoffMatchups(),
   ]);
 
-  return NextResponse.json({ data: { ...data, expiredRateLimitBuckets } }, { status: data.failed.length ? 500 : 200 });
+  return NextResponse.json(
+    { data: { ...data, expiredFaceoffMatchups, expiredRateLimitBuckets } },
+    { status: data.failed.length ? 500 : 200 }
+  );
 }

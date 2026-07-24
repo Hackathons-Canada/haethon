@@ -102,7 +102,7 @@ function AdminHackathonCard({
       />
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <button
-          className="inline-flex min-h-10 items-center gap-2 rounded-full bg-cabernet px-4 text-sm font-semibold text-wheat hover:bg-[#5c151c] dark:bg-wheat dark:text-[#141414] dark:hover:bg-white disabled:opacity-50"
+          className="inline-flex min-h-10 items-center gap-2 rounded-full bg-pine px-4 text-sm font-semibold text-wheat hover:bg-pine/90 dark:bg-wheat dark:text-[#141414] dark:hover:bg-white disabled:opacity-50"
           disabled={deleting}
           onClick={() => onEdit(item)}
           type="button"
@@ -114,7 +114,7 @@ function AdminHackathonCard({
           aria-pressed={item.isRecurring}
           className={`inline-flex min-h-10 items-center gap-2 rounded-full border px-4 text-sm font-semibold disabled:opacity-50 ${
             item.isRecurring
-              ? "border-cabernet bg-cabernet text-wheat dark:border-wheat dark:bg-wheat dark:text-[#141414]"
+              ? "border-pine bg-pine text-wheat dark:border-wheat dark:bg-wheat dark:text-[#141414]"
               : "border-navy/20 text-navy/70 dark:border-white/20 dark:text-wheat/70"
           }`}
           disabled={busy}

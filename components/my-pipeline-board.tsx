@@ -132,7 +132,7 @@ export function MyPipelineBoard({ columns: initialColumns }: { columns: Pipeline
           <section
             className={`flex min-w-[320px] flex-1 shrink-0 flex-col rounded-2xl border bg-ivory dark:bg-white/5 p-3 transition-colors ${
               isDropTarget
-                ? "border-cabernet dark:border-[#e4a3ab]/60 bg-cabernet/5 dark:bg-[#e4a3ab]/10"
+                ? "border-pine dark:border-moss/60 bg-pine/5 dark:bg-moss/10"
                 : "border-navy/10 dark:border-white/10"
             }`}
             key={column.stage}
@@ -152,7 +152,7 @@ export function MyPipelineBoard({ columns: initialColumns }: { columns: Pipeline
             onDrop={(event) => handleDrop(event, column.stage)}
           >
             <div className="flex items-center gap-2 px-1 py-1">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-cabernet/10 dark:bg-[#e4a3ab]/15 px-2.5 py-1 font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-cabernet dark:text-[#e4a3ab]">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-pine/10 dark:bg-moss/15 px-2.5 py-1 font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-pine dark:text-moss">
                 <span aria-hidden="true" className="size-1.5 rounded-full bg-current" />
                 {column.title}
               </span>

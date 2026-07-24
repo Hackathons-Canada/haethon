@@ -1,6 +1,7 @@
 import { relations, sql } from "drizzle-orm";
 import {
   boolean,
+  check,
   customType,
   date as pgDate,
   index,
@@ -186,11 +187,6 @@ export const hackathons = pgTable(
        afterwards. Later sightings of the same event never overwrite it.
        Null renders no source badge. */
     source: sourceTypeEnum("source"),
-    // Head-to-head Face Off ranking. Seeded once by scripts/backfill-hackathon-elo.ts
-    // (1500 = untouched default) and updated per matchup in /api/faceoff/vote.
-    eloRating: integer("elo_rating").notNull().default(1500),
-    faceoffWins: integer("faceoff_wins").notNull().default(0),
-    faceoffLosses: integer("faceoff_losses").notNull().default(0),
     lastVerifiedAt: timestamp("last_verified_at", { withTimezone: true }),
     dataConfidenceScore: numeric("data_confidence_score", { precision: 5, scale: 2 }).default("0"),
     publishedAt: timestamp("published_at", { withTimezone: true }),
@@ -203,6 +199,28 @@ export const hackathons = pgTable(
     index("hackathons_format_idx").on(table.format),
     index("hackathons_name_trgm_idx").using("gin", sql`${table.name} gin_trgm_ops`),
     uniqueIndex("hackathons_name_slug_idx").on(table.name, table.slug),
+  ]
+);
+
+/* High-churn Face Off state lives separately from catalog content so votes do
+   not rewrite the wide hackathons row or change its content updated_at. */
+export const hackathonFaceoffRatings = pgTable(
+  "hackathon_faceoff_ratings",
+  {
+    hackathonId: uuid("hackathon_id")
+      .primaryKey()
+      .references(() => hackathons.id, { onDelete: "cascade" }),
+    eloRating: integer("elo_rating").notNull().default(1500),
+    faceoffWins: integer("faceoff_wins").notNull().default(0),
+    faceoffLosses: integer("faceoff_losses").notNull().default(0),
+    version: integer("version").notNull().default(0),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("hackathon_faceoff_ratings_elo_idx").on(table.eloRating, table.hackathonId),
+    check("hackathon_faceoff_ratings_wins_nonnegative", sql`${table.faceoffWins} >= 0`),
+    check("hackathon_faceoff_ratings_losses_nonnegative", sql`${table.faceoffLosses} >= 0`),
+    check("hackathon_faceoff_ratings_version_nonnegative", sql`${table.version} >= 0`),
   ]
 );
 
@@ -368,35 +386,80 @@ export const hackathonCheckinCodes = pgTable(
   (table) => [index("hackathon_checkin_codes_hackathon_idx").on(table.hackathonId)]
 );
 
-/* One row per Face Off matchup vote. Signed-in voters are keyed by userId;
-   anonymous voters (allowed, per product decision) are keyed by a random id
-   stored in a long-lived cookie — voterFingerprint is always set so recent-vote
-   throttling works for both. Elo before/after is stored on the row (rather than
-   only on the hackathon) purely for the "+18 Elo" reveal in the Face Off UI. */
+/* Server-issued matchups make the submitted pair and its left/right placement
+   auditable. An unconsumed row is an impression; skippedAt distinguishes a
+   deliberate skip from an abandoned page. */
+export const hackathonFaceoffMatchups = pgTable(
+  "hackathon_faceoff_matchups",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    leftId: uuid("left_id")
+      .notNull()
+      .references(() => hackathons.id, { onDelete: "cascade" }),
+    rightId: uuid("right_id")
+      .notNull()
+      .references(() => hackathons.id, { onDelete: "cascade" }),
+    voterFingerprint: varchar("voter_fingerprint", { length: 64 }).notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    consumedAt: timestamp("consumed_at", { withTimezone: true }),
+    skippedAt: timestamp("skipped_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("hackathon_faceoff_matchups_left_idx").on(table.leftId),
+    index("hackathon_faceoff_matchups_right_idx").on(table.rightId),
+    index("hackathon_faceoff_matchups_voter_created_idx").on(table.voterFingerprint, table.createdAt),
+    index("hackathon_faceoff_matchups_expires_idx").on(table.expiresAt),
+    check("hackathon_faceoff_matchups_distinct_pair", sql`${table.leftId} <> ${table.rightId}`),
+  ]
+);
+
+/* The vote log is immutable audit data. requestId makes retries idempotent;
+   canonical pair ids make same-voter/pair throttling indexable; before/after
+   snapshots plus algorithmVersion allow deterministic reconciliation. */
 export const hackathonFaceoffVotes = pgTable(
   "hackathon_faceoff_votes",
   {
     id: uuid("id").defaultRandom().primaryKey(),
+    requestId: uuid("request_id").defaultRandom().notNull(),
+    matchupId: uuid("matchup_id").references(() => hackathonFaceoffMatchups.id, { onDelete: "set null" }),
     winnerId: uuid("winner_id")
       .notNull()
-      .references(() => hackathons.id, { onDelete: "cascade" }),
+      .references(() => hackathons.id, { onDelete: "restrict" }),
     loserId: uuid("loser_id")
       .notNull()
-      .references(() => hackathons.id, { onDelete: "cascade" }),
+      .references(() => hackathons.id, { onDelete: "restrict" }),
+    leftId: uuid("left_id")
+      .notNull()
+      .references(() => hackathons.id, { onDelete: "restrict" }),
+    rightId: uuid("right_id")
+      .notNull()
+      .references(() => hackathons.id, { onDelete: "restrict" }),
+    pairLowId: uuid("pair_low_id").notNull(),
+    pairHighId: uuid("pair_high_id").notNull(),
     voterUserId: uuid("voter_user_id").references(() => users.id, { onDelete: "set null" }),
     voterFingerprint: varchar("voter_fingerprint", { length: 64 }).notNull(),
     winnerEloBefore: integer("winner_elo_before").notNull(),
     winnerEloAfter: integer("winner_elo_after").notNull(),
     loserEloBefore: integer("loser_elo_before").notNull(),
     loserEloAfter: integer("loser_elo_after").notNull(),
+    algorithmVersion: integer("algorithm_version").notNull().default(2),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
+    uniqueIndex("hackathon_faceoff_votes_request_idx").on(table.requestId),
     index("hackathon_faceoff_votes_winner_idx").on(table.winnerId),
     index("hackathon_faceoff_votes_loser_idx").on(table.loserId),
-    // Throttling reads "has this voter already judged this pair recently" —
-    // always looked up by fingerprint plus one side of the matchup.
     index("hackathon_faceoff_votes_voter_idx").on(table.voterFingerprint, table.createdAt),
+    index("hackathon_faceoff_votes_voter_pair_idx").on(
+      table.voterFingerprint,
+      table.pairLowId,
+      table.pairHighId,
+      table.createdAt
+    ),
+    check("hackathon_faceoff_votes_distinct_pair", sql`${table.winnerId} <> ${table.loserId}`),
+    check("hackathon_faceoff_votes_distinct_positions", sql`${table.leftId} <> ${table.rightId}`),
+    check("hackathon_faceoff_votes_canonical_pair", sql`${table.pairLowId} < ${table.pairHighId}`),
   ]
 );
 
@@ -734,11 +797,26 @@ export const hackathonsRelations = relations(hackathons, ({ one, many }) => ({
   tags: many(hackathonTags),
   attendanceDays: many(userHackathonAttendanceDays),
   notificationPreferences: many(userHackathonNotificationPreferences),
+  faceoffRating: one(hackathonFaceoffRatings, {
+    fields: [hackathons.id],
+    references: [hackathonFaceoffRatings.hackathonId],
+  }),
   faceoffWinsLog: many(hackathonFaceoffVotes, { relationName: "faceoffWinner" }),
   faceoffLossesLog: many(hackathonFaceoffVotes, { relationName: "faceoffLoser" }),
 }));
 
+export const hackathonFaceoffRatingsRelations = relations(hackathonFaceoffRatings, ({ one }) => ({
+  hackathon: one(hackathons, {
+    fields: [hackathonFaceoffRatings.hackathonId],
+    references: [hackathons.id],
+  }),
+}));
+
 export const hackathonFaceoffVotesRelations = relations(hackathonFaceoffVotes, ({ one }) => ({
+  matchup: one(hackathonFaceoffMatchups, {
+    fields: [hackathonFaceoffVotes.matchupId],
+    references: [hackathonFaceoffMatchups.id],
+  }),
   winner: one(hackathons, {
     fields: [hackathonFaceoffVotes.winnerId],
     references: [hackathons.id],
@@ -770,3 +848,5 @@ export type SelectHackathon = typeof hackathons.$inferSelect;
 export type SelectUser = typeof users.$inferSelect;
 export type SelectHackathonSubmission = typeof hackathonSubmissions.$inferSelect;
 export type SelectHackathonFaceoffVote = typeof hackathonFaceoffVotes.$inferSelect;
+export type SelectHackathonFaceoffRating = typeof hackathonFaceoffRatings.$inferSelect;
+export type SelectHackathonFaceoffMatchup = typeof hackathonFaceoffMatchups.$inferSelect;

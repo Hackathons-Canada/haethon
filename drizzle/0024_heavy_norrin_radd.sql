@@ -1,0 +1,2 @@
+CREATE INDEX "hackathon_faceoff_matchups_left_idx" ON "hackathon_faceoff_matchups" USING btree ("left_id");--> statement-breakpoint
+CREATE INDEX "hackathon_faceoff_matchups_right_idx" ON "hackathon_faceoff_matchups" USING btree ("right_id");

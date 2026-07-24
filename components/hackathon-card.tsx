@@ -6,7 +6,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { BellPlus, Bookmark, Check, ChevronDown } from "lucide-react";
 
-import { DiscordGlyph } from "@/components/discord-glyph";
 import { formatReminderDate } from "@/lib/hackathons/reminder-labels";
 import type { SelectableReminderType } from "@/lib/hackathons/reminder-plan";
 import type { TierLabel } from "@/lib/hackathons/ranking";
@@ -63,6 +62,16 @@ function getCountryDisplay(country: string) {
 
   return country.trim();
 }
+
+/* Classic tier-list color ramp: S red through D blue. Backgrounds are solid so
+   the badge reads over any cover image; yellow needs dark text for contrast. */
+const TIER_BADGE_STYLES: Record<TierLabel, string> = {
+  S: "bg-[#DC2626] text-white",
+  A: "bg-[#EA580C] text-white",
+  B: "bg-[#EAB308] text-[#231a02]",
+  C: "bg-[#16A34A] text-white",
+  D: "bg-[#2563EB] text-white",
+};
 
 function getLocationColor(country?: string | null) {
   const normalizedCountry = country?.trim().toLowerCase();
@@ -204,10 +213,26 @@ function splitDateRange(date: string): ParsedDate {
   return { kind: "sameMonth", month, startDay, endDay };
 }
 
-/* Renders the big date block. Each entry in `lines` is its own row; the first
-   row may wrap/clamp, later rows stay on a single line (they're short). */
-function CardDate({ parsed }: { parsed: ParsedDate }) {
-  const lineClass = "text-[1.35rem] leading-[0.95] @[38rem]:text-[2.25rem]";
+/* Weekday of the start date, e.g. "SATURDAY". Derived from the ISO startsAt in
+   UTC so server and client render the same string regardless of timezone. */
+function getWeekday(startsAt?: string | null) {
+  if (!startsAt) {
+    return null;
+  }
+
+  const parsed = new Date(startsAt);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  return parsed.toLocaleDateString("en-US", { timeZone: "UTC", weekday: "long" });
+}
+
+/* Renders the big date block: weekday in small caps up top, then the bold
+   start date, with a "– end" line below it for multi-day ranges. */
+function CardDate({ parsed, weekday }: { parsed: ParsedDate; weekday: string | null }) {
+  const lineClass = "text-[1.5rem] leading-[1.05] tracking-[-0.05em] @[38rem]:text-[1.8rem]";
 
   const lines =
     parsed.kind === "raw"
@@ -215,19 +240,26 @@ function CardDate({ parsed }: { parsed: ParsedDate }) {
       : parsed.kind === "single"
         ? [`${parsed.month} ${parsed.day}`]
         : parsed.kind === "sameMonth"
-          ? [parsed.month, `${parsed.startDay} – ${parsed.endDay}`]
-          : [`${parsed.startMonth} ${parsed.startDay}`, `${parsed.endMonth} ${parsed.endDay}`];
+          ? [`${parsed.month} ${parsed.startDay}`, `– ${parsed.endDay}`]
+          : [`${parsed.startMonth} ${parsed.startDay}`, `– ${parsed.endMonth} ${parsed.endDay}`];
 
   return (
-    <div className="px-2 py-5 font-sans font-bold tracking-[-0.07em] text-ink @[38rem]:px-7 @[38rem]:py-7">
-      {lines.map((line, index) => (
-        <span
-          className={index === 0 ? `line-clamp-2 ${lineClass}` : `mt-1 block whitespace-nowrap ${lineClass}`}
-          key={index}
-        >
-          {line}
+    <div>
+      {weekday ? (
+        <span className="block font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-ink/60">
+          {weekday}
         </span>
-      ))}
+      ) : null}
+      <div className="mt-1.5 font-sans font-bold text-ink">
+        {lines.map((line, index) => (
+          <span
+            className={index === 0 ? `line-clamp-2 ${lineClass}` : `mt-0.5 block whitespace-nowrap ${lineClass}`}
+            key={index}
+          >
+            {line}
+          </span>
+        ))}
+      </div>
     </div>
   );
 }
@@ -238,32 +270,6 @@ function cardDescription(hackathon: HackathonCardData) {
   }
 
   return `${hackathon.name} brings hackers together to build, learn, and connect.`;
-}
-
-function featureLabels(hackathon: HackathonCardData) {
-  const labels: string[] = [];
-
-  if (hackathon.hasDiscord) {
-    labels.push("Discord");
-  }
-
-  if (hackathon.travelReimbursement) {
-    labels.push("reimbursement available");
-  }
-
-  if (hackathon.beginnerFriendly) {
-    labels.push("beginner friendly");
-  }
-
-  if (hackathon.highSchoolersOnly) {
-    labels.push("high school only");
-  }
-
-  if (hackathon.format === "online") {
-    labels.push("online");
-  }
-
-  return labels.length ? labels : ["Applications and event details available"];
 }
 
 type ReminderOption = {
@@ -469,6 +475,7 @@ export function HackathonCard({
   cornerAction,
   hackathon,
   preview = false,
+  rank,
   reminder,
   tier,
 }: {
@@ -478,13 +485,15 @@ export function HackathonCard({
   cornerAction?: ReactNode;
   hackathon: HackathonCardData;
   preview?: boolean;
+  /* Ranked-list position, shown zero-padded in the cover's top-right corner. */
+  rank?: number;
   /* When set, the footer swaps the save control for an inline reminder
      picker that expands below the card — used on the My Hackathons board. */
   reminder?: HackathonCardReminder;
   tier?: TierLabel;
 }) {
   const date = splitDateRange(hackathon.date);
-  const features = featureLabels(hackathon);
+  const weekday = getWeekday(hackathon.startsAt);
   const countryDisplay = hackathon.country ? getCountryDisplay(hackathon.country) : null;
   // Full string powers the hover title / truncation; the country and the rest
   // of the place render as separate spans so only the country picks up color.
@@ -492,7 +501,7 @@ export function HackathonCard({
 
   return (
     <article
-      className={`group @container relative grid w-full max-w-[56rem] min-w-0 overflow-hidden border border-black bg-paper outline outline-0 outline-black transition-[outline-width,color,background-color,opacity] hover:outline-1 ${
+      className={`group @container relative flex w-full max-w-[56rem] min-w-0 flex-col overflow-hidden border border-black bg-paper outline outline-0 outline-black transition-[outline-width,color,background-color,opacity] hover:outline-1 ${
         /* Past editions read as faded — dimmed just enough to signal "already
            happened" without hurting text legibility. Hover restores full
            strength so the card is still easy to inspect. */
@@ -508,69 +517,69 @@ export function HackathonCard({
         />
       ) : null}
 
-      <div className="grid min-w-0 grid-cols-[5.75rem_minmax(0,1fr)] @[38rem]:grid-cols-[minmax(11.5rem,25%)_minmax(0,1fr)]">
-        <div
-          className={`flex flex-col border-r border-ink/35 ${
-            compact ? "min-h-52" : "min-h-64 @[38rem]:min-h-[36rem]"
-          }`}
-        >
-          <div className="aspect-square w-full shrink-0 border-b border-ink/35 p-2 @[38rem]:p-3">
-            <div className="relative size-full overflow-hidden">
-              {hackathon.image ? (
-                <Image
-                  alt={`${hackathon.name} logo`}
-                  className="object-cover"
-                  fill
-                  sizes="(min-width: 608px) 14rem, 5.75rem"
-                  src={`/api/hackathons/${encodeURIComponent(hackathon.id)}/logo`}
-                />
-              ) : (
-                <span className="grid size-full place-items-center px-2 text-center font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-ink/35 @[38rem]:text-base">
-                  {hackathon.name
-                    .split(/\s+/)
-                    .filter(Boolean)
-                    .slice(0, 2)
-                    .map((word) => word[0]?.toUpperCase())
-                    .join("") || "HN"}
-                </span>
-              )}
-            </div>
-          </div>
+      <div
+        className={`relative w-full shrink-0 overflow-hidden border-b border-ink/35 ${
+          compact ? "aspect-[5/2]" : "aspect-[2/1]"
+        }`}
+      >
+        {hackathon.image ? (
+          <Image
+            alt={`${hackathon.name} cover`}
+            className="object-cover"
+            fill
+            sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+            src={`/api/hackathons/${encodeURIComponent(hackathon.id)}/logo`}
+          />
+        ) : (
+          <span className="grid size-full place-items-center bg-ink/5 px-2 text-center font-mono text-xl font-semibold uppercase tracking-[0.18em] text-ink/35">
+            {hackathon.name
+              .split(/\s+/)
+              .filter(Boolean)
+              .slice(0, 2)
+              .map((word) => word[0]?.toUpperCase())
+              .join("") || "HN"}
+          </span>
+        )}
 
-          <CardDate parsed={date} />
+        {tier ? (
+          <span
+            className={`absolute left-3 top-3 z-[2] px-3 py-1.5 font-mono text-[11px] font-semibold uppercase tracking-[0.12em] ${TIER_BADGE_STYLES[tier]}`}
+          >
+            Tier {tier}
+          </span>
+        ) : null}
 
-          <div className="mt-auto px-4 pb-6 @[38rem]:px-7 @[38rem]:pb-9">
-            <span className="font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-[#e84216] @[38rem]:text-sm">
-              Tier {tier ?? "—"}
+        {rank ? (
+          <span className="absolute right-3 top-3 z-[2] bg-ink/85 px-2 py-1 font-mono text-[11px] font-semibold tracking-[0.08em] text-paper">
+            {String(rank).padStart(2, "0")}
+          </span>
+        ) : null}
+      </div>
+
+      <div className="grid min-w-0 flex-1 grid-cols-[6.5rem_minmax(0,1fr)] @[38rem]:grid-cols-[8.5rem_minmax(0,1fr)]">
+        <div className="border-r border-ink/35 px-3 py-5 @[38rem]:px-4">
+          <CardDate parsed={date} weekday={weekday} />
+          {hackathon.isPast ? (
+            <span className="mt-3 block font-mono text-[10px] uppercase tracking-[0.12em] text-ink/45">
+              Past edition
             </span>
-            {hackathon.isPast ? (
-              <span className="mt-2 block font-mono text-[10px] uppercase tracking-[0.12em] text-ink/45">
-                Past edition
-              </span>
-            ) : null}
-          </div>
+          ) : null}
         </div>
 
-        <div className="flex min-w-0 flex-col px-2 py-6 @[38rem]:px-10 @[38rem]:py-9">
-          <h2 className="line-clamp-2 text-[1.8rem] font-medium leading-[1.02] tracking-[-0.045em] text-ink @[38rem]:text-[3rem]">
+        <div
+          className={`flex min-w-0 flex-col px-4 pb-3 pt-5 @[38rem]:px-6 ${
+            compact ? "min-h-44" : "min-h-64"
+          }`}
+        >
+          <h2 className="line-clamp-2 text-[1.6rem] font-medium leading-[1.05] tracking-[-0.045em] text-ink @[38rem]:text-[1.9rem]">
             {hackathon.name}
           </h2>
-          <p
-            className="mt-2 truncate font-mono text-[13px] font-bold uppercase tracking-[0.08em] text-ink/85 @[38rem]:mt-2.5 @[38rem]:text-[1.3rem]"
-            title={location}
-          >
-            {countryDisplay ? (
-              <span className={getLocationColor(hackathon.country)}>{countryDisplay}</span>
-            ) : null}
-            {countryDisplay && hackathon.location ? ", " : ""}
-            {hackathon.location}
-          </p>
 
-          <p className="mt-7 line-clamp-4 text-sm leading-6 text-ink/70 @[38rem]:mt-16 @[38rem]:max-w-[42rem] @[38rem]:text-xl @[38rem]:leading-[1.55]">
+          <p className="mt-4 line-clamp-4 text-sm leading-6 text-ink/70">
             {cardDescription(hackathon)}
           </p>
 
-          <div className="relative z-10 mt-auto border-t border-ink/25 pt-3 @[38rem]:pt-5">
+          <div className="relative z-10 mt-auto border-t border-ink/25 pt-3">
             {reminder ? (
               <div className="flex items-start justify-between gap-2">
                 <ReminderControl
@@ -581,27 +590,31 @@ export function HackathonCard({
                 {cornerAction ? <div className="relative z-20 shrink-0">{cornerAction}</div> : null}
               </div>
             ) : (
-              <div className="flex min-w-0 items-center justify-between gap-3 py-2 @[38rem]:py-3">
-                <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-ink/60 @[38rem]:text-sm">
-                  {features.map((feature, index) => (
-                    <span
-                      className={`inline-flex items-center gap-2 ${
-                        feature === "Discord" ? "font-bold text-[#5865F2]" : ""
-                      }`}
-                      key={feature}
-                    >
-                      {index > 0 ? <span aria-hidden="true">|</span> : null}
-                      {feature === "Discord" ? <DiscordGlyph className="size-3.5 text-[#5865F2]" /> : null}
-                      {feature}
-                    </span>
-                  ))}
-                </div>
+              <div className="flex min-w-0 items-center gap-3">
+                <p
+                  className="min-w-0 flex-1 truncate text-[13px] text-ink/70"
+                  title={location}
+                >
+                  <span aria-hidden="true" className="mr-2 text-[9px] align-middle">
+                    ●
+                  </span>
+                  {countryDisplay ? (
+                    <span className={getLocationColor(hackathon.country)}>{countryDisplay}</span>
+                  ) : null}
+                  {countryDisplay && hackathon.location ? ", " : ""}
+                  {hackathon.location}
+                </p>
                 <BookmarkButton
                   hackathonId={hackathon.id}
                   hackathonName={hackathon.name}
                   initialSaved={hackathon.isSaved}
                   preview={preview}
                 />
+                {hackathon.slug && !preview ? (
+                  <span className="shrink-0 font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-ink">
+                    View details <span aria-hidden="true">↗</span>
+                  </span>
+                ) : null}
               </div>
             )}
           </div>

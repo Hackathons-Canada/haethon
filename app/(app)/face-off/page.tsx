@@ -5,7 +5,8 @@ import { getPublicHackathonCatalogSnapshot } from "@/lib/hackathons/catalog";
 
 export const metadata: Metadata = {
   title: "Face Off | Hackathons North America",
-  description: "Vote head-to-head on which hackathon should rank higher and watch the Elo leaderboard shift live.",
+  description:
+    "Guess which hackathon carries more prestige, chase your high score, and shift the live Elo leaderboard with every pick.",
 };
 
 export default async function FaceOffPage() {
@@ -22,6 +23,8 @@ export default async function FaceOffPage() {
     location: card.location,
     date: card.date,
     country: card.country,
+    description: card.description,
+    prizeAmountUsd: card.prizeAmountUsd,
   }));
 
   return (

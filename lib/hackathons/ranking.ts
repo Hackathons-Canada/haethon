@@ -8,6 +8,8 @@ export type EloRankable = {
   id: string;
   eloRating: number;
   countryCode?: string | null;
+  faceoffWins?: number;
+  faceoffLosses?: number;
 };
 
 export const TIER_LABELS = ["S", "A", "B", "C", "D"] as const;
@@ -17,12 +19,11 @@ export type TierLabel = (typeof TIER_LABELS)[number];
    push the whole population's ratings up or down over time, fixed bands would
    eventually empty out or overflow a single tier. Ranking by percentile of
    the *current* filtered set keeps all five tiers populated. */
-const TIER_CUTOFFS: { tier: TierLabel; through: number }[] = [
+const ESTABLISHED_TIER_CUTOFFS: { tier: Exclude<TierLabel, "D">; through: number }[] = [
   { tier: "S", through: 0.1 },
-  { tier: "A", through: 0.3 },
-  { tier: "B", through: 0.65 },
-  { tier: "C", through: 0.9 },
-  { tier: "D", through: 1 },
+  { tier: "A", through: 0.35 },
+  { tier: "B", through: 0.7 },
+  { tier: "C", through: 1 },
 ];
 
 export function sortByEloDescending<T extends EloRankable>(cards: readonly T[]): T[] {
@@ -61,16 +62,36 @@ export type TierGroup<T> = {
 };
 
 export function assignTiers<T extends EloRankable>(cards: readonly T[]): TierGroup<T>[] {
-  const sorted = sortByEloDescending(cards);
-  const total = sorted.length;
+  const established = sortByEloDescending(
+    cards.filter((card) => {
+      if (card.faceoffWins === undefined || card.faceoffLosses === undefined) {
+        return true;
+      }
+
+      return card.faceoffWins + card.faceoffLosses >= 10;
+    })
+  );
+  const provisional = sortByEloDescending(
+    cards.filter(
+      (card) =>
+        card.faceoffWins !== undefined &&
+        card.faceoffLosses !== undefined &&
+        card.faceoffWins + card.faceoffLosses < 10
+    )
+  );
+  const total = established.length;
   const groups: TierGroup<T>[] = TIER_LABELS.map((tier) => ({ tier, hackathons: [] }));
 
-  sorted.forEach((card, index) => {
-    const rank = (index + 1) / total;
-    const cutoff = TIER_CUTOFFS.find((entry) => rank <= entry.through) ?? TIER_CUTOFFS[TIER_CUTOFFS.length - 1];
+  established.forEach((card, index) => {
+    const rank = total === 1 ? 0 : index / (total - 1);
+    const cutoff =
+      ESTABLISHED_TIER_CUTOFFS.find((entry) => rank <= entry.through) ??
+      ESTABLISHED_TIER_CUTOFFS[ESTABLISHED_TIER_CUTOFFS.length - 1];
     const group = groups.find((entry) => entry.tier === cutoff.tier);
     group?.hackathons.push(card);
   });
+
+  groups.find((entry) => entry.tier === "D")?.hackathons.push(...provisional);
 
   return groups;
 }

@@ -205,7 +205,7 @@ function OrganizersGraphic({ className, tone = "dark" }: GraphicProps) {
         <div className="flex -space-x-1.5">
           {(light
             ? ["bg-black", "bg-black/80", "bg-black/60", "bg-black/40"]
-            : ["bg-boreal", "bg-[#46786e]", "bg-cabernet", "bg-navy"]
+            : ["bg-boreal", "bg-[#46786e]", "bg-pine", "bg-navy"]
           ).map((c) => (
             <span
               key={c}

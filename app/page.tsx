@@ -13,6 +13,7 @@ import {
 import { LandingReveal } from "@/components/landing-reveal";
 import { PolaroidFrame, mobilePolaroids } from "@/components/polaroid-frame";
 import { PrimaryNav } from "@/components/primary-nav";
+import { TracedBorder } from "@/components/traced-border";
 
 const coveragePillars = [
   {
@@ -55,10 +56,11 @@ export default function Home() {
           <LandingReveal delay={0.7}>
             <Link
               href="/hackathons"
-              className="mt-10 inline-flex min-h-14 items-center justify-center gap-2 rounded-full px-8 text-base font-semibold text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine sm:min-h-16 sm:px-10 sm:text-lg"
+              className="group relative mt-10 inline-flex min-h-14 items-center justify-center gap-2 rounded-full px-8 text-base font-semibold text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine sm:min-h-16 sm:px-10 sm:text-lg"
             >
               Open App
               <span aria-hidden="true">→</span>
+              <TracedBorder />
             </Link>
           </LandingReveal>
         </div>
@@ -92,9 +94,9 @@ export default function Home() {
       <section
         id="coverage"
         aria-labelledby="coverage-heading"
-        className="scroll-mt-24 px-5 py-16 sm:px-8 sm:py-20 lg:px-12"
+        className="scroll-mt-24 py-16 sm:py-20"
       >
-        <div className="mx-auto max-w-[1100px]">
+        <div className="mx-auto max-w-[1100px] px-5 sm:px-8 lg:px-12">
           <div className="max-w-[36rem]">
             <h2
               id="coverage-heading"
@@ -107,11 +109,15 @@ export default function Home() {
               by the community, and vetted by real people.
             </p>
           </div>
+        </div>
 
-          <div className="mt-10 sm:mt-12">
-            <LazyLandingWorldMap />
-          </div>
+        {/* Full-bleed: the map breaks out of the content column to span the
+            entire page width, edge to edge. */}
+        <div className="mt-10 w-full sm:mt-12">
+          <LazyLandingWorldMap />
+        </div>
 
+        <div className="mx-auto max-w-[1100px] px-5 sm:px-8 lg:px-12">
           <div className="mt-10 grid divide-y divide-ink/10 border-t border-ink/10 sm:mt-12 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
             {coveragePillars.map(({ Icon, title, body }) => (
               <div key={title} className="px-1 py-7 sm:px-7 sm:py-8">
@@ -153,7 +159,7 @@ export default function Home() {
               </p>
               <Link
                 href="/hackathons"
-                className="mt-8 inline-flex items-center gap-3 font-mono text-sm text-ink/40 transition-colors hover:text-pine focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine"
+                className="group relative mt-8 -ml-4 inline-flex items-center gap-3 rounded-full py-2 pl-4 pr-5 font-mono text-sm text-ink/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine"
               >
                 1.0
                 <span>
@@ -162,6 +168,7 @@ export default function Home() {
                     →
                   </span>
                 </span>
+                <TracedBorder />
               </Link>
             </div>
           </div>
@@ -193,7 +200,7 @@ export default function Home() {
               </p>
               <Link
                 href="/my"
-                className="mt-8 inline-flex items-center gap-3 font-mono text-sm text-ink/40 transition-colors hover:text-pine focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine"
+                className="group relative mt-8 -ml-4 inline-flex items-center gap-3 rounded-full py-2 pl-4 pr-5 font-mono text-sm text-ink/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine"
               >
                 2.0
                 <span>
@@ -202,6 +209,7 @@ export default function Home() {
                     →
                   </span>
                 </span>
+                <TracedBorder />
               </Link>
             </div>
           </div>

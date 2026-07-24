@@ -14,7 +14,12 @@ export type EloMatchInput = {
 export type EloMatchResult = {
   winnerRatingAfter: number;
   loserRatingAfter: number;
+  kFactor: number;
 };
+
+export const PROVISIONAL_GAMES = 10;
+export const DISPLAY_PRIOR_GAMES = 10;
+export const ELO_ALGORITHM_VERSION = 2;
 
 /* A newer hackathon's rating should move fast on its first few matchups and
    settle down once it has enough votes to mean something — the same
@@ -42,12 +47,27 @@ export function computeEloUpdate({
   loserGamesPlayed,
 }: EloMatchInput): EloMatchResult {
   const winnerExpected = expectedScore(winnerRating, loserRating);
-  const loserExpected = expectedScore(loserRating, winnerRating);
+  // A shared K makes each match exactly zero-sum. Taking the smaller K
+  // protects an established rating when it meets a provisional entry.
+  const matchKFactor = Math.min(kFactor(winnerGamesPlayed), kFactor(loserGamesPlayed));
+  const winnerDelta = Math.round(matchKFactor * (1 - winnerExpected));
 
   return {
-    winnerRatingAfter: Math.round(winnerRating + kFactor(winnerGamesPlayed) * (1 - winnerExpected)),
-    loserRatingAfter: Math.round(loserRating + kFactor(loserGamesPlayed) * (0 - loserExpected)),
+    winnerRatingAfter: winnerRating + winnerDelta,
+    loserRatingAfter: loserRating - winnerDelta,
+    kFactor: matchKFactor,
   };
+}
+
+export function isProvisional(gamesPlayed: number): boolean {
+  return gamesPlayed < PROVISIONAL_GAMES;
+}
+
+/* Ratings with little evidence are pulled toward neutral for ordering and
+   display. Raw Elo remains available for audit and future updates. */
+export function displayEloRating(rating: number, gamesPlayed: number): number {
+  const reliability = gamesPlayed / (gamesPlayed + DISPLAY_PRIOR_GAMES);
+  return Math.round(1500 + reliability * (rating - 1500));
 }
 
 /* Powers the "UPSET!" callout in the Face Off UI — a lower-rated hackathon

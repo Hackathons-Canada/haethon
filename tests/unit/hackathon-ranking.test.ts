@@ -47,12 +47,21 @@ describe("assignTiers", () => {
     expect(groups.reduce((total, group) => total + group.hackathons.length, 0)).toBe(20);
     // Tiers stay ordered highest-to-lowest.
     expect(groups[0].hackathons[0]?.id).toBe("h0");
-    expect(groups.at(-1)?.hackathons.at(-1)?.id).toBe("h19");
+    expect(groups.find((group) => group.tier === "C")?.hackathons.at(-1)?.id).toBe("h19");
   });
 
   it("keeps every tier non-negative and handles a tiny population", () => {
     const groups = assignTiers([card("only", 1500)]);
 
     expect(groups.reduce((total, group) => total + group.hackathons.length, 0)).toBe(1);
+  });
+
+  it("keeps entries with fewer than ten matchups in the provisional D tier", () => {
+    const provisional = { ...card("new", 1800), faceoffWins: 8, faceoffLosses: 1 };
+    const established = { ...card("known", 1600), faceoffWins: 8, faceoffLosses: 2 };
+    const groups = assignTiers([provisional, established]);
+
+    expect(groups.find((group) => group.tier === "D")?.hackathons.map((entry) => entry.id)).toEqual(["new"]);
+    expect(groups.find((group) => group.tier === "S")?.hackathons.map((entry) => entry.id)).toEqual(["known"]);
   });
 });

@@ -477,11 +477,8 @@ export const attendanceAnomalyResolveSchema = z.object({
   action: z.enum(["verify", "revoke"]),
 });
 
-export const faceoffVoteSchema = z
-  .object({
-    winnerId: z.string().uuid(),
-    loserId: z.string().uuid(),
-  })
-  .refine((value) => value.winnerId !== value.loserId, {
-    message: "A hackathon can't face off against itself.",
-  });
+export const faceoffVoteSchema = z.object({
+  matchupId: z.string().uuid(),
+  winnerId: z.string().uuid(),
+  requestId: z.string().uuid(),
+});

@@ -172,7 +172,7 @@ export function HackathonPayloadDetails({ payload }: { payload: PreviewPayload }
             <dt className="font-semibold text-navy dark:text-wheat">{labelForField(key)}</dt>
             <dd className="break-words text-navy/70 dark:text-wheat/70">
               {isUrl(value) ? (
-                <a className="text-cabernet dark:text-[#e4a3ab] underline underline-offset-2 hover:no-underline" href={value} rel="noreferrer" target="_blank">
+                <a className="text-pine dark:text-moss underline underline-offset-2 hover:no-underline" href={value} rel="noreferrer" target="_blank">
                   {value}
                 </a>
               ) : (

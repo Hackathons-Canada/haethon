@@ -8,6 +8,7 @@ import {
   adminHackathonRecurringSchema,
   adminHackathonUpdateSchema,
   communitySubmissionSchema,
+  faceoffVoteSchema,
   hackathonSearchSchema,
   organizerSubmissionSchema,
   profileUpdateSchema,
@@ -84,6 +85,23 @@ describe("hackathonSearchSchema", () => {
     });
 
     expect(result.format).toBe("any");
+  });
+});
+
+describe("faceoffVoteSchema", () => {
+  it("requires a server-issued matchup and an idempotency key", () => {
+    const valid = faceoffVoteSchema.safeParse({
+      matchupId: "5b3caaf5-ea43-4cc2-9efb-6f48ed90bc52",
+      winnerId: "8910d03d-95b7-4386-9bb1-7e2f827d4bf8",
+      requestId: "ca43ea98-a0d1-454e-a559-6f56520c3f96",
+    });
+    const legacy = faceoffVoteSchema.safeParse({
+      winnerId: "8910d03d-95b7-4386-9bb1-7e2f827d4bf8",
+      loserId: "5b3caaf5-ea43-4cc2-9efb-6f48ed90bc52",
+    });
+
+    expect(valid.success).toBe(true);
+    expect(legacy.success).toBe(false);
   });
 });
 

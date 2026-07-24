@@ -97,13 +97,13 @@ function DiscordChannelCard({
             <input
               aria-label="Channel name"
               autoFocus
-              className="min-h-10 rounded-full border border-navy/20 bg-white px-4 font-mono text-sm text-navy focus:outline-none focus:ring-2 focus:ring-cabernet dark:border-white/20 dark:bg-white/10 dark:text-wheat"
+              className="min-h-10 rounded-full border border-navy/20 bg-white px-4 font-mono text-sm text-navy focus:outline-none focus:ring-2 focus:ring-pine dark:border-white/20 dark:bg-white/10 dark:text-wheat"
               maxLength={100}
               onChange={(event) => setDraft(event.target.value)}
               value={draft}
             />
             <button
-              className="inline-flex min-h-10 items-center gap-2 rounded-full bg-cabernet px-4 text-sm font-semibold text-wheat hover:bg-[#5c151c] dark:bg-wheat dark:text-[#141414] dark:hover:bg-white disabled:opacity-50"
+              className="inline-flex min-h-10 items-center gap-2 rounded-full bg-pine px-4 text-sm font-semibold text-wheat hover:bg-pine/90 dark:bg-wheat dark:text-[#141414] dark:hover:bg-white disabled:opacity-50"
               disabled={saving || !draft.trim()}
               type="submit"
             >
@@ -128,7 +128,7 @@ function DiscordChannelCard({
           <>
             <span className="font-mono text-sm font-semibold text-navy dark:text-wheat">#{entry.name}</span>
             {tracked?.nameOverride ? (
-              <span className="inline-flex items-center gap-1 rounded-full border border-cabernet/30 bg-cabernet/10 px-3 py-1 text-xs font-semibold text-cabernet dark:border-wheat/30 dark:bg-wheat/10 dark:text-wheat">
+              <span className="inline-flex items-center gap-1 rounded-full border border-pine/30 bg-pine/10 px-3 py-1 text-xs font-semibold text-pine dark:border-wheat/30 dark:bg-wheat/10 dark:text-wheat">
                 <Pin aria-hidden="true" className="size-3" />
                 Pinned name
               </span>

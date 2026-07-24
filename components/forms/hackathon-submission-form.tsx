@@ -10,7 +10,7 @@ type SubmitterType = "organizer" | "community";
 // Sentinel source URL so reviewers can tell a submission came from this form
 // rather than a scraped or imported source.
 const inputClassName =
-  "w-full rounded-none border-0 border-b border-navy/15 dark:border-white/15 bg-transparent px-0 py-2 text-[15px] text-navy dark:text-wheat outline-none transition-colors placeholder:text-navy/45 focus:border-cabernet";
+  "w-full rounded-none border-0 border-b border-navy/15 dark:border-white/15 bg-transparent px-0 py-2 text-[15px] text-navy dark:text-wheat outline-none transition-colors placeholder:text-navy/45 focus:border-pine";
 const labelClassName =
   "mb-2 block font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-navy/55 dark:text-wheat/55";
 
@@ -149,7 +149,7 @@ export function HackathonSubmissionForm() {
             aria-selected={submitterType === value}
             className={`flex flex-1 flex-col items-center justify-center gap-1.5 border-b-2 px-4 py-4 outline-none transition-colors ${
               submitterType === value
-                ? "border-cabernet dark:border-[#e4a3ab]/50 text-navy dark:text-wheat"
+                ? "border-pine dark:border-moss/50 text-navy dark:text-wheat"
                 : "border-transparent text-navy/55 dark:text-wheat/55 hover:text-navy dark:hover:text-wheat focus-visible:text-navy"
             }`}
             key={value}
@@ -315,15 +315,15 @@ export function HackathonSubmissionForm() {
             </div>
             <div className="flex items-end gap-6 pb-2">
               <label className="inline-flex items-center gap-2.5 text-sm text-navy dark:text-wheat">
-                <input name="beginnerFriendly" type="checkbox" className="size-4 accent-cabernet" />
+                <input name="beginnerFriendly" type="checkbox" className="size-4 accent-pine" />
                 Beginner friendly
               </label>
               <label className="inline-flex items-center gap-2.5 text-sm text-navy dark:text-wheat">
-                <input name="travelReimbursement" type="checkbox" className="size-4 accent-cabernet" />
+                <input name="travelReimbursement" type="checkbox" className="size-4 accent-pine" />
                 Travel reimbursement
               </label>
               <label className="inline-flex items-center gap-2.5 text-sm text-navy dark:text-wheat">
-                <input name="highSchoolersOnly" type="checkbox" className="size-4 accent-cabernet" />
+                <input name="highSchoolersOnly" type="checkbox" className="size-4 accent-pine" />
                 High school only
               </label>
             </div>
@@ -343,7 +343,7 @@ export function HackathonSubmissionForm() {
           <button
             disabled={status === "submitting"}
             type="submit"
-            className="inline-flex rounded-full min-h-11 items-center justify-center border border-cabernet dark:border-[#e4a3ab]/50 px-6 font-mono text-xs font-medium uppercase tracking-[0.14em] text-cabernet dark:text-[#e4a3ab] transition-colors hover:bg-cabernet hover:text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white focus-visible:bg-cabernet focus-visible:text-wheat focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cabernet dark:focus-visible:outline-wheat disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex rounded-full min-h-11 items-center justify-center border border-pine dark:border-moss/50 px-6 font-mono text-xs font-medium uppercase tracking-[0.14em] text-pine dark:text-moss transition-colors hover:bg-pine hover:text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white focus-visible:bg-pine focus-visible:text-wheat focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-pine dark:focus-visible:outline-wheat disabled:cursor-not-allowed disabled:opacity-50"
           >
             {status === "submitting" ? "Submitting" : "Submit for review"}
           </button>

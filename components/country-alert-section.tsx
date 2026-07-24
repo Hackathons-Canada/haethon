@@ -169,7 +169,7 @@ export function CountryAlertSection({ subscription }: { subscription: CountryAle
           {saved ? (
             <button
               aria-label="Remove country alert"
-              className="grid size-10 place-items-center rounded-full text-navy/55 transition-colors hover:bg-navy/[0.05] hover:text-navy dark:text-wheat/55 dark:hover:bg-white/5 dark:hover:text-wheat focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40"
+              className="grid size-10 place-items-center rounded-full text-navy/55 transition-colors hover:bg-navy/[0.05] hover:text-navy dark:text-wheat/55 dark:hover:bg-white/5 dark:hover:text-wheat focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine/35 dark:focus-visible:outline-wheat/40"
               disabled={pending}
               onClick={remove}
               type="button"
@@ -179,10 +179,10 @@ export function CountryAlertSection({ subscription }: { subscription: CountryAle
           ) : null}
           <button
             aria-expanded={open}
-            className={`inline-flex min-h-10 items-center gap-1.5 rounded-full border px-4 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40 ${
+            className={`inline-flex min-h-10 items-center gap-1.5 rounded-full border px-4 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine/35 dark:focus-visible:outline-wheat/40 ${
               open
-                ? "border-cabernet bg-cabernet text-wheat dark:border-[#e4a3ab]/50 dark:bg-[#e4a3ab]/15 dark:text-[#e4a3ab]"
-                : "border-cabernet text-cabernet hover:bg-cabernet hover:text-wheat dark:border-[#e4a3ab]/50 dark:text-[#e4a3ab] dark:hover:bg-[#e4a3ab]/10"
+                ? "border-pine bg-pine text-wheat dark:border-moss/50 dark:bg-moss/15 dark:text-moss"
+                : "border-pine text-pine hover:bg-pine hover:text-wheat dark:border-moss/50 dark:text-moss dark:hover:bg-moss/10"
             }`}
             onClick={toggleOpen}
             type="button"
@@ -221,9 +221,9 @@ export function CountryAlertSection({ subscription }: { subscription: CountryAle
                 return (
                   <button
                     aria-selected={selected}
-                    className={`flex items-center justify-between gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40 ${
+                    className={`flex items-center justify-between gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine/35 dark:focus-visible:outline-wheat/40 ${
                       selected
-                        ? "border-cabernet/35 dark:border-[#e4a3ab]/40 bg-cabernet/5 dark:bg-[#e4a3ab]/10"
+                        ? "border-pine/35 dark:border-moss/40 bg-pine/5 dark:bg-moss/10"
                         : "border-navy/10 dark:border-white/10 bg-white dark:bg-white/[0.06] hover:border-navy/20 hover:bg-ivory dark:hover:bg-white/10"
                     }`}
                     key={country}
@@ -236,7 +236,7 @@ export function CountryAlertSection({ subscription }: { subscription: CountryAle
                       aria-hidden="true"
                       className={`grid size-6 shrink-0 place-items-center rounded-full border ${
                         selected
-                          ? "border-cabernet dark:border-[#e4a3ab]/50 bg-cabernet text-wheat dark:bg-wheat dark:text-[#141414]"
+                          ? "border-pine dark:border-moss/50 bg-pine text-wheat dark:bg-wheat dark:text-[#141414]"
                           : "border-navy/15 dark:border-white/15 text-transparent"
                       }`}
                     >
@@ -257,7 +257,7 @@ export function CountryAlertSection({ subscription }: { subscription: CountryAle
                 {error ?? "One alert per account, delivered in your Monday digest — saving replaces your current one."}
               </p>
               <button
-                className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-full bg-cabernet px-5 text-sm font-semibold text-wheat transition-opacity disabled:opacity-50 dark:bg-wheat dark:text-[#141414] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40"
+                className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-full bg-pine px-5 text-sm font-semibold text-wheat transition-opacity disabled:opacity-50 dark:bg-wheat dark:text-[#141414] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine/35 dark:focus-visible:outline-wheat/40"
                 disabled={!draftCountry || pending}
                 onClick={save}
                 type="button"

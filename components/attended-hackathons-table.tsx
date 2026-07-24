@@ -27,7 +27,7 @@ function StatusCell({ tier, isWinner }: { tier: AttendanceTrustTier | null; isWi
 
   if (tier === "verified") {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-cabernet/25 bg-cabernet/5 dark:bg-[#e4a3ab]/10 px-2 py-0.5 text-xs font-semibold text-cabernet dark:text-[#e4a3ab]">
+      <span className="inline-flex items-center gap-1 rounded-full border border-pine/25 bg-pine/5 dark:bg-moss/10 px-2 py-0.5 text-xs font-semibold text-pine dark:text-moss">
         <BadgeCheck aria-hidden="true" className="size-3" />
         Verified
       </span>

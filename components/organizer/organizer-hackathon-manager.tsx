@@ -27,8 +27,8 @@ type Attendee = {
 };
 
 const inputClassName =
-  "w-full rounded-xl border border-navy/15 dark:border-white/15 bg-white dark:bg-white/[0.06] px-3 py-2 text-sm text-navy dark:text-wheat outline-none focus:border-cabernet focus:ring-2 focus:ring-cabernet/15";
-const checkboxClassName = "size-4 rounded border-navy/20 dark:border-white/20 text-cabernet dark:text-[#e4a3ab] focus:ring-cabernet/20";
+  "w-full rounded-xl border border-navy/15 dark:border-white/15 bg-white dark:bg-white/[0.06] px-3 py-2 text-sm text-navy dark:text-wheat outline-none focus:border-pine focus:ring-2 focus:ring-pine/15";
+const checkboxClassName = "size-4 rounded border-navy/20 dark:border-white/20 text-pine dark:text-moss focus:ring-pine/20";
 const labelClassName = "mb-1 block text-xs font-semibold uppercase tracking-[0.14em] text-navy/55 dark:text-wheat/55";
 const panelTitleClassName = "flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.14em] text-rust";
 
@@ -146,7 +146,7 @@ function CheckinCodePanel({ hackathonId }: { hackathonId: string }) {
             <span className="text-sm font-semibold text-navy/55 dark:text-wheat/55">No active code yet.</span>
           )}
           <button
-            className="inline-flex min-h-10 items-center gap-2 rounded-full bg-cabernet px-4 text-sm font-semibold text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white disabled:opacity-50"
+            className="inline-flex min-h-10 items-center gap-2 rounded-full bg-pine px-4 text-sm font-semibold text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white disabled:opacity-50"
             disabled={status === "generating"}
             onClick={generateCode}
             type="button"
@@ -351,7 +351,7 @@ function AttendeesPanel({ hackathonId }: { hackathonId: string }) {
             </button>
             {selectable.length ? (
               <button
-                className="text-sm font-semibold text-cabernet dark:text-[#e4a3ab] underline-offset-4 hover:underline"
+                className="text-sm font-semibold text-pine dark:text-moss underline-offset-4 hover:underline"
                 onClick={() => setSelected(new Set(selectable.map((attendee) => attendee.userId)))}
                 type="button"
               >
@@ -724,7 +724,7 @@ export function OrganizerHackathonManager({
     return (
       <p className="rounded-xl p-6 text-sm leading-6 text-navy/55 dark:text-wheat/55">
         No hackathons are linked to your organizer account yet. Submit your hackathon from the{" "}
-        <a className="font-semibold text-cabernet dark:text-[#e4a3ab] underline-offset-4 hover:underline" href="/submit">
+        <a className="font-semibold text-pine dark:text-moss underline-offset-4 hover:underline" href="/submit">
           submit page
         </a>{" "}
         and it will show up here once approved.

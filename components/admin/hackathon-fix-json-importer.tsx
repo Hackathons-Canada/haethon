@@ -154,7 +154,7 @@ export function HackathonFixJsonImporter() {
           </p>
         </div>
         <button
-          className="inline-flex min-h-10 items-center gap-2 rounded-full bg-cabernet hover:bg-[#5c151c] px-4 text-sm font-semibold text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white disabled:opacity-50"
+          className="inline-flex min-h-10 items-center gap-2 rounded-full bg-pine hover:bg-pine/90 px-4 text-sm font-semibold text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white disabled:opacity-50"
           disabled={status === "submitting" || !jsonText.trim()}
           type="submit"
         >
@@ -165,7 +165,7 @@ export function HackathonFixJsonImporter() {
 
       <textarea
         aria-label="Broken hackathon JSON"
-        className="min-h-72 w-full rounded-xl border border-navy/15 dark:border-white/15 bg-ivory dark:bg-white/5 p-4 font-mono text-xs leading-5 text-navy dark:text-wheat outline-none focus:border-cabernet focus:ring-2 focus:ring-cabernet/15"
+        className="min-h-72 w-full rounded-xl border border-navy/15 dark:border-white/15 bg-ivory dark:bg-white/5 p-4 font-mono text-xs leading-5 text-navy dark:text-wheat outline-none focus:border-pine focus:ring-2 focus:ring-pine/15"
         onChange={(event) => setJsonText(event.target.value)}
         placeholder={sampleFixJson}
         spellCheck={false}

@@ -13,9 +13,9 @@ type SkillsFieldProps = {
 const basePillClassName =
   "inline-flex min-h-8 items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-medium transition";
 const selectedPillClassName =
-  "border-cabernet bg-cabernet text-wheat dark:border-[#e4a3ab] dark:bg-[#e4a3ab] dark:text-[#141414]";
+  "border-pine bg-pine text-wheat dark:border-moss dark:bg-moss dark:text-[#141414]";
 const unselectedPillClassName =
-  "border-navy/15 bg-white text-navy/75 hover:border-cabernet hover:text-cabernet dark:border-white/15 dark:bg-white/[0.06] dark:text-wheat/75 dark:hover:border-[#e4a3ab]/60 dark:hover:text-[#e4a3ab]";
+  "border-navy/15 bg-white text-navy/75 hover:border-pine hover:text-pine dark:border-white/15 dark:bg-white/[0.06] dark:text-wheat/75 dark:hover:border-moss/60 dark:hover:text-moss";
 
 function matches(query: string, value: string) {
   return value.toLowerCase().includes(query);
@@ -82,7 +82,7 @@ export function SkillsField({ value, onChange }: SkillsFieldProps) {
             placeholder="Search languages & frameworks"
             autoComplete="off"
             spellCheck={false}
-            className="w-full rounded-xl border border-navy/15 dark:border-white/15 bg-white dark:bg-white/[0.06] py-2 pl-9 pr-3 text-sm text-navy dark:text-wheat outline-none transition placeholder:text-navy/45 dark:placeholder:text-wheat/40 focus:border-cabernet focus:ring-2 focus:ring-cabernet/15"
+            className="w-full rounded-xl border border-navy/15 dark:border-white/15 bg-white dark:bg-white/[0.06] py-2 pl-9 pr-3 text-sm text-navy dark:text-wheat outline-none transition placeholder:text-navy/45 dark:placeholder:text-wheat/40 focus:border-pine focus:ring-2 focus:ring-pine/15"
           />
         </div>
         <span className="text-xs font-semibold uppercase tracking-[0.14em] text-navy/55 dark:text-wheat/55">

@@ -87,7 +87,7 @@ export function AddToCalendarButton(props: Props) {
       <button
         aria-expanded={open}
         aria-haspopup="menu"
-        className="inline-flex rounded-full min-h-11 items-center justify-center gap-1.5 border border-cabernet dark:border-[#e4a3ab]/50 px-6 text-sm font-semibold text-cabernet dark:text-[#e4a3ab] transition-colors hover:bg-cabernet hover:text-wheat"
+        className="inline-flex rounded-full min-h-11 items-center justify-center gap-1.5 border border-pine dark:border-moss/50 px-6 text-sm font-semibold text-pine dark:text-moss transition-colors hover:bg-pine hover:text-wheat"
         onClick={() => setOpen((value) => !value)}
         type="button"
       >
@@ -101,7 +101,7 @@ export function AddToCalendarButton(props: Props) {
         >
           {options.map((option) => (
             <a
-              className="flex items-center justify-between gap-3 px-4 py-2 text-sm text-navy/70 dark:text-wheat/70 transition-colors hover:bg-[#F5F1EC] hover:text-cabernet dark:hover:text-[#e4a3ab]"
+              className="flex items-center justify-between gap-3 px-4 py-2 text-sm text-navy/70 dark:text-wheat/70 transition-colors hover:bg-[#F5F1EC] hover:text-pine dark:hover:text-moss"
               href={option.href}
               key={option.label}
               onClick={() => setOpen(false)}
