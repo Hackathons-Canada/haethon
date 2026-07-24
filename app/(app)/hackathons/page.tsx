@@ -17,28 +17,25 @@ export default async function HackathonsPage({
 }) {
   const rawSearchParams = (await searchParams) ?? {};
   const filters = normalizeSearchFilters(rawSearchParams);
-  const searched = rawSearchParams.search === "1";
   const dateRange = dateRangeForPeriod(filters.datePeriod);
 
-  /* The first visit ships no catalog. A URL produced by an explicit Search can
-     be reloaded server-side, but it still returns only one bounded result page. */
-  const [{ cards, hasMore }, user] = searched
-    ? await Promise.all([
-        getPublicHackathonCatalog({
-          name: filters.name,
-          countries: filters.countries,
-          format: filters.format === "any" ? null : filters.format,
-          beginnerFriendly: filters.beginnerFriendly === "any" ? null : filters.beginnerFriendly === "on",
-          travelReimbursement:
-            filters.travelReimbursement === "any" ? null : filters.travelReimbursement === "on",
-          highSchoolersOnly: filters.highSchoolersOnly === "any" ? null : filters.highSchoolersOnly === "on",
-          startsAfter: dateRange?.startsAfter,
-          startsBefore: dateRange?.startsBefore,
-          limit: 30,
-        }),
-        getCurrentUserRecord(),
-      ])
-    : [{ cards: [], hasMore: false }, null];
+  /* First visits receive one bounded catalog page immediately. Search URLs use
+     the same query with their filters applied, so reloads remain shareable. */
+  const [{ cards, hasMore }, user] = await Promise.all([
+    getPublicHackathonCatalog({
+      name: filters.name,
+      countries: filters.countries,
+      format: filters.format === "any" ? null : filters.format,
+      beginnerFriendly: filters.beginnerFriendly === "any" ? null : filters.beginnerFriendly === "on",
+      travelReimbursement:
+        filters.travelReimbursement === "any" ? null : filters.travelReimbursement === "on",
+      highSchoolersOnly: filters.highSchoolersOnly === "any" ? null : filters.highSchoolersOnly === "on",
+      startsAfter: dateRange?.startsAfter,
+      startsBefore: dateRange?.startsBefore,
+      limit: 30,
+    }),
+    getCurrentUserRecord(),
+  ]);
 
   const hackathonCards = await applyUserCardState(cards, user?.id);
 
@@ -48,7 +45,7 @@ export default async function HackathonsPage({
         initialFilters={filters}
         initialHackathons={hackathonCards}
         initialHasMore={hasMore}
-        initialHasSearched={searched}
+        initialHasSearched
       />
     </main>
   );

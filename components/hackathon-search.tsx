@@ -555,11 +555,8 @@ export function HackathonSearch({
     setBeginnerFriendly("any");
     setTravelReimbursement("any");
     setHighSchoolersOnly("any");
-    setAppliedFilters(clearedFilters);
-    setCatalog([]);
-    setHasMore(false);
-    setHasSearched(false);
     setSearchError(null);
+    void searchHackathons(clearedFilters);
   }
 
   return (
@@ -1162,7 +1159,8 @@ export function HackathonSearch({
               <span className="font-semibold text-cabernet dark:text-[#e4a3ab]">{searchError}</span>
             ) : hasSearched ? (
               <span>
-                Showing {filteredHackathons.length} {filteredHackathons.length === 1 ? "hackathon" : "hackathons"} matching your search.
+                Showing {filteredHackathons.length} {filteredHackathons.length === 1 ? "hackathon" : "hackathons"}
+                {activeFilters ? " matching your filters." : " from the catalog."}
               </span>
             ) : (
               <span>Choose your filters, then press Search to load hackathons.</span>
