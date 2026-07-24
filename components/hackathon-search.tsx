@@ -12,8 +12,8 @@ import {
   ListOrdered,
   LocateFixed,
   MapPin,
+  Menu,
   Navigation,
-  PlusSquare,
   Search,
   Settings2,
   Trophy,
@@ -27,7 +27,7 @@ import { HackathonTierList } from "@/components/hackathon-tier-list";
 import type { GeoPoint } from "@/lib/geo";
 import { countryOptions } from "@/lib/hackathons/countries";
 import { filterLocalHackathonCatalog } from "@/lib/hackathons/local-catalog-search";
-import { assignTiers, sortByEloDescending, sortByEloWithLocalBoost } from "@/lib/hackathons/ranking";
+import { assignTiers, sortByEloWithLocalBoost } from "@/lib/hackathons/ranking";
 import { activeRegionPreset, regionPresets } from "@/lib/hackathons/region-presets";
 import type { RegionPresetId } from "@/lib/hackathons/region-presets";
 import { datePeriodOptions, distanceOptions, viewModeOptions } from "@/lib/hackathons/search-filters";
@@ -41,13 +41,14 @@ import type {
 } from "@/lib/hackathons/search-filters";
 
 const countryListboxId = "hackathon-country-options";
-const countryPopoverId = "hackathon-country-popover";
+const locationPopoverId = "hackathon-location-popover";
 const datePopoverId = "hackathon-date-popover";
 const formatPopoverId = "hackathon-format-popover";
 const featurePopoverId = "hackathon-feature-popover";
-const distancePopoverId = "hackathon-distance-popover";
+const navMenuId = "hackathon-nav-menu";
 
-type OpenPopover = "countries" | "date" | "format" | "features" | "distance" | null;
+type OpenPopover = "location" | "date" | "format" | "features" | null;
+type LocationMode = "country" | "near_me";
 
 /* The user's position for the distance filter (and, via countryCode, the
    Browse/Ranking views' "push local hackathons to the top" boost). IP-based
@@ -180,7 +181,12 @@ export function HackathonSearch({
   const [view, setView] = useState<HackathonViewMode>(initialFilters.view);
   const [catalog, setCatalog] = useState(initialHackathons);
   const [openPopover, setOpenPopover] = useState<OpenPopover>(null);
+  /* Which sub-panel the merged Location popover shows. Resets to "country" every
+     time the popover opens (see the Location button's onClick). */
+  const [locationMode, setLocationMode] = useState<LocationMode>("country");
+  const [navMenuOpen, setNavMenuOpen] = useState(false);
   const filterFormRef = useRef<HTMLFormElement>(null);
+  const navMenuRef = useRef<HTMLDivElement>(null);
   const countrySearchRef = useRef<HTMLInputElement>(null);
   const countryRowRef = useRef<HTMLDivElement>(null);
   const [countriesOverflow, setCountriesOverflow] = useState(false);
@@ -190,11 +196,15 @@ export function HackathonSearch({
       if (!filterFormRef.current?.contains(event.target as Node)) {
         setOpenPopover(null);
       }
+      if (!navMenuRef.current?.contains(event.target as Node)) {
+        setNavMenuOpen(false);
+      }
     }
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
         setOpenPopover(null);
+        setNavMenuOpen(false);
       }
     }
 
@@ -208,10 +218,10 @@ export function HackathonSearch({
   }, []);
 
   useEffect(() => {
-    if (openPopover === "countries") {
+    if (openPopover === "location" && locationMode === "country") {
       countrySearchRef.current?.focus();
     }
-  }, [openPopover]);
+  }, [openPopover, locationMode]);
 
   /* Browser geolocation — accurate but shows a permission prompt, so it is
      only used on explicit request or when the free IP lookup has nothing. */
@@ -377,10 +387,6 @@ export function HackathonSearch({
     }),
     []
   );
-  const faceoffRanks = useMemo(
-    () => new Map(sortByEloDescending(rankableHackathons).map((hackathon, index) => [hackathon.id, index + 1])),
-    [rankableHackathons]
-  );
   const faceoffTiers = useMemo(
     () =>
       new Map(
@@ -395,7 +401,6 @@ export function HackathonSearch({
     ((hackathon: HackathonCardData) => (
       <HackathonCard
         hackathon={hackathon}
-        rank={faceoffRanks.get(hackathon.id)}
         tier={faceoffTiers.get(hackathon.id)}
       />
     ));
@@ -486,10 +491,10 @@ export function HackathonSearch({
                 return (
                   <button
                     aria-pressed={active}
-                    className={`group inline-flex min-h-10 items-center gap-1.5 whitespace-nowrap rounded-full px-3 text-sm font-semibold transition-all sm:gap-2 sm:px-5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40 ${
+                    className={`group inline-flex min-h-10 items-center gap-1.5 whitespace-nowrap rounded-full px-3 text-sm font-semibold transition-all sm:gap-2 sm:px-5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine/40 ${
                       active
-                        ? "bg-cabernet text-wheat shadow-[0_8px_20px_-8px_rgba(114,28,36,0.55)] dark:bg-wheat dark:text-[#141414] dark:shadow-[0_8px_20px_-8px_rgba(244,235,217,0.35)]"
-                        : "text-navy/55 hover:bg-navy/[0.05] hover:text-navy dark:text-wheat/55 dark:hover:bg-white/5 dark:hover:text-wheat"
+                        ? "bg-pine text-paper shadow-[0_8px_20px_-8px_rgba(0,115,84,0.45)]"
+                        : "text-ink/55 hover:text-ink hover:ring-1 hover:ring-inset hover:ring-pine"
                     }`}
                     key={preset.id}
                     onClick={() => applyRegionPreset(preset.id)}
@@ -508,13 +513,68 @@ export function HackathonSearch({
                 );
               })}
             </div>
-            <Link
-              className="inline-flex min-h-10 items-center gap-2 px-4 text-sm font-semibold text-navy dark:text-wheat transition-colors hover:text-cabernet dark:hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40 sm:absolute sm:right-0"
-              href="/submit"
-            >
-              <PlusSquare aria-hidden="true" className="size-4" />
-              New entry
-            </Link>
+            <div className="flex items-center gap-1.5 sm:absolute sm:right-0" ref={navMenuRef}>
+              <Link
+                className="inline-flex min-h-10 items-center rounded-full px-4 text-sm font-semibold text-navy dark:text-wheat transition-colors hover:text-cabernet dark:hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40"
+                href="/submit"
+              >
+                New entry
+              </Link>
+              <div className="relative">
+                <button
+                  aria-controls={navMenuId}
+                  aria-expanded={navMenuOpen}
+                  aria-haspopup="menu"
+                  aria-label="Open menu"
+                  className="inline-flex size-10 items-center justify-center rounded-full border border-navy/10 bg-white/70 text-navy shadow-[0_10px_32px_-14px_rgba(29,42,68,0.3)] backdrop-blur-xl transition-colors hover:bg-white dark:border-white/10 dark:bg-white/[0.06] dark:text-wheat dark:hover:bg-white/[0.12] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40"
+                  onClick={() => setNavMenuOpen((open) => !open)}
+                  type="button"
+                >
+                  <Menu aria-hidden="true" className="size-5" />
+                </button>
+                {navMenuOpen ? (
+                  <div
+                    className="absolute right-0 top-[calc(100%+0.5rem)] z-50 min-w-44 overflow-hidden rounded-2xl border border-navy/10 bg-white/90 p-1.5 shadow-[0_18px_48px_-18px_rgba(29,42,68,0.45)] backdrop-blur-xl dark:border-white/10 dark:bg-[#1f1f1f]/95"
+                    id={navMenuId}
+                    role="menu"
+                  >
+                    {viewModeOptions.map((option) => {
+                      const Icon = viewModeIcons[option.value];
+                      const active = view === option.value;
+
+                      return (
+                        <button
+                          className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40 ${
+                            active
+                              ? "bg-cabernet text-wheat dark:bg-wheat dark:text-[#141414]"
+                              : "text-navy/70 hover:bg-navy/[0.05] hover:text-navy dark:text-wheat/70 dark:hover:bg-white/5 dark:hover:text-wheat"
+                          }`}
+                          key={option.value}
+                          onClick={() => {
+                            setView(option.value);
+                            setNavMenuOpen(false);
+                          }}
+                          role="menuitem"
+                          type="button"
+                        >
+                          <Icon aria-hidden="true" className="size-4" />
+                          {option.label}
+                        </button>
+                      );
+                    })}
+                    <Link
+                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm font-semibold text-navy/70 transition-colors hover:bg-navy/[0.05] hover:text-navy dark:text-wheat/70 dark:hover:bg-white/5 dark:hover:text-wheat focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40"
+                      href="/my"
+                      onClick={() => setNavMenuOpen(false)}
+                      role="menuitem"
+                    >
+                      <CalendarDays aria-hidden="true" className="size-4" />
+                      Your list
+                    </Link>
+                  </div>
+                ) : null}
+              </div>
+            </div>
           </div>
 
           <form
@@ -540,19 +600,24 @@ export function HackathonSearch({
               {countries.map((country) => (
                 <input key={country} name="countries" type="hidden" value={country} />
               ))}
+              {distanceKm !== "any" ? <input name="distanceKm" type="hidden" value={distanceKm} /> : null}
               <button
-                aria-controls={countryPopoverId}
-                aria-expanded={openPopover === "countries"}
-                aria-label="Countries"
+                aria-controls={locationPopoverId}
+                aria-expanded={openPopover === "location"}
+                aria-label="Location"
                 className={`flex min-h-[4.2rem] w-full min-w-0 flex-col justify-start rounded-[2rem] px-6 py-3 text-left hover:bg-ivory dark:hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40 ${
-                  openPopover === "countries" ? "bg-ivory dark:bg-white/5 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)]" : ""
+                  openPopover === "location" ? "bg-ivory dark:bg-white/5 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)]" : ""
                 }`}
-                onClick={() => setOpenPopover((current) => (current === "countries" ? null : "countries"))}
+                onClick={() => {
+                  // Always reopen on the Country panel, per the merged-tab design.
+                  setLocationMode("country");
+                  setOpenPopover((current) => (current === "location" ? null : "location"));
+                }}
                 type="button"
               >
                 <span className="flex items-center gap-1.5 text-xs font-semibold leading-5 text-navy dark:text-wheat">
                   <Globe2 aria-hidden="true" className="size-3.5" />
-                  Countries
+                  Location
                 </span>
                 {countries.length ? (
                   <span className="relative mt-1 block min-w-0">
@@ -575,94 +640,198 @@ export function HackathonSearch({
                       </span>
                     ) : null}
                   </span>
+                ) : distanceKm !== "any" ? (
+                  <span className="mt-1 block truncate text-sm leading-5 text-navy/55 dark:text-wheat/55">
+                    {locationState === "locating" ? "Finding you..." : selectedDistanceLabel}
+                  </span>
                 ) : (
-                  <span className="mt-1 text-sm leading-5 text-navy/55 dark:text-wheat/55">Search countries</span>
+                  <span className="mt-1 text-sm leading-5 text-navy/55 dark:text-wheat/55">Country or near me</span>
                 )}
               </button>
-              {openPopover === "countries" ? (
+              {openPopover === "location" ? (
                 <div
                   className="absolute left-0 right-0 top-[calc(100%+0.9rem)] z-50 overflow-hidden rounded-[1.75rem] border border-navy/10 dark:border-white/10 bg-white dark:bg-[#1b1b1b] p-4 shadow-[0_22px_55px_rgba(0,0,0,0.2)] md:left-[-1rem] md:right-auto md:w-[34rem]"
-                  id={countryPopoverId}
+                  id={locationPopoverId}
                 >
-                  <div className="flex items-center gap-2 rounded-full border border-navy/10 dark:border-white/10 bg-ivory dark:bg-white/5 px-4 py-3">
-                    <Search aria-hidden="true" className="size-4 text-navy/55 dark:text-wheat/55" />
-                    <input
-                      aria-autocomplete="list"
-                      aria-controls={countryListboxId}
-                      aria-expanded="true"
-                      aria-label="Search countries"
-                      className="min-w-0 flex-1 bg-transparent text-sm leading-5 text-navy dark:text-wheat outline-none placeholder:text-navy/55 dark:placeholder:text-wheat/40"
-                      onChange={(event) => setCountryQuery(event.target.value)}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter" && filteredCountries[0]) {
-                          event.preventDefault();
-                          toggleCountry(filteredCountries[0]);
-                        }
-                      }}
-                      placeholder="Search countries"
-                      ref={countrySearchRef}
-                      role="combobox"
-                      type="search"
-                      value={countryQuery}
-                    />
-                  </div>
-                  {countries.length ? (
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {countries.map((country) => (
-                        <button
-                          aria-label={`Remove ${country}`}
-                          className="inline-flex items-center gap-1.5 rounded-full border border-navy/10 dark:border-white/10 bg-white dark:bg-white/[0.06] px-3 py-1.5 text-xs font-semibold text-navy dark:text-wheat hover:border-navy dark:hover:border-white/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40"
-                          key={country}
-                          onClick={() => removeCountry(country)}
-                          type="button"
-                        >
-                          {country}
-                          <X aria-hidden="true" className="size-3.5" />
-                        </button>
-                      ))}
-                    </div>
-                  ) : null}
+                  {/* Segmented toggle picks which filter this tab edits. Both panels
+                      keep the exact UI they had as standalone tabs. */}
                   <div
-                    className="mt-4 grid max-h-[22rem] gap-2 overflow-y-auto pr-1 sm:grid-cols-2"
-                    id={countryListboxId}
-                    role="listbox"
+                    aria-label="Location filter type"
+                    className="mb-4 grid grid-cols-2 gap-1 rounded-full border border-navy/10 dark:border-white/10 bg-ivory dark:bg-white/5 p-1"
+                    role="tablist"
                   >
-                    {filteredCountries.map((country) => {
-                      const selected = countries.includes(country);
+                    {(
+                      [
+                        { mode: "country", label: "Country", icon: Globe2 },
+                        { mode: "near_me", label: "Near me", icon: Navigation },
+                      ] as const
+                    ).map(({ mode, label, icon: Icon }) => {
+                      const active = locationMode === mode;
 
                       return (
                         <button
-                          aria-selected={selected}
-                          className={`flex min-h-[4.25rem] items-center justify-between gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40 ${
-                            selected
-                              ? "border-cabernet/35 dark:border-[#e4a3ab]/40 bg-cabernet/5 dark:bg-[#e4a3ab]/10"
-                              : "border-navy/10 dark:border-white/10 bg-white dark:bg-white/[0.06] hover:border-navy/20 hover:bg-ivory dark:hover:bg-white/10"
+                          aria-selected={active}
+                          className={`inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full px-4 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40 ${
+                            active
+                              ? "bg-cabernet text-wheat dark:bg-wheat dark:text-[#141414]"
+                              : "text-navy/55 hover:text-navy dark:text-wheat/55 dark:hover:text-wheat"
                           }`}
-                          key={country}
-                          onClick={() => toggleCountry(country)}
-                          role="option"
+                          key={mode}
+                          onClick={() => setLocationMode(mode)}
+                          role="tab"
                           type="button"
                         >
-                          <span className="min-w-0">
-                            <span className="block truncate text-sm font-semibold text-navy dark:text-wheat">{country}</span>
-                            <span className="mt-0.5 block truncate text-xs text-navy/55 dark:text-wheat/55">{countryDetail(country)}</span>
-                          </span>
-                          <span
-                            className={`grid size-6 shrink-0 place-items-center rounded-full border ${
-                              selected ? "border-cabernet dark:border-[#e4a3ab]/50 bg-cabernet text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white" : "border-navy/15 dark:border-white/15 text-transparent"
-                            }`}
-                          >
-                            <Check aria-hidden="true" className="size-3.5" strokeWidth={3} />
-                          </span>
+                          <Icon aria-hidden="true" className="size-4" />
+                          {label}
                         </button>
                       );
                     })}
-                    {!filteredCountries.length ? (
-                      <div className="col-span-full rounded-xl border border-navy/10 dark:border-white/10 bg-ivory dark:bg-white/5 px-4 py-5 text-sm font-semibold text-navy/55 dark:text-wheat/55">
-                        No countries match that search.
-                      </div>
-                    ) : null}
                   </div>
+
+                  {locationMode === "country" ? (
+                    <>
+                      <div className="flex items-center gap-2 rounded-full border border-navy/10 dark:border-white/10 bg-ivory dark:bg-white/5 px-4 py-3">
+                        <Search aria-hidden="true" className="size-4 text-navy/55 dark:text-wheat/55" />
+                        <input
+                          aria-autocomplete="list"
+                          aria-controls={countryListboxId}
+                          aria-expanded="true"
+                          aria-label="Search countries"
+                          className="min-w-0 flex-1 bg-transparent text-sm leading-5 text-navy dark:text-wheat outline-none placeholder:text-navy/55 dark:placeholder:text-wheat/40"
+                          onChange={(event) => setCountryQuery(event.target.value)}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter" && filteredCountries[0]) {
+                              event.preventDefault();
+                              toggleCountry(filteredCountries[0]);
+                            }
+                          }}
+                          placeholder="Search countries"
+                          ref={countrySearchRef}
+                          role="combobox"
+                          type="search"
+                          value={countryQuery}
+                        />
+                      </div>
+                      {countries.length ? (
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {countries.map((country) => (
+                            <button
+                              aria-label={`Remove ${country}`}
+                              className="inline-flex items-center gap-1.5 rounded-full border border-navy/10 dark:border-white/10 bg-white dark:bg-white/[0.06] px-3 py-1.5 text-xs font-semibold text-navy dark:text-wheat hover:border-navy dark:hover:border-white/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40"
+                              key={country}
+                              onClick={() => removeCountry(country)}
+                              type="button"
+                            >
+                              {country}
+                              <X aria-hidden="true" className="size-3.5" />
+                            </button>
+                          ))}
+                        </div>
+                      ) : null}
+                      <div
+                        className="mt-4 grid max-h-[22rem] gap-2 overflow-y-auto pr-1 sm:grid-cols-2"
+                        id={countryListboxId}
+                        role="listbox"
+                      >
+                        {filteredCountries.map((country) => {
+                          const selected = countries.includes(country);
+
+                          return (
+                            <button
+                              aria-selected={selected}
+                              className={`flex min-h-[4.25rem] items-center justify-between gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40 ${
+                                selected
+                                  ? "border-cabernet/35 dark:border-[#e4a3ab]/40 bg-cabernet/5 dark:bg-[#e4a3ab]/10"
+                                  : "border-navy/10 dark:border-white/10 bg-white dark:bg-white/[0.06] hover:border-navy/20 hover:bg-ivory dark:hover:bg-white/10"
+                              }`}
+                              key={country}
+                              onClick={() => toggleCountry(country)}
+                              role="option"
+                              type="button"
+                            >
+                              <span className="min-w-0">
+                                <span className="block truncate text-sm font-semibold text-navy dark:text-wheat">{country}</span>
+                                <span className="mt-0.5 block truncate text-xs text-navy/55 dark:text-wheat/55">{countryDetail(country)}</span>
+                              </span>
+                              <span
+                                className={`grid size-6 shrink-0 place-items-center rounded-full border ${
+                                  selected ? "border-cabernet dark:border-[#e4a3ab]/50 bg-cabernet text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white" : "border-navy/15 dark:border-white/15 text-transparent"
+                                }`}
+                              >
+                                <Check aria-hidden="true" className="size-3.5" strokeWidth={3} />
+                              </span>
+                            </button>
+                          );
+                        })}
+                        {!filteredCountries.length ? (
+                          <div className="col-span-full rounded-xl border border-navy/10 dark:border-white/10 bg-ivory dark:bg-white/5 px-4 py-5 text-sm font-semibold text-navy/55 dark:text-wheat/55">
+                            No countries match that search.
+                          </div>
+                        ) : null}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="grid gap-2">
+                        {distanceOptions.map((option) => {
+                          const selected = distanceKm === option.value;
+
+                          return (
+                            <button
+                              aria-pressed={selected}
+                              className={`flex min-h-[3.5rem] items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40 ${
+                                selected
+                                  ? "border-cabernet/35 dark:border-[#e4a3ab]/40 bg-cabernet/5 dark:bg-[#e4a3ab]/10"
+                                  : "border-navy/10 dark:border-white/10 bg-white dark:bg-white/[0.06] hover:border-navy/20 hover:bg-ivory dark:hover:bg-white/10"
+                              }`}
+                              key={option.value}
+                              onClick={() => {
+                                setDistanceKm(option.value);
+
+                                if (option.value !== "any" && !origin && locationState === "idle") {
+                                  void locate();
+                                }
+                              }}
+                              type="button"
+                            >
+                              <span className="text-sm font-semibold text-navy dark:text-wheat">{option.label}</span>
+                              <span
+                                className={`grid size-6 shrink-0 place-items-center rounded-full border ${
+                                  selected ? "border-cabernet dark:border-[#e4a3ab]/50 bg-cabernet text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white" : "border-navy/15 dark:border-white/15 text-transparent"
+                                }`}
+                              >
+                                <Check aria-hidden="true" className="size-3.5" strokeWidth={3} />
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <div className="mt-3 border-t border-navy/10 dark:border-white/10 pt-3">
+                        {locationState === "error" ? (
+                          <p className="mb-2 text-xs leading-5 text-cabernet dark:text-[#e4a3ab]">
+                            We couldn&apos;t find your location. Allow location access in your browser and try again.
+                          </p>
+                        ) : origin ? (
+                          <p className="mb-2 text-xs leading-5 text-navy/55 dark:text-wheat/55">
+                            {origin.precise
+                              ? "Using your precise location."
+                              : `Using your approximate location${origin.label ? ` near ${origin.label}` : ""}.`}
+                          </p>
+                        ) : null}
+                        {!origin?.precise ? (
+                          <button
+                            className="inline-flex min-h-9 items-center gap-2 rounded-full border border-navy/15 dark:border-white/15 px-4 text-xs font-semibold text-navy dark:text-wheat transition-colors hover:border-navy dark:hover:border-white/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40 disabled:opacity-50"
+                            disabled={locationState === "locating"}
+                            onClick={locateWithBrowser}
+                            type="button"
+                          >
+                            <LocateFixed aria-hidden="true" className="size-3.5" />
+                            {locationState === "locating" ? "Locating..." : "Use precise location"}
+                          </button>
+                        ) : null}
+                      </div>
+                    </>
+                  )}
                 </div>
               ) : null}
             </div>
@@ -786,94 +955,6 @@ export function HackathonSearch({
               ) : null}
             </div>
 
-            <div className="relative min-h-[4.2rem] min-w-0 flex-1">
-              {distanceKm !== "any" ? <input name="distanceKm" type="hidden" value={distanceKm} /> : null}
-              <button
-                aria-controls={distancePopoverId}
-                aria-expanded={openPopover === "distance"}
-                aria-label="Distance"
-                className={`flex min-h-[4.2rem] w-full min-w-0 flex-col justify-start rounded-[2rem] px-6 py-3 text-left hover:bg-ivory dark:hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40 ${
-                  openPopover === "distance" ? "bg-ivory dark:bg-white/5 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)]" : ""
-                }`}
-                onClick={() => setOpenPopover((current) => (current === "distance" ? null : "distance"))}
-                type="button"
-              >
-                <span className="flex items-center gap-1.5 text-xs font-semibold leading-5 text-navy dark:text-wheat">
-                  <Navigation aria-hidden="true" className="size-3.5" />
-                  Near me
-                </span>
-                <span className="mt-1 block truncate text-sm leading-5 text-navy/55 dark:text-wheat/55">
-                  {distanceKm !== "any" && locationState === "locating" ? "Finding you..." : selectedDistanceLabel}
-                </span>
-              </button>
-              {openPopover === "distance" ? (
-                <div
-                  className="absolute left-0 top-[calc(100%+0.9rem)] z-50 w-full min-w-[19rem] rounded-[1.75rem] border border-navy/10 dark:border-white/10 bg-white dark:bg-[#1b1b1b] p-4 shadow-[0_22px_55px_rgba(0,0,0,0.2)] md:w-[24rem]"
-                  id={distancePopoverId}
-                >
-                  <div className="grid gap-2">
-                    {distanceOptions.map((option) => {
-                      const selected = distanceKm === option.value;
-
-                      return (
-                        <button
-                          aria-pressed={selected}
-                          className={`flex min-h-[3.5rem] items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40 ${
-                            selected
-                              ? "border-cabernet/35 dark:border-[#e4a3ab]/40 bg-cabernet/5 dark:bg-[#e4a3ab]/10"
-                              : "border-navy/10 dark:border-white/10 bg-white dark:bg-white/[0.06] hover:border-navy/20 hover:bg-ivory dark:hover:bg-white/10"
-                          }`}
-                          key={option.value}
-                          onClick={() => {
-                            setDistanceKm(option.value);
-                            setOpenPopover(null);
-
-                            if (option.value !== "any" && !origin && locationState === "idle") {
-                              void locate();
-                            }
-                          }}
-                          type="button"
-                        >
-                          <span className="text-sm font-semibold text-navy dark:text-wheat">{option.label}</span>
-                          <span
-                            className={`grid size-6 shrink-0 place-items-center rounded-full border ${
-                              selected ? "border-cabernet dark:border-[#e4a3ab]/50 bg-cabernet text-wheat dark:bg-wheat dark:text-[#141414] dark:hover:bg-white" : "border-navy/15 dark:border-white/15 text-transparent"
-                            }`}
-                          >
-                            <Check aria-hidden="true" className="size-3.5" strokeWidth={3} />
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <div className="mt-3 border-t border-navy/10 dark:border-white/10 pt-3">
-                    {locationState === "error" ? (
-                      <p className="mb-2 text-xs leading-5 text-cabernet dark:text-[#e4a3ab]">
-                        We couldn&apos;t find your location. Allow location access in your browser and try again.
-                      </p>
-                    ) : origin ? (
-                      <p className="mb-2 text-xs leading-5 text-navy/55 dark:text-wheat/55">
-                        {origin.precise
-                          ? "Using your precise location."
-                          : `Using your approximate location${origin.label ? ` near ${origin.label}` : ""}.`}
-                      </p>
-                    ) : null}
-                    {!origin?.precise ? (
-                      <button
-                        className="inline-flex min-h-9 items-center gap-2 rounded-full border border-navy/15 dark:border-white/15 px-4 text-xs font-semibold text-navy dark:text-wheat transition-colors hover:border-navy dark:hover:border-white/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40 disabled:opacity-50"
-                        disabled={locationState === "locating"}
-                        onClick={locateWithBrowser}
-                        type="button"
-                      >
-                        <LocateFixed aria-hidden="true" className="size-3.5" />
-                        {locationState === "locating" ? "Locating..." : "Use precise location"}
-                      </button>
-                    ) : null}
-                  </div>
-                </div>
-              ) : null}
-            </div>
-
             <div className="relative min-h-[4.2rem] min-w-0 flex-[1.5]">
               {featureTags.map((tag) =>
                 tag.value !== "any" ? <input key={tag.key} name={tag.key} type="hidden" value={tag.value} /> : null
@@ -966,39 +1047,11 @@ export function HackathonSearch({
             <h1 className="font-serif text-3xl font-semibold tracking-[-0.02em] text-navy dark:text-wheat sm:text-4xl">
               {view === "tier" ? "Tier list" : view === "ranking" ? "Elo ranking" : "Upcoming hackathons"}
             </h1>
-            <div
-              aria-label="Hackathon view"
-              className="inline-flex items-center gap-1 rounded-full border border-navy/10 bg-white/70 p-1 shadow-[0_10px_32px_-14px_rgba(29,42,68,0.3)] backdrop-blur-xl dark:border-white/10 dark:bg-white/[0.06]"
-              role="tablist"
-            >
-              {viewModeOptions.map((option) => {
-                const Icon = viewModeIcons[option.value];
-                const active = view === option.value;
-
-                return (
-                  <button
-                    aria-selected={active}
-                    className={`inline-flex min-h-9 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cabernet/35 dark:focus-visible:outline-wheat/40 ${
-                      active
-                        ? "bg-cabernet text-wheat dark:bg-wheat dark:text-[#141414]"
-                        : "text-navy/55 hover:bg-navy/[0.05] hover:text-navy dark:text-wheat/55 dark:hover:bg-white/5 dark:hover:text-wheat"
-                    }`}
-                    key={option.value}
-                    onClick={() => setView(option.value)}
-                    role="tab"
-                    type="button"
-                  >
-                    <Icon aria-hidden="true" className="size-4" />
-                    {option.label}
-                  </button>
-                );
-              })}
-            </div>
           </div>
 
-          {view === "grid" && !activeFilters ? (
+          {view === "grid" && !activeFilters && originCountryCode ? (
             <p className="mb-6 -mt-3 text-sm leading-5 text-navy/50 dark:text-wheat/50">
-              Ranked by Face Off Elo{originCountryCode ? " — hackathons near you first." : "."}
+              Hackathons near you first.
             </p>
           ) : null}
 

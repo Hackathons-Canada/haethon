@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { BellPlus, Bookmark, Check, ChevronDown } from "lucide-react";
 
@@ -154,19 +155,81 @@ function BookmarkButton({
   );
 }
 
-function splitDateRange(date: string) {
+/* Title-cases a three-letter month token, e.g. "SEP"/"sep" -> "Sep". */
+function toMonthLabel(month: string) {
+  return `${month[0]?.toUpperCase() ?? ""}${month.slice(1).toLowerCase()}`;
+}
+
+/* The card's big date block renders differently depending on the span:
+   - single    one day, one line ("Sep 30")
+   - sameMonth a range within one month — month on top, "start – end" below
+   - multiMonth a range crossing months — "Sep 30" / "Oct 2", no dash
+   - raw       anything we can't parse, shown verbatim on one line */
+type ParsedDate =
+  | { kind: "raw"; text: string }
+  | { kind: "single"; month: string; day: string }
+  | { kind: "sameMonth"; month: string; startDay: string; endDay: string }
+  | { kind: "multiMonth"; startMonth: string; startDay: string; endMonth: string; endDay: string };
+
+function splitDateRange(date: string): ParsedDate {
   const normalized = date.replace(/\s+/g, " ").trim();
-  const match = normalized.match(/^([A-Za-z]{3})\s+(\d{1,2})(?:\s*-\s*(?:(?:[A-Za-z]{3})\s+)?(\d{1,2}))?/);
+  // month day [ - [month] day ] — the second month is optional (same-month
+  // ranges omit it) and now captured so cross-month spans keep both months.
+  const match = normalized.match(/^([A-Za-z]{3})\s+(\d{1,2})(?:\s*-\s*(?:([A-Za-z]{3})\s+)?(\d{1,2}))?/);
 
   if (!match) {
-    return { label: "DATE", primary: normalized, secondary: null };
+    return { kind: "raw", text: normalized };
   }
 
-  return {
-    label: match[1]?.toUpperCase() ?? "DATE",
-    primary: match[2] ?? normalized,
-    secondary: match[3] ?? null,
-  };
+  const startMonthRaw = match[1] ?? "";
+  const startDay = match[2] ?? normalized;
+  const endMonthRaw = match[3] ?? null;
+  const endDay = match[4] ?? null;
+  const month = toMonthLabel(startMonthRaw);
+
+  if (!endDay) {
+    return { kind: "single", month, day: startDay };
+  }
+
+  if (endMonthRaw && endMonthRaw.toLowerCase() !== startMonthRaw.toLowerCase()) {
+    return {
+      kind: "multiMonth",
+      startMonth: month,
+      startDay,
+      endMonth: toMonthLabel(endMonthRaw),
+      endDay,
+    };
+  }
+
+  return { kind: "sameMonth", month, startDay, endDay };
+}
+
+/* Renders the big date block. Each entry in `lines` is its own row; the first
+   row may wrap/clamp, later rows stay on a single line (they're short). */
+function CardDate({ parsed }: { parsed: ParsedDate }) {
+  const lineClass = "text-[1.35rem] leading-[0.95] @[38rem]:text-[2.25rem]";
+
+  const lines =
+    parsed.kind === "raw"
+      ? [parsed.text]
+      : parsed.kind === "single"
+        ? [`${parsed.month} ${parsed.day}`]
+        : parsed.kind === "sameMonth"
+          ? [parsed.month, `${parsed.startDay} – ${parsed.endDay}`]
+          : [`${parsed.startMonth} ${parsed.startDay}`, `${parsed.endMonth} ${parsed.endDay}`];
+
+  return (
+    <div className="px-2 py-5 font-sans font-bold tracking-[-0.07em] text-ink @[38rem]:px-7 @[38rem]:py-7">
+      {lines.map((line, index) => (
+        <span
+          className={index === 0 ? `line-clamp-2 ${lineClass}` : `mt-1 block whitespace-nowrap ${lineClass}`}
+          key={index}
+        >
+          {line}
+        </span>
+      ))}
+    </div>
+  );
 }
 
 function cardDescription(hackathon: HackathonCardData) {
@@ -406,7 +469,6 @@ export function HackathonCard({
   cornerAction,
   hackathon,
   preview = false,
-  rank,
   reminder,
   tier,
 }: {
@@ -416,7 +478,6 @@ export function HackathonCard({
   cornerAction?: ReactNode;
   hackathon: HackathonCardData;
   preview?: boolean;
-  rank?: number;
   /* When set, the footer swaps the save control for an inline reminder
      picker that expands below the card — used on the My Hackathons board. */
   reminder?: HackathonCardReminder;
@@ -424,14 +485,14 @@ export function HackathonCard({
 }) {
   const date = splitDateRange(hackathon.date);
   const features = featureLabels(hackathon);
-  const location = [hackathon.country ? getCountryDisplay(hackathon.country) : null, hackathon.location]
-    .filter(Boolean)
-    .join(", ");
-  const rankingLabel = `Tier ${tier ?? "—"}  Rank ${rank ?? "—"}`;
+  const countryDisplay = hackathon.country ? getCountryDisplay(hackathon.country) : null;
+  // Full string powers the hover title / truncation; the country and the rest
+  // of the place render as separate spans so only the country picks up color.
+  const location = [countryDisplay, hackathon.location].filter(Boolean).join(", ");
 
   return (
     <article
-      className={`group @container relative grid w-full max-w-[56rem] min-w-0 overflow-hidden border border-ink/20 bg-paper transition-colors hover:border-ink/50 ${
+      className={`group @container relative grid w-full max-w-[56rem] min-w-0 overflow-hidden border border-black bg-paper outline outline-0 outline-black transition-[outline-width,color,background-color,opacity] hover:outline-1 ${
         /* Past editions read as faded — dimmed just enough to signal "already
            happened" without hurting text legibility. Hover restores full
            strength so the card is still easy to inspect. */
@@ -449,41 +510,60 @@ export function HackathonCard({
 
       <div className="grid min-w-0 grid-cols-[5.75rem_minmax(0,1fr)] @[38rem]:grid-cols-[minmax(11.5rem,25%)_minmax(0,1fr)]">
         <div
-          className={`flex flex-col border-r border-ink/35 px-4 py-6 @[38rem]:px-7 @[38rem]:py-9 ${
+          className={`flex flex-col border-r border-ink/35 ${
             compact ? "min-h-52" : "min-h-64 @[38rem]:min-h-[36rem]"
           }`}
         >
-          <span className="font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-[#e84216] @[38rem]:text-sm">
-            {rankingLabel}
-          </span>
-          <div className="mt-5 font-sans font-semibold tracking-[-0.07em] text-ink">
-            <span className="line-clamp-2 text-[1.35rem] leading-[0.95] @[38rem]:text-[2.25rem]">
-              {date.label === "DATE" ? date.primary : `${date.label[0]}${date.label.slice(1).toLowerCase()} ${date.primary}`}
+          <div className="aspect-square w-full shrink-0 border-b border-ink/35 p-2 @[38rem]:p-3">
+            <div className="relative size-full overflow-hidden">
+              {hackathon.image ? (
+                <Image
+                  alt={`${hackathon.name} logo`}
+                  className="object-cover"
+                  fill
+                  sizes="(min-width: 608px) 14rem, 5.75rem"
+                  src={`/api/hackathons/${encodeURIComponent(hackathon.id)}/logo`}
+                />
+              ) : (
+                <span className="grid size-full place-items-center px-2 text-center font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-ink/35 @[38rem]:text-base">
+                  {hackathon.name
+                    .split(/\s+/)
+                    .filter(Boolean)
+                    .slice(0, 2)
+                    .map((word) => word[0]?.toUpperCase())
+                    .join("") || "HN"}
+                </span>
+              )}
+            </div>
+          </div>
+
+          <CardDate parsed={date} />
+
+          <div className="mt-auto px-4 pb-6 @[38rem]:px-7 @[38rem]:pb-9">
+            <span className="font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-[#e84216] @[38rem]:text-sm">
+              Tier {tier ?? "—"}
             </span>
-            {date.secondary ? (
-              <span className="mt-1 block whitespace-nowrap text-[1.35rem] leading-[0.95] @[38rem]:text-[2.25rem]">
-                – {date.secondary}
+            {hackathon.isPast ? (
+              <span className="mt-2 block font-mono text-[10px] uppercase tracking-[0.12em] text-ink/45">
+                Past edition
               </span>
             ) : null}
           </div>
-          {hackathon.isPast ? (
-            <span className="mt-auto font-mono text-[10px] uppercase tracking-[0.12em] text-ink/45">
-              Past edition
-            </span>
-          ) : null}
         </div>
 
-        <div className="flex min-w-0 flex-col px-5 py-6 @[38rem]:px-10 @[38rem]:py-9">
+        <div className="flex min-w-0 flex-col px-2 py-6 @[38rem]:px-10 @[38rem]:py-9">
           <h2 className="line-clamp-2 text-[1.8rem] font-medium leading-[1.02] tracking-[-0.045em] text-ink @[38rem]:text-[3rem]">
             {hackathon.name}
           </h2>
           <p
-            className={`mt-4 truncate font-mono text-[13px] uppercase tracking-[0.08em] @[38rem]:mt-5 @[38rem]:text-[1.3rem] ${getLocationColor(
-              hackathon.country
-            )}`}
+            className="mt-2 truncate font-mono text-[13px] font-bold uppercase tracking-[0.08em] text-ink/85 @[38rem]:mt-2.5 @[38rem]:text-[1.3rem]"
             title={location}
           >
-            {location}
+            {countryDisplay ? (
+              <span className={getLocationColor(hackathon.country)}>{countryDisplay}</span>
+            ) : null}
+            {countryDisplay && hackathon.location ? ", " : ""}
+            {hackathon.location}
           </p>
 
           <p className="mt-7 line-clamp-4 text-sm leading-6 text-ink/70 @[38rem]:mt-16 @[38rem]:max-w-[42rem] @[38rem]:text-xl @[38rem]:leading-[1.55]">
@@ -501,11 +581,15 @@ export function HackathonCard({
                 {cornerAction ? <div className="relative z-20 shrink-0">{cornerAction}</div> : null}
               </div>
             ) : (
-              <div className="flex min-w-0 items-center justify-between gap-3">
+              <div className="flex min-w-0 items-center justify-between gap-3 py-2 @[38rem]:py-3">
                 <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-ink/60 @[38rem]:text-sm">
-                  <span aria-hidden="true" className="size-2 shrink-0 rounded-full bg-ink" />
                   {features.map((feature, index) => (
-                    <span className="inline-flex items-center gap-2" key={feature}>
+                    <span
+                      className={`inline-flex items-center gap-2 ${
+                        feature === "Discord" ? "font-bold text-[#5865F2]" : ""
+                      }`}
+                      key={feature}
+                    >
                       {index > 0 ? <span aria-hidden="true">|</span> : null}
                       {feature === "Discord" ? <DiscordGlyph className="size-3.5 text-[#5865F2]" /> : null}
                       {feature}

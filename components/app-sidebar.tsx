@@ -88,7 +88,7 @@ export function AppSidebar({
             <Link
               aria-current={active ? "page" : undefined}
               className={`inline-flex min-h-10 shrink-0 items-center gap-3 pl-3 pr-1 text-sm font-medium transition-colors lg:w-40 ${
-                active ? "bg-pine text-paper" : "text-ink/55 hover:bg-pine/10 hover:text-ink"
+                active ? "bg-pine text-paper" : "text-ink/55 hover:bg-pine/5 hover:text-ink"
               }`}
               href={href}
               key={href}

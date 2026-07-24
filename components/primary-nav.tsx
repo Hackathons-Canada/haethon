@@ -13,7 +13,7 @@ export function PrimaryNav() {
         <div className="flex min-w-0 items-center gap-1 sm:gap-2">
           <Link
             href="/?home"
-            className="flex items-center gap-2.5 rounded-full py-1 pl-1 pr-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine"
+            className="flex items-center gap-2.5 rounded-[9999px] py-1 pl-1 pr-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pine"
           >
             <Image
               src="/logo-beaver.png"
